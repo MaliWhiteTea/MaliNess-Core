@@ -1,0 +1,5 @@
+# Bu dosya şablon örneğidir. Gerçek sistemler kendi configs/<sistem>.yml dosyasını kullanır.
+# Örnek: configs/home.yml, configs/tpa.yml
+
+enabled: true
+cooldown-seconds: 5

@@ -1,0 +1,10 @@
+name: MaliNess Core
+description: $description
+version: '${version}'
+
+main: com.mertaliakcay.malinesscore.MaliNessCore
+api-version: '1.21.4'
+load: POSTWORLD
+
+authors: [ Mert Ali AKÇAY ]
+website: https://github.com/MaliWhiteTea

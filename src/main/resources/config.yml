@@ -1,0 +1,6 @@
+# MaliNess Core - Genel ayarlar
+#
+# Sistem ayarları  -> plugins/MaliNess Core/configs/<sistem>.yml
+# Sistem mesajları  -> plugins/MaliNess Core/langs/<sistem>.yml
+#
+# Her yeni sistem kendi config ve lang dosyasına sahip olacak.
