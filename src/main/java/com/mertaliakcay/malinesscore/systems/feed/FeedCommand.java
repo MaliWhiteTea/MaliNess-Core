@@ -1,8 +1,7 @@
-package com.mertaliakcay.malinesscore.systems.heal;
+package com.mertaliakcay.malinesscore.systems.feed;
 
 import com.mertaliakcay.malinesscore.util.CommandSuggestions;
 import org.bukkit.Bukkit;
-import org.bukkit.attribute.Attribute;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -14,11 +13,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public final class HealCommand implements CommandExecutor, TabCompleter {
+public final class FeedCommand implements CommandExecutor, TabCompleter {
 
-    private final HealSystem system;
+    private static final int MAX_FOOD_LEVEL = 20;
 
-    public HealCommand(HealSystem system) {
+    private final FeedSystem system;
+
+    public FeedCommand(FeedSystem system) {
         this.system = system;
     }
 
@@ -35,15 +36,15 @@ public final class HealCommand implements CommandExecutor, TabCompleter {
         }
 
         if (args.length == 0) {
-            handleSelfFullHeal(sender);
+            handleSelfFullFeed(sender);
             return;
         }
 
         if (args.length == 1) {
             if (isPositiveInteger(args[0])) {
-                handleSelfPartialHeal(sender, Integer.parseInt(args[0]));
+                handleSelfPartialFeed(sender, Integer.parseInt(args[0]));
             } else {
-                handleOtherFullHeal(sender, args[0]);
+                handleOtherFullFeed(sender, args[0]);
             }
             return;
         }
@@ -53,7 +54,7 @@ public final class HealCommand implements CommandExecutor, TabCompleter {
                 system.getLang().send(sender, "invalid-amount", "amount", args[0]);
                 return;
             }
-            handleOtherPartialHeal(sender, Integer.parseInt(args[0]), args[1]);
+            handleOtherPartialFeed(sender, Integer.parseInt(args[0]), args[1]);
             return;
         }
 
@@ -70,13 +71,13 @@ public final class HealCommand implements CommandExecutor, TabCompleter {
         }
 
         if (args.length == 1) {
-            if (isPositiveInteger(args[0]) && sender.hasPermission(HealSystem.PERM_OTHERS)) {
+            if (isPositiveInteger(args[0]) && sender.hasPermission(FeedSystem.PERM_OTHERS)) {
                 return CommandSuggestions.filter(onlinePlayerNames(), "");
             }
             return CommandSuggestions.filter(firstArgSuggestions(sender), args[0]);
         }
 
-        if (args.length == 2 && sender.hasPermission(HealSystem.PERM_OTHERS)) {
+        if (args.length == 2 && sender.hasPermission(FeedSystem.PERM_OTHERS)) {
             return CommandSuggestions.filter(onlinePlayerNames(), args[1]);
         }
 
@@ -88,104 +89,97 @@ public final class HealCommand implements CommandExecutor, TabCompleter {
         return suggest(sender, args);
     }
 
-    private boolean handleSelfFullHeal(CommandSender sender) {
+    private void handleSelfFullFeed(CommandSender sender) {
         if (!(sender instanceof Player player)) {
-            system.getLang().send(sender, "console-no-health");
-            return true;
+            system.getLang().send(sender, "console-no-hunger");
+            return;
         }
 
-        if (!sender.hasPermission(HealSystem.PERM_USE)) {
+        if (!sender.hasPermission(FeedSystem.PERM_USE)) {
             system.getLang().send(sender, "no-permission");
-            return true;
+            return;
         }
 
-        healFully(player);
-        system.getLang().send(sender, "healed-self-full");
-        return true;
+        feedFully(player);
+        system.getLang().send(sender, "fed-self-full");
     }
 
-    private boolean handleSelfPartialHeal(CommandSender sender, int halfHearts) {
+    private void handleSelfPartialFeed(CommandSender sender, int foodPoints) {
         if (!(sender instanceof Player player)) {
-            system.getLang().send(sender, "console-no-health");
-            return true;
+            system.getLang().send(sender, "console-no-hunger");
+            return;
         }
 
-        if (!sender.hasPermission(HealSystem.PERM_USE)) {
+        if (!sender.hasPermission(FeedSystem.PERM_USE)) {
             system.getLang().send(sender, "no-permission");
-            return true;
+            return;
         }
 
-        if (halfHearts <= 0) {
-            system.getLang().send(sender, "invalid-amount", "amount", halfHearts);
-            return true;
+        if (foodPoints <= 0) {
+            system.getLang().send(sender, "invalid-amount", "amount", foodPoints);
+            return;
         }
 
-        healPartial(player, halfHearts);
-        system.getLang().send(sender, "healed-self-partial", "amount", halfHearts);
-        return true;
+        feedPartial(player, foodPoints);
+        system.getLang().send(sender, "fed-self-partial", "amount", foodPoints);
     }
 
-    private boolean handleOtherFullHeal(CommandSender sender, String targetName) {
-        if (!sender.hasPermission(HealSystem.PERM_OTHERS)) {
+    private void handleOtherFullFeed(CommandSender sender, String targetName) {
+        if (!sender.hasPermission(FeedSystem.PERM_OTHERS)) {
             system.getLang().send(sender, "no-permission-others");
-            return true;
+            return;
         }
 
         Player target = Bukkit.getPlayerExact(targetName);
         if (target == null) {
             system.getLang().send(sender, "player-not-found", "player", targetName);
-            return true;
+            return;
         }
 
-        healFully(target);
-        system.getLang().send(sender, "healed-other-full", "player", target.getName());
-        return true;
+        feedFully(target);
+        system.getLang().send(sender, "fed-other-full", "player", target.getName());
     }
 
-    private boolean handleOtherPartialHeal(CommandSender sender, int halfHearts, String targetName) {
-        if (!sender.hasPermission(HealSystem.PERM_OTHERS)) {
+    private void handleOtherPartialFeed(CommandSender sender, int foodPoints, String targetName) {
+        if (!sender.hasPermission(FeedSystem.PERM_OTHERS)) {
             system.getLang().send(sender, "no-permission-others");
-            return true;
+            return;
         }
 
-        if (halfHearts <= 0) {
-            system.getLang().send(sender, "invalid-amount", "amount", halfHearts);
-            return true;
+        if (foodPoints <= 0) {
+            system.getLang().send(sender, "invalid-amount", "amount", foodPoints);
+            return;
         }
 
         Player target = Bukkit.getPlayerExact(targetName);
         if (target == null) {
             system.getLang().send(sender, "player-not-found", "player", targetName);
-            return true;
+            return;
         }
 
-        healPartial(target, halfHearts);
-        system.getLang().send(sender, "healed-other-partial", "player", target.getName(), "amount", halfHearts);
-        return true;
+        feedPartial(target, foodPoints);
+        system.getLang().send(sender, "fed-other-partial", "player", target.getName(), "amount", foodPoints);
     }
 
-    private void healFully(Player player) {
-        double maxHealth = player.getAttribute(Attribute.MAX_HEALTH).getValue();
-        player.setHealth(maxHealth);
+    private void feedFully(Player player) {
+        player.setFoodLevel(MAX_FOOD_LEVEL);
     }
 
-    private void healPartial(Player player, int halfHearts) {
-        double maxHealth = player.getAttribute(Attribute.MAX_HEALTH).getValue();
-        double newHealth = Math.min(player.getHealth() + halfHearts, maxHealth);
-        player.setHealth(newHealth);
+    private void feedPartial(Player player, int foodPoints) {
+        player.setFoodLevel(Math.min(player.getFoodLevel() + foodPoints, MAX_FOOD_LEVEL));
     }
 
     private List<String> firstArgSuggestions(CommandSender sender) {
         List<String> suggestions = new ArrayList<>();
 
-        if (sender.hasPermission(HealSystem.PERM_USE)) {
+        if (sender.hasPermission(FeedSystem.PERM_USE)) {
             suggestions.add("2");
             suggestions.add("4");
             suggestions.add("10");
             suggestions.add("20");
         }
 
-        if (sender.hasPermission(HealSystem.PERM_OTHERS)) {
+        if (sender.hasPermission(FeedSystem.PERM_OTHERS)) {
             suggestions.addAll(onlinePlayerNames());
         }
 

@@ -1,0 +1,43 @@
+system-disabled:
+  type: error
+  text: "Doygunluk doldurma sistemi şu anda kapalı."
+
+no-permission:
+  type: error
+  text: "Bu komutu kullanma yetkin yok!"
+
+no-permission-others:
+  type: error
+  text: "Başka oyuncuların doygunluğunu doldurma yetkin yok!"
+
+console-no-saturation:
+  type: error
+  text: "Konsolun doygunluğu yok! Bir oyuncu adı belirt."
+
+player-not-found:
+  type: error
+  text: "{player} adlı oyuncu bulunamadı."
+
+invalid-amount:
+  type: error
+  text: "{amount} geçerli bir miktar değil. Pozitif bir sayı gir."
+
+usage:
+  type: warning
+  text: "Kullanım: /saturate [miktar] [oyuncu]"
+
+saturated-self-full:
+  type: success
+  text: "Doygunluğun tamamen dolduruldu ve açlığın giderildi!"
+
+saturated-self-partial:
+  type: success
+  text: "Doygunluğun {amount} puan artırıldı ve açlığın giderildi!"
+
+saturated-other-full:
+  type: success
+  text: "{player} oyuncusunun doygunluğu dolduruldu ve açlığı giderildi!"
+
+saturated-other-partial:
+  type: success
+  text: "{player} oyuncusunun doygunluğu {amount} puan artırıldı ve açlığı giderildi!"

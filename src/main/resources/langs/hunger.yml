@@ -1,0 +1,51 @@
+system-disabled:
+  type: error
+  text: "Açlık ayarlama sistemi şu anda kapalı."
+
+no-permission:
+  type: error
+  text: "Bu komutu kullanma yetkin yok!"
+
+usage:
+  type: warning
+  text: "Kullanım: /hunger <set|add|remove> <oyuncu> <miktar>"
+
+invalid-subcommand:
+  type: error
+  text: "{subcommand} geçerli bir alt komut değil. set, add veya remove kullan."
+
+player-not-found:
+  type: error
+  text: "{player} adlı oyuncu bulunamadı."
+
+invalid-amount:
+  type: error
+  text: "{amount} geçerli bir sayı değil."
+
+invalid-set-amount:
+  type: error
+  text: "Ayarlanacak açlık 1 ile 20 arasında olmalı. Girilen: {amount}"
+
+invalid-add-amount:
+  type: error
+  text: "Eklenecek açlık en az 1 olmalı. Girilen: {amount}"
+
+invalid-remove-amount:
+  type: error
+  text: "Azaltılacak açlık 1 ile 19 arasında olmalı. Girilen: {amount}"
+
+remove-too-much:
+  type: error
+  text: "{player} oyuncusunun açlığı {current}; {amount} azaltılamaz."
+
+hunger-set:
+  type: success
+  text: "{player} oyuncusunun açlığı {amount} olarak ayarlandı."
+
+hunger-add:
+  type: success
+  text: "{player} oyuncusunun açlığına {amount} eklendi."
+
+hunger-remove:
+  type: success
+  text: "{player} oyuncusunun açlığından {amount} azaltıldı."

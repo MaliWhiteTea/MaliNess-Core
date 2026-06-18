@@ -1,16 +1,24 @@
 package com.mertaliakcay.malinesscore;
 
+import com.mertaliakcay.malinesscore.command.MalinessCommand;
 import com.mertaliakcay.malinesscore.messages.MessageService;
 import com.mertaliakcay.malinesscore.systems.SystemManager;
+import com.mertaliakcay.malinesscore.systems.feed.FeedSystem;
 import com.mertaliakcay.malinesscore.systems.heal.HealSystem;
+import com.mertaliakcay.malinesscore.systems.health.HealthSystem;
+import com.mertaliakcay.malinesscore.systems.hunger.HungerSystem;
+import com.mertaliakcay.malinesscore.systems.saturate.SaturateSystem;
+import com.mertaliakcay.malinesscore.systems.saturation.SaturationSystem;
 import com.mertaliakcay.malinesscore.util.PluginLang;
 import com.mertaliakcay.malinesscore.util.YamlMerger;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class MaliNessCore extends JavaPlugin {
 
     private MessageService messageService;
     private PluginLang pluginLang;
+    private MalinessCommand malinessCommand;
     private SystemManager systemManager;
 
     @Override
@@ -21,6 +29,9 @@ public final class MaliNessCore extends JavaPlugin {
         messageService.reload();
 
         pluginLang = new PluginLang(this);
+
+        malinessCommand = new MalinessCommand(this);
+        registerMalinessCommand();
 
         systemManager = new SystemManager(this);
         registerSystems();
@@ -52,11 +63,28 @@ public final class MaliNessCore extends JavaPlugin {
         return systemManager;
     }
 
+    public MalinessCommand getMalinessCommand() {
+        return malinessCommand;
+    }
+
+    private void registerMalinessCommand() {
+        PluginCommand command = getCommand("maliness");
+        if (command != null) {
+            command.setExecutor(malinessCommand);
+            command.setTabCompleter(malinessCommand);
+        }
+    }
+
     /**
      * Yeni sistemler buraya eklenir.
      * Örnek: systemManager.register(new TpaSystem());
      */
     private void registerSystems() {
         systemManager.register(new HealSystem());
+        systemManager.register(new FeedSystem());
+        systemManager.register(new HealthSystem());
+        systemManager.register(new HungerSystem());
+        systemManager.register(new SaturateSystem());
+        systemManager.register(new SaturationSystem());
     }
 }

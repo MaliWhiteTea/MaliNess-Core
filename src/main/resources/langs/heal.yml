@@ -41,11 +41,3 @@ healed-other-full:
 healed-other-partial:
   type: success
   text: "{player} oyuncusunun canı {amount} yarım kalp artırıldı."
-
-root-usage:
-  type: normal
-  text: "Kullanım: /mn heal [miktar] [oyuncu]"
-
-unknown-subcommand:
-  type: error
-  text: "{subcommand} adlı alt komut bulunamadı."

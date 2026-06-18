@@ -1,0 +1,51 @@
+system-disabled:
+  type: error
+  text: "Doygunluk ayarlama sistemi şu anda kapalı."
+
+no-permission:
+  type: error
+  text: "Bu komutu kullanma yetkin yok!"
+
+usage:
+  type: warning
+  text: "Kullanım: /saturation <set|add|remove> <oyuncu> <miktar>"
+
+invalid-subcommand:
+  type: error
+  text: "{subcommand} geçerli bir alt komut değil. set, add veya remove kullan."
+
+player-not-found:
+  type: error
+  text: "{player} adlı oyuncu bulunamadı."
+
+invalid-amount:
+  type: error
+  text: "{amount} geçerli bir sayı değil."
+
+invalid-set-amount:
+  type: error
+  text: "Ayarlanacak doygunluk 1 ile 20 arasında olmalı. Girilen: {amount}"
+
+invalid-add-amount:
+  type: error
+  text: "Eklenecek doygunluk en az 1 olmalı. Girilen: {amount}"
+
+invalid-remove-amount:
+  type: error
+  text: "Azaltılacak doygunluk 1 ile 19 arasında olmalı. Girilen: {amount}"
+
+remove-too-much:
+  type: error
+  text: "{player} oyuncusunun doygunluğu {current}; {amount} azaltılamaz."
+
+saturation-set:
+  type: success
+  text: "{player} oyuncusunun doygunluğu {amount} olarak ayarlandı."
+
+saturation-add:
+  type: success
+  text: "{player} oyuncusunun doygunluğuna {amount} eklendi."
+
+saturation-remove:
+  type: success
+  text: "{player} oyuncusunun doygunluğundan {amount} azaltıldı."

@@ -6,7 +6,7 @@
 
     <groupId>com.mertaliakcay.malinesscore</groupId>
     <artifactId>MaliNess-Core</artifactId>
-    <version>0.0.2-D</version>
+    <version>0.0.4-B</version>
     <packaging>jar</packaging>
 
     <name>MaliNess-Core</name>

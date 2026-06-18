@@ -1,19 +1,17 @@
 package com.mertaliakcay.malinesscore.systems.heal;
 
-import com.mertaliakcay.malinesscore.command.MalinessCommand;
 import com.mertaliakcay.malinesscore.systems.AbstractGameSystem;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
-import org.bukkit.command.PluginCommand;
 
-import java.util.Collections;
+import java.util.List;
 
 public final class HealSystem extends AbstractGameSystem {
 
     public static final String PERM_USE = "maliness-core.heal.use";
     public static final String PERM_OTHERS = "maliness-core.heal.use.others";
+    public static final String ALIAS_TURKISH = "iyileştir";
 
     private HealCommand healCommand;
-    private MalinessCommand malinessCommand;
 
     @Override
     protected String getSystemId() {
@@ -33,30 +31,18 @@ public final class HealSystem extends AbstractGameSystem {
             event.registrar().register(
                     "heal",
                     "Can yeniler.",
-                    Collections.emptyList(),
+                    List.of(ALIAS_TURKISH),
                     healBasicCommand
             );
         });
 
-        PluginCommand malinessPluginCommand = plugin.getCommand("maliness");
-        if (malinessPluginCommand != null) {
-            malinessCommand = new MalinessCommand(this);
-            malinessCommand.setHealCommand(healCommand);
-            malinessPluginCommand.setExecutor(malinessCommand);
-            malinessPluginCommand.setTabCompleter(malinessCommand);
-        }
+        plugin.getMalinessCommand().setHeal(this, healCommand);
     }
 
     @Override
     protected void onDisable() {
-        PluginCommand malinessPluginCommand = plugin.getCommand("maliness");
-        if (malinessPluginCommand != null) {
-            malinessPluginCommand.setExecutor(null);
-            malinessPluginCommand.setTabCompleter(null);
-        }
-
+        plugin.getMalinessCommand().clearHeal();
         healCommand = null;
-        malinessCommand = null;
     }
 
     public boolean isEnabled() {

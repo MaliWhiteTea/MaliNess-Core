@@ -1,0 +1,43 @@
+system-disabled:
+  type: error
+  text: "Doyurma sistemi şu anda kapalı."
+
+no-permission:
+  type: error
+  text: "Bu komutu kullanma yetkin yok!"
+
+no-permission-others:
+  type: error
+  text: "Başka oyuncuları doyurma yetkin yok!"
+
+console-no-hunger:
+  type: error
+  text: "Konsolun açlığı yok! Bir oyuncu adı belirt."
+
+player-not-found:
+  type: error
+  text: "{player} adlı oyuncu bulunamadı."
+
+invalid-amount:
+  type: error
+  text: "{amount} geçerli bir miktar değil. Pozitif bir sayı gir."
+
+usage:
+  type: warning
+  text: "Kullanım: /feed [miktar] [oyuncu]"
+
+fed-self-full:
+  type: success
+  text: "Açlığın tamamen giderildi!"
+
+fed-self-partial:
+  type: success
+  text: "Açlığın {amount} puan artırıldı."
+
+fed-other-full:
+  type: success
+  text: "{player} oyuncusu doyuruldu!"
+
+fed-other-partial:
+  type: success
+  text: "{player} oyuncusunun açlığı {amount} puan artırıldı."

@@ -9,18 +9,30 @@ plugin-disabled:
   type: normal
   text: "MaliNess Core kapatıldı."
 
-system-enabled:
+systems-enabled-summary:
   type: success
-  text: "{system} sistemi aktif edildi."
+  text: "Aktif edilen sistemler: {systems}"
+
+systems-disabled-summary:
+  type: normal
+  text: "Deaktif edilen sistemler: {systems}"
+
+systems-shutdown-summary:
+  type: normal
+  text: "Kapatılan sistemler: {systems}"
 
 system-enable-failed:
   type: error
   text: "{system} sistemi aktif edilemedi: {error}"
 
-system-disabled:
-  type: normal
-  text: "{system} sistemi kapatıldı."
-
 system-disable-failed:
   type: error
   text: "{system} sistemi kapatılamadı: {error}"
+
+mn-root-usage:
+  type: normal
+  text: "Kullanım: /mn <heal|feed|health|hunger> ..."
+
+mn-unknown-subcommand:
+  type: error
+  text: "{subcommand} adlı alt komut bulunamadı."

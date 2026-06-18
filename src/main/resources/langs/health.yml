@@ -1,0 +1,55 @@
+system-disabled:
+  type: error
+  text: "Can ayarlama sistemi şu anda kapalı."
+
+no-permission:
+  type: error
+  text: "Bu komutu kullanma yetkin yok!"
+
+usage:
+  type: warning
+  text: "Kullanım: /health <set|add|remove> <oyuncu> <miktar>"
+
+invalid-subcommand:
+  type: error
+  text: "{subcommand} geçerli bir alt komut değil. set, add veya remove kullan."
+
+player-not-found:
+  type: error
+  text: "{player} adlı oyuncu bulunamadı."
+
+invalid-amount:
+  type: error
+  text: "{amount} geçerli bir sayı değil."
+
+invalid-set-amount:
+  type: error
+  text: "Ayarlanacak can 1 ile 20 arasında olmalı. Girilen: {amount}"
+
+invalid-add-amount:
+  type: error
+  text: "Eklenecek can 1 ile 20 arasında olmalı. Girilen: {amount}"
+
+invalid-remove-amount:
+  type: error
+  text: "Azaltılacak can 1 ile 19 arasında olmalı. Girilen: {amount}"
+
+remove-too-much:
+  type: error
+  text: "{player} oyuncusunun canı {current}; {amount} azaltılamaz."
+
+remove-too-low:
+  type: error
+  text: "{player} oyuncusunun canı çok düşük ({current}); azaltılamaz."
+
+health-set:
+  type: success
+  text: "{player} oyuncusunun canı {amount} olarak ayarlandı."
+
+health-add:
+  type: success
+  text: "{player} oyuncusunun canına {amount} eklendi."
+
+health-remove:
+  type: success
+  text: "{player} oyuncusunun canından {amount} azaltıldı."

@@ -12,7 +12,7 @@ website: https://github.com/MaliWhiteTea/MaliNess-Core
 commands:
   maliness:
     description: MaliNess Network komutlari.
-    usage: /maliness <heal>
+    usage: /maliness <heal|feed>
     aliases: [mn]
 
 permissions:
@@ -21,4 +21,25 @@ permissions:
     default: op
   maliness-core.heal.use.others:
     description: Başka oyuncuların canını yeniler.
+    default: op
+  maliness-core.feed.use:
+    description: Kendi açlığını giderir.
+    default: op
+  maliness-core.feed.use.others:
+    description: Başka oyuncuların açlığını giderir.
+    default: op
+  maliness-core.health.use:
+    description: Oyuncu canını ayarlar, ekler veya azaltır.
+    default: op
+  maliness-core.hunger.use:
+    description: Oyuncu açlığını ayarlar, ekler veya azaltır.
+    default: op
+  maliness-core.saturate.use:
+    description: Kendi doygunluğunu doldurur ve açlığını giderir.
+    default: op
+  maliness-core.saturate.use.others:
+    description: Başka oyuncuların doygunluğunu doldurur ve açlığını giderir.
+    default: op
+  maliness-core.saturation.use:
+    description: Oyuncu doygunluğunu ayarlar, ekler veya azaltır.
     default: op

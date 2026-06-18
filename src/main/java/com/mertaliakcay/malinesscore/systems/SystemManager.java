@@ -4,12 +4,15 @@ import com.mertaliakcay.malinesscore.MaliNessCore;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public final class SystemManager {
 
     private final MaliNessCore plugin;
     private final List<GameSystem> systems = new ArrayList<>();
+    private final Set<String> activeSystems = new HashSet<>();
 
     public SystemManager(MaliNessCore plugin) {
         this.plugin = plugin;
@@ -20,13 +23,20 @@ public final class SystemManager {
     }
 
     public void enableAll() {
+        List<String> enabled = new ArrayList<>();
+        List<String> disabled = new ArrayList<>();
+        activeSystems.clear();
+
         for (GameSystem system : systems) {
             try {
                 system.enable(plugin);
-                plugin.getPluginLang().logInfo(
-                        "system-enabled",
-                        "system", system.getName()
-                );
+
+                if (isSystemEnabled(system)) {
+                    enabled.add(system.getName());
+                    activeSystems.add(system.getName());
+                } else {
+                    disabled.add(system.getName());
+                }
             } catch (Exception e) {
                 plugin.getPluginLang().logError(
                         "system-enable-failed",
@@ -36,17 +46,22 @@ public final class SystemManager {
                 e.printStackTrace();
             }
         }
+
+        plugin.getPluginLang().logInfo("systems-enabled-summary", "systems", formatSystemList(enabled));
+        plugin.getPluginLang().logInfo("systems-disabled-summary", "systems", formatSystemList(disabled));
     }
 
     public void disableAll() {
+        List<String> disabled = new ArrayList<>();
+
         for (int i = systems.size() - 1; i >= 0; i--) {
             GameSystem system = systems.get(i);
             try {
                 system.disable();
-                plugin.getPluginLang().logInfo(
-                        "system-disabled",
-                        "system", system.getName()
-                );
+
+                if (activeSystems.contains(system.getName())) {
+                    disabled.add(system.getName());
+                }
             } catch (Exception e) {
                 plugin.getPluginLang().logError(
                         "system-disable-failed",
@@ -55,9 +70,26 @@ public final class SystemManager {
                 );
             }
         }
+
+        activeSystems.clear();
+
+        if (!disabled.isEmpty()) {
+            plugin.getPluginLang().logInfo("systems-shutdown-summary", "systems", formatSystemList(disabled));
+        }
     }
 
     public List<GameSystem> getSystems() {
         return Collections.unmodifiableList(systems);
+    }
+
+    private boolean isSystemEnabled(GameSystem system) {
+        if (system instanceof AbstractGameSystem abstractSystem) {
+            return abstractSystem.getConfig().get().getBoolean("enabled", true);
+        }
+        return true;
+    }
+
+    private String formatSystemList(List<String> names) {
+        return names.isEmpty() ? "yok" : String.join(", ", names);
     }
 }
