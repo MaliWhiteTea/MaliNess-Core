@@ -1,0 +1,4 @@
+enabled: true
+
+# true ise /heal komutunu MaliNess devralır (Purpur veya başka eklentiyle çakışmayı çözer)
+override-command: true

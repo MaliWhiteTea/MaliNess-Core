@@ -1,0 +1,30 @@
+# MaliNess Core - Ana mesajlar
+# Renkler ve prefix config.yml dosyasından otomatik uygulanır.
+
+plugin-enabled:
+  type: success
+  text: "MaliNess Core aktif!"
+
+plugin-disabled:
+  type: normal
+  text: "MaliNess Core kapatıldı."
+
+system-enabled:
+  type: success
+  text: "{system} sistemi aktif edildi."
+
+system-enable-failed:
+  type: error
+  text: "{system} sistemi aktif edilemedi: {error}"
+
+system-disabled:
+  type: normal
+  text: "{system} sistemi kapatıldı."
+
+system-disable-failed:
+  type: error
+  text: "{system} sistemi kapatılamadı: {error}"
+
+command-overridden:
+  type: normal
+  text: "{command} komutu MaliNess-Core tarafından devralındı."

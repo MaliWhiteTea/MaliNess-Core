@@ -1,10 +1,27 @@
-name: MaliNess Core
-description: $description
-version: '${version}'
+name: MaliNess-Core
+description: MaliNess Network çekirdek eklentisi.
+version: '${project.version}'
 
 main: com.mertaliakcay.malinesscore.MaliNessCore
 api-version: '1.21.4'
 load: POSTWORLD
 
 authors: [ Mert Ali AKÇAY ]
-website: https://github.com/MaliWhiteTea
+website: https://github.com/MaliWhiteTea/MaliNess-Core
+
+commands:
+  maliness:
+    description: MaliNess Network komutlari.
+    usage: /maliness <heal>
+    aliases: [mn]
+  heal:
+    description: Can yeniler.
+    usage: /heal [miktar] [oyuncu]
+
+permissions:
+  maliness-core.heal.use:
+    description: Kendi canını yeniler.
+    default: op
+  maliness-core.heal.use.others:
+    description: Başka oyuncuların canını yeniler.
+    default: op

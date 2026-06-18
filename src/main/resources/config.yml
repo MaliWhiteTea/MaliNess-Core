@@ -1,6 +1,16 @@
 # MaliNess Core - Genel ayarlar
 #
-# Sistem ayarları  -> plugins/MaliNess Core/configs/<sistem>.yml
-# Sistem mesajları  -> plugins/MaliNess Core/langs/<sistem>.yml
+# Ana mesajlar       -> plugins/MaliNess-Core/pluginlang.yml
+# Sistem mesajları    -> plugins/MaliNess-Core/langs/<sistem>.yml  (örn: tpa.yml)
+# Sistem ayarları     -> plugins/MaliNess-Core/configs/<sistem>.yml (örn: tpa.yml)
 #
-# Her yeni sistem kendi config ve lang dosyasına sahip olacak.
+# Not: langs/example.yml sadece şablondur, eklenti tarafından yüklenmez.
+
+messages:
+  prefix: "&#992fe0ᴍᴀʟɪɴᴇꜱꜱ ɴᴇᴛᴡᴏʀᴋ &f| "
+  colors:
+    warning: "&#ffd400"
+    error: "&#ff1100"
+    normal: "&#f3e9e3"
+    success: "&#87d498"
+    token: "&#ffdb57"

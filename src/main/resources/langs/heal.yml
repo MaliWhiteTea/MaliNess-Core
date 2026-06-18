@@ -1,0 +1,51 @@
+system-disabled:
+  type: error
+  text: "Can yenileme sistemi şu anda kapalı."
+
+no-permission:
+  type: error
+  text: "Bu komutu kullanma yetkin yok!"
+
+no-permission-others:
+  type: error
+  text: "Başka oyuncuların canını yenileme yetkin yok!"
+
+console-no-health:
+  type: error
+  text: "Konsolun canı yok! Bir oyuncu adı belirt."
+
+player-not-found:
+  type: error
+  text: "{player} adlı oyuncu bulunamadı."
+
+invalid-amount:
+  type: error
+  text: "{amount} geçerli bir miktar değil. Pozitif bir sayı gir."
+
+usage:
+  type: warning
+  text: "Kullanım: /heal [miktar] [oyuncu]"
+
+healed-self-full:
+  type: success
+  text: "Canın tamamen yenilendi!"
+
+healed-self-partial:
+  type: success
+  text: "Canın {amount} yarım kalp artırıldı."
+
+healed-other-full:
+  type: success
+  text: "{player} oyuncusunun canı tamamen yenilendi!"
+
+healed-other-partial:
+  type: success
+  text: "{player} oyuncusunun canı {amount} yarım kalp artırıldı."
+
+root-usage:
+  type: normal
+  text: "Kullanım: /mn heal [miktar] [oyuncu]"
+
+unknown-subcommand:
+  type: error
+  text: "{subcommand} adlı alt komut bulunamadı."

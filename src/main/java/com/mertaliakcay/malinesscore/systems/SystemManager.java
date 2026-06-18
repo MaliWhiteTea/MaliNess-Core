@@ -5,17 +5,14 @@ import com.mertaliakcay.malinesscore.MaliNessCore;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.logging.Logger;
 
 public final class SystemManager {
 
     private final MaliNessCore plugin;
-    private final Logger logger;
     private final List<GameSystem> systems = new ArrayList<>();
 
     public SystemManager(MaliNessCore plugin) {
         this.plugin = plugin;
-        this.logger = plugin.getLogger();
     }
 
     public void register(GameSystem system) {
@@ -26,9 +23,16 @@ public final class SystemManager {
         for (GameSystem system : systems) {
             try {
                 system.enable(plugin);
-                logger.info("[" + system.getName() + "] sistemi aktif edildi.");
+                plugin.getPluginLang().logInfo(
+                        "system-enabled",
+                        "system", system.getName()
+                );
             } catch (Exception e) {
-                logger.severe("[" + system.getName() + "] sistemi aktif edilemedi: " + e.getMessage());
+                plugin.getPluginLang().logError(
+                        "system-enable-failed",
+                        "system", system.getName(),
+                        "error", e.getMessage()
+                );
                 e.printStackTrace();
             }
         }
@@ -39,9 +43,16 @@ public final class SystemManager {
             GameSystem system = systems.get(i);
             try {
                 system.disable();
-                logger.info("[" + system.getName() + "] sistemi kapatıldı.");
+                plugin.getPluginLang().logInfo(
+                        "system-disabled",
+                        "system", system.getName()
+                );
             } catch (Exception e) {
-                logger.severe("[" + system.getName() + "] sistemi kapatılamadı: " + e.getMessage());
+                plugin.getPluginLang().logError(
+                        "system-disable-failed",
+                        "system", system.getName(),
+                        "error", e.getMessage()
+                );
             }
         }
     }

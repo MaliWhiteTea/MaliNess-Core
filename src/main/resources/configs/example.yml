@@ -1,5 +1,8 @@
-# Bu dosya şablon örneğidir. Gerçek sistemler kendi configs/<sistem>.yml dosyasını kullanır.
-# Örnek: configs/home.yml, configs/tpa.yml
+# ─────────────────────────────────────────────────────────────
+# BU DOSYA SADECE ÖRNEKTİR — EKLENTİ TARAFINDAN YÜKLENMEZ.
+# Yeni bir sistem eklerken bu dosyayı referans alarak
+# configs/<sistem>.yml dosyası oluştur (örnek: configs/tpa.yml).
+# ─────────────────────────────────────────────────────────────
 
 enabled: true
 cooldown-seconds: 5

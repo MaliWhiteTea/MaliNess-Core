@@ -37,4 +37,16 @@ public abstract class AbstractGameSystem implements GameSystem {
     protected abstract void onEnable();
 
     protected abstract void onDisable();
+
+    public SystemLang getLang() {
+        return lang;
+    }
+
+    public SystemConfig getConfig() {
+        return config;
+    }
+
+    public MaliNessCore getPlugin() {
+        return plugin;
+    }
 }
