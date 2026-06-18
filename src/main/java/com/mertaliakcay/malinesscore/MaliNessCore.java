@@ -5,6 +5,7 @@ import com.mertaliakcay.malinesscore.messages.MessageService;
 import com.mertaliakcay.malinesscore.systems.SystemManager;
 import com.mertaliakcay.malinesscore.systems.feed.FeedSystem;
 import com.mertaliakcay.malinesscore.systems.heal.HealSystem;
+import com.mertaliakcay.malinesscore.systems.god.GodSystem;
 import com.mertaliakcay.malinesscore.systems.health.HealthSystem;
 import com.mertaliakcay.malinesscore.systems.hunger.HungerSystem;
 import com.mertaliakcay.malinesscore.systems.saturate.SaturateSystem;
@@ -86,5 +87,6 @@ public final class MaliNessCore extends JavaPlugin {
         systemManager.register(new HungerSystem());
         systemManager.register(new SaturateSystem());
         systemManager.register(new SaturationSystem());
+        systemManager.register(new GodSystem());
     }
 }

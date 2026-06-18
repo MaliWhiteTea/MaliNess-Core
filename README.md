@@ -38,14 +38,16 @@ plugins/MaliNess-Core/
 │   ├── health.yml
 │   ├── hunger.yml
 │   ├── saturate.yml
-│   └── saturation.yml
+│   ├── saturation.yml
+│   └── god.yml
 └── langs/
     ├── heal.yml
     ├── feed.yml
     ├── health.yml
     ├── hunger.yml
     ├── saturate.yml
-    └── saturation.yml
+    ├── saturation.yml
+    └── god.yml
 ```
 
 Her sistem config dosyasında `enabled: true/false` ile açılıp kapatılabilir. Kapalı sistemler komut olarak kayıt edilmez.
@@ -92,6 +94,7 @@ Eklenti altı oyun sistemi içerir. İki gruba ayrılırlar:
 |------|-----------|------|
 | Hızlı doldurma | heal, feed, saturate | Tek komutla tam veya kısmi doldurma |
 | Hassas ayar | health, hunger, saturation | `set` / `add` / `remove` ile değer yönetimi |
+| Oyuncu modu | god | Hasar almama ve saldırgan mob koruması |
 
 | Minecraft değeri | Hızlı komut | Hassas komut |
 |------------------|-------------|--------------|
@@ -240,6 +243,30 @@ Config: `configs/saturation.yml` — Lang: `langs/saturation.yml`
 
 ---
 
+### God — God modu
+
+| Komut | Açıklama |
+|-------|----------|
+| `/god` | Kendi god modunu açar veya kapatır (toggle) |
+| `/god <oyuncu>` | Oyuncunun god modunu açar veya kapatır |
+| `/god ayarla <oyuncu> <aktif\|deaktif>` | Oyuncunun god modunu belirtilen duruma ayarlar |
+| `/god set <oyuncu> <on\|off>` | İngilizce alternatif (`active`/`deactivate` da geçerli) |
+| `/tanrı ...` | `/god` ile aynı (Türkçe alternatif) |
+| `/mn god ...` / `/mn tanrı ...` | Alternatif komut |
+
+God modu açıkken oyuncu **hiçbir kaynaktan hasar almaz** ve **saldırgan moblar** oyuncuyu hedef almaz. Mod açıldığında yakındaki mevcut hedefler de temizlenir.
+
+| İzin | Açıklama | Varsayılan |
+|------|----------|------------|
+| `maliness-core.god.use` | Kendi god modunu yönetme | `op` |
+| `maliness-core.god.use.others` | Başkasının god modunu yönetme | `op` |
+
+Config: `configs/god.yml` — Lang: `langs/god.yml`
+
+`configs/god.yml` içinde `clear-target-radius` ile god açıldığında hedefi temizlenecek mob mesafesi ayarlanabilir (varsayılan: `64`).
+
+---
+
 ## Türkçe komut özeti
 
 | İngilizce | Türkçe |
@@ -250,8 +277,11 @@ Config: `configs/saturation.yml` — Lang: `langs/saturation.yml`
 | `/hunger` | `/açlık` |
 | `/saturate` | `/tokla` |
 | `/saturation` | `/doygunluk` |
+| `/god` | `/tanrı` |
 
 Hassas ayar sistemlerinde alt komutlar: `set`/`ayarla`, `add`/`ekle`, `remove`/`azalt`
+
+God modu durumları: `aktif`/`deaktif`, `on`/`off`, `active`/`deactivate`
 
 ## Proje yapısı (kaynak kod)
 
@@ -268,7 +298,8 @@ src/main/java/com/mertaliakcay/malinesscore/
 │   ├── health/
 │   ├── hunger/
 │   ├── saturate/
-│   └── saturation/
+│   ├── saturation/
+│   └── god/
 └── util/                       # Config, lang, renk, tab tamamlama
 
 src/main/resources/

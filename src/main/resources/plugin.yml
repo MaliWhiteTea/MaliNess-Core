@@ -43,3 +43,9 @@ permissions:
   maliness-core.saturation.use:
     description: Oyuncu doygunluğunu ayarlar, ekler veya azaltır.
     default: op
+  maliness-core.god.use:
+    description: Kendi god modunu açar veya kapatır.
+    default: op
+  maliness-core.god.use.others:
+    description: Başka oyuncuların god modunu yönetir.
+    default: op

@@ -1,0 +1,55 @@
+system-disabled:
+  type: error
+  text: "God modu sistemi şu anda kapalı."
+
+no-permission:
+  type: error
+  text: "Bu komutu kullanma yetkin yok!"
+
+no-permission-others:
+  type: error
+  text: "Başka oyuncuların god modunu yönetme yetkin yok!"
+
+console-no-player:
+  type: error
+  text: "Konsol god modunu açamaz! Bir oyuncu adı belirt."
+
+player-not-found:
+  type: error
+  text: "{player} adlı oyuncu bulunamadı."
+
+invalid-state:
+  type: error
+  text: "{state} geçerli bir durum değil. aktif veya deaktif kullan."
+
+usage:
+  type: warning
+  text: "Kullanım: /god [oyuncu] | /god ayarla <oyuncu> <aktif|deaktif>"
+
+usage-set:
+  type: warning
+  text: "Kullanım: /god ayarla <oyuncu> <aktif|deaktif>"
+
+god-enabled-self:
+  type: success
+  text: "God modun açıldı!"
+
+god-disabled-self:
+  type: success
+  text: "God modun kapatıldı!"
+
+god-enabled-other:
+  type: success
+  text: "{player} oyuncusunun god modu açıldı!"
+
+god-disabled-other:
+  type: success
+  text: "{player} oyuncusunun god modu kapatıldı!"
+
+god-enabled-target:
+  type: success
+  text: "God modun açıldı!"
+
+god-disabled-target:
+  type: success
+  text: "God modun kapatıldı!"
