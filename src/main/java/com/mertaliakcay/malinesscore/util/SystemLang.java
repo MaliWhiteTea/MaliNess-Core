@@ -34,21 +34,21 @@ public final class SystemLang extends AbstractLang {
         }
 
         langFile = new File(folder, systemId + ".yml");
-        if (!langFile.exists()) {
-            String resourcePath = "langs/" + systemId + ".yml";
-            if (plugin.getResource(resourcePath) != null) {
-                plugin.saveResource(resourcePath, false);
-            } else {
+        String resourcePath = "langs/" + systemId + ".yml";
+
+        if (plugin.getResource(resourcePath) != null) {
+            lang = YamlMerger.loadAndMerge(plugin, langFile, resourcePath);
+        } else {
+            if (!langFile.exists()) {
                 try {
                     if (!langFile.createNewFile()) {
                         plugin.getLogger().warning("Lang dosyası oluşturulamadı: " + langFile.getName());
                     }
-                } catch (IOException e) {
-                    plugin.getLogger().log(Level.SEVERE, "Lang dosyası oluşturulamadı: " + langFile.getName(), e);
+                } catch (IOException exception) {
+                    plugin.getLogger().log(Level.SEVERE, "Lang dosyası oluşturulamadı: " + langFile.getName(), exception);
                 }
             }
+            lang = YamlConfiguration.loadConfiguration(langFile);
         }
-
-        lang = YamlConfiguration.loadConfiguration(langFile);
     }
 }

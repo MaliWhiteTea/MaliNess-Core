@@ -5,6 +5,7 @@
 # Sistem ayarları     -> plugins/MaliNess-Core/configs/<sistem>.yml (örn: tpa.yml)
 #
 # Not: langs/example.yml sadece şablondur, eklenti tarafından yüklenmez.
+# Jar güncellendiğinde yeni ayarlar mevcut dosyalara otomatik eklenir (eski değerler korunur).
 
 messages:
   prefix: "&#992fe0ᴍᴀʟɪɴᴇꜱꜱ ɴᴇᴛᴡᴏʀᴋ &f| "

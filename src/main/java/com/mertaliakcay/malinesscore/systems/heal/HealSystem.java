@@ -2,8 +2,10 @@ package com.mertaliakcay.malinesscore.systems.heal;
 
 import com.mertaliakcay.malinesscore.command.MalinessCommand;
 import com.mertaliakcay.malinesscore.systems.AbstractGameSystem;
-import com.mertaliakcay.malinesscore.util.CommandRegistrar;
+import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import org.bukkit.command.PluginCommand;
+
+import java.util.Collections;
 
 public final class HealSystem extends AbstractGameSystem {
 
@@ -24,15 +26,17 @@ public final class HealSystem extends AbstractGameSystem {
             return;
         }
 
-        PluginCommand healPluginCommand = plugin.getCommand("heal");
-        if (healPluginCommand == null) {
-            plugin.getLogger().severe("heal komutu plugin.yml içinde tanımlı değil!");
-            return;
-        }
-
         healCommand = new HealCommand(this);
-        healPluginCommand.setExecutor(healCommand);
-        healPluginCommand.setTabCompleter(healCommand);
+        HealBasicCommand healBasicCommand = new HealBasicCommand(healCommand);
+
+        plugin.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {
+            event.registrar().register(
+                    "heal",
+                    "Can yeniler.",
+                    Collections.emptyList(),
+                    healBasicCommand
+            );
+        });
 
         PluginCommand malinessPluginCommand = plugin.getCommand("maliness");
         if (malinessPluginCommand != null) {
@@ -41,23 +45,10 @@ public final class HealSystem extends AbstractGameSystem {
             malinessPluginCommand.setExecutor(malinessCommand);
             malinessPluginCommand.setTabCompleter(malinessCommand);
         }
-
-        if (config.get().getBoolean("override-command", true)) {
-            plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-                CommandRegistrar.override(plugin, "heal", healPluginCommand);
-                plugin.getPluginLang().logInfo("command-overridden", "command", "heal");
-            }, 1L);
-        }
     }
 
     @Override
     protected void onDisable() {
-        PluginCommand healPluginCommand = plugin.getCommand("heal");
-        if (healPluginCommand != null) {
-            healPluginCommand.setExecutor(null);
-            healPluginCommand.setTabCompleter(null);
-        }
-
         PluginCommand malinessPluginCommand = plugin.getCommand("maliness");
         if (malinessPluginCommand != null) {
             malinessPluginCommand.setExecutor(null);

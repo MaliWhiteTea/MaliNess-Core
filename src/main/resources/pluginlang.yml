@@ -24,7 +24,3 @@ system-disabled:
 system-disable-failed:
   type: error
   text: "{system} sistemi kapatılamadı: {error}"
-
-command-overridden:
-  type: normal
-  text: "{command} komutu MaliNess-Core tarafından devralındı."

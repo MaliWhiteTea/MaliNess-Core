@@ -23,12 +23,14 @@ public abstract class AbstractLang {
     }
 
     public MessageType getType(String key) {
-        return MessageType.fromString(lang.getString(key + ".type", "normal"));
+        String type = lang.getString(key + ".type");
+        return MessageType.fromString(type != null ? type : "normal");
     }
 
     public String getText(String key) {
-        if (lang.contains(key + ".text")) {
-            return lang.getString(key + ".text", key);
+        String text = lang.getString(key + ".text");
+        if (text != null) {
+            return text;
         }
         return lang.getString(key, key);
     }

@@ -39,29 +39,29 @@ public final class SystemConfig {
         }
 
         configFile = new File(folder, systemId + ".yml");
-        if (!configFile.exists()) {
-            String resourcePath = "configs/" + systemId + ".yml";
-            if (plugin.getResource(resourcePath) != null) {
-                plugin.saveResource(resourcePath, false);
-            } else {
+        String resourcePath = "configs/" + systemId + ".yml";
+
+        if (plugin.getResource(resourcePath) != null) {
+            config = YamlMerger.loadAndMerge(plugin, configFile, resourcePath);
+        } else {
+            if (!configFile.exists()) {
                 try {
                     if (!configFile.createNewFile()) {
                         plugin.getLogger().warning("Config dosyası oluşturulamadı: " + configFile.getName());
                     }
-                } catch (IOException e) {
-                    plugin.getLogger().log(Level.SEVERE, "Config dosyası oluşturulamadı: " + configFile.getName(), e);
+                } catch (IOException exception) {
+                    plugin.getLogger().log(Level.SEVERE, "Config dosyası oluşturulamadı: " + configFile.getName(), exception);
                 }
             }
+            config = YamlConfiguration.loadConfiguration(configFile);
         }
-
-        config = YamlConfiguration.loadConfiguration(configFile);
     }
 
     public void save() {
         try {
             config.save(configFile);
-        } catch (IOException e) {
-            plugin.getLogger().log(Level.SEVERE, "Config kaydedilemedi: " + configFile.getName(), e);
+        } catch (IOException exception) {
+            plugin.getLogger().log(Level.SEVERE, "Config kaydedilemedi: " + configFile.getName(), exception);
         }
     }
 }

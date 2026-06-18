@@ -20,9 +20,6 @@ public final class PluginLang extends AbstractLang {
     @Override
     public void reload() {
         langFile = new File(plugin.getDataFolder(), "pluginlang.yml");
-        if (!langFile.exists()) {
-            plugin.saveResource("pluginlang.yml", false);
-        }
-        lang = YamlConfiguration.loadConfiguration(langFile);
+        lang = YamlMerger.loadAndMerge(plugin, langFile, "pluginlang.yml");
     }
 }

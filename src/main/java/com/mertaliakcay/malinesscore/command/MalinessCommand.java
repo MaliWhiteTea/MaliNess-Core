@@ -41,7 +41,8 @@ public final class MalinessCommand implements CommandExecutor, TabCompleter {
             }
 
             String[] healArgs = Arrays.copyOfRange(args, 1, args.length);
-            return healCommand.onCommand(sender, command, label, healArgs);
+            healCommand.handle(sender, healArgs);
+            return true;
         }
 
         healSystem.getLang().send(sender, "unknown-subcommand", "subcommand", args[0]);

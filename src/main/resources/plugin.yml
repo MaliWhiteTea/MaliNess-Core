@@ -14,9 +14,6 @@ commands:
     description: MaliNess Network komutlari.
     usage: /maliness <heal>
     aliases: [mn]
-  heal:
-    description: Can yeniler.
-    usage: /heal [miktar] [oyuncu]
 
 permissions:
   maliness-core.heal.use:

@@ -4,6 +4,7 @@ import com.mertaliakcay.malinesscore.messages.MessageService;
 import com.mertaliakcay.malinesscore.systems.SystemManager;
 import com.mertaliakcay.malinesscore.systems.heal.HealSystem;
 import com.mertaliakcay.malinesscore.util.PluginLang;
+import com.mertaliakcay.malinesscore.util.YamlMerger;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class MaliNessCore extends JavaPlugin {
@@ -14,7 +15,7 @@ public final class MaliNessCore extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        saveDefaultConfig();
+        YamlMerger.mergeMainConfig(this);
 
         messageService = new MessageService(this);
         messageService.reload();

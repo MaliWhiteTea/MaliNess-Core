@@ -7,8 +7,6 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,38 +23,80 @@ public final class HealCommand implements CommandExecutor, TabCompleter {
     }
 
     @Override
-    public boolean onCommand(
-            @NotNull CommandSender sender,
-            @NotNull Command command,
-            @NotNull String label,
-            @NotNull String[] args
-    ) {
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        handle(sender, args);
+        return true;
+    }
+
+    public void handle(CommandSender sender, String[] args) {
         if (!system.isEnabled()) {
             system.getLang().send(sender, "system-disabled");
-            return true;
+            return;
         }
 
         if (args.length == 0) {
-            return handleSelfFullHeal(sender);
+            handleSelfFullHeal(sender);
+            return;
         }
 
         if (args.length == 1) {
             if (isPositiveInteger(args[0])) {
-                return handleSelfPartialHeal(sender, Integer.parseInt(args[0]));
+                handleSelfPartialHeal(sender, Integer.parseInt(args[0]));
+            } else {
+                handleOtherFullHeal(sender, args[0]);
             }
-            return handleOtherFullHeal(sender, args[0]);
+            return;
         }
 
         if (args.length == 2) {
             if (!isPositiveInteger(args[0])) {
                 system.getLang().send(sender, "invalid-amount", "amount", args[0]);
-                return true;
+                return;
             }
-            return handleOtherPartialHeal(sender, Integer.parseInt(args[0]), args[1]);
+            handleOtherPartialHeal(sender, Integer.parseInt(args[0]), args[1]);
+            return;
         }
 
         system.getLang().send(sender, "usage");
-        return true;
+    }
+
+    public List<String> suggest(CommandSender sender, String[] args) {
+        if (!system.isEnabled()) {
+            return Collections.emptyList();
+        }
+
+        if (args.length == 1) {
+            List<String> suggestions = new ArrayList<>();
+
+            if (sender.hasPermission(HealSystem.PERM_USE)) {
+                suggestions.add("2");
+                suggestions.add("4");
+                suggestions.add("10");
+                suggestions.add("20");
+            }
+
+            if (sender.hasPermission(HealSystem.PERM_OTHERS)) {
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    suggestions.add(player.getName());
+                }
+            }
+
+            return filter(suggestions, args[0]);
+        }
+
+        if (args.length == 2 && sender.hasPermission(HealSystem.PERM_OTHERS)) {
+            List<String> playerNames = Bukkit.getOnlinePlayers().stream()
+                    .map(Player::getName)
+                    .collect(Collectors.toList());
+            return filter(playerNames, args[1]);
+        }
+
+        return Collections.emptyList();
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        return suggest(sender, args);
     }
 
     private boolean handleSelfFullHeal(CommandSender sender) {
@@ -153,46 +193,6 @@ public final class HealCommand implements CommandExecutor, TabCompleter {
         } catch (NumberFormatException ignored) {
             return false;
         }
-    }
-
-    @Override
-    public @Nullable List<String> onTabComplete(
-            @NotNull CommandSender sender,
-            @NotNull Command command,
-            @NotNull String alias,
-            @NotNull String[] args
-    ) {
-        if (!system.isEnabled()) {
-            return Collections.emptyList();
-        }
-
-        if (args.length == 1) {
-            List<String> suggestions = new ArrayList<>();
-
-            if (sender.hasPermission(HealSystem.PERM_USE)) {
-                suggestions.add("2");
-                suggestions.add("4");
-                suggestions.add("10");
-                suggestions.add("20");
-            }
-
-            if (sender.hasPermission(HealSystem.PERM_OTHERS)) {
-                for (Player player : Bukkit.getOnlinePlayers()) {
-                    suggestions.add(player.getName());
-                }
-            }
-
-            return filter(suggestions, args[0]);
-        }
-
-        if (args.length == 2 && sender.hasPermission(HealSystem.PERM_OTHERS)) {
-            List<String> playerNames = Bukkit.getOnlinePlayers().stream()
-                    .map(Player::getName)
-                    .collect(Collectors.toList());
-            return filter(playerNames, args[1]);
-        }
-
-        return Collections.emptyList();
     }
 
     private List<String> filter(List<String> options, String input) {
