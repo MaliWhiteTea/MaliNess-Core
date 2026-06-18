@@ -1,0 +1,35 @@
+enabled: true
+
+teleport:
+  warmup-seconds: 5
+  cooldown-seconds: 10
+  sethome-cooldown-seconds: 3
+  fire-resistance-seconds: 3
+
+blocked-worlds: []
+
+safe-teleport:
+  enabled: true
+  ask-on-unsafe: true
+
+limits:
+  default-max-homes: 1
+  max-count-permission-scan: 20
+
+names:
+  default-name: ev
+  reserved:
+    - evet
+    - hayir
+    - hayır
+    - yes
+    - no
+    - iptal
+
+rate-limit:
+  max-failures: 5
+  window-seconds: 30
+
+logging:
+  player-actions: true
+  admin-actions: true

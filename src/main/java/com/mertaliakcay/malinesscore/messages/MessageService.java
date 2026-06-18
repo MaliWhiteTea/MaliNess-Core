@@ -40,10 +40,20 @@ public final class MessageService {
     }
 
     public Component format(MessageType type, String template, Object... placeholders) {
+        return formatInternal(true, type, template, placeholders);
+    }
+
+    public Component formatWithoutPrefix(MessageType type, String template, Object... placeholders) {
+        return formatInternal(false, type, template, placeholders);
+    }
+
+    private Component formatInternal(boolean includePrefix, MessageType type, String template, Object... placeholders) {
         Map<String, String> values = toPlaceholderMap(placeholders);
         String typeColor = getTypeColor(type);
         StringBuilder builder = new StringBuilder(prefix.length() + template.length() + 32);
-        builder.append(prefix);
+        if (includePrefix) {
+            builder.append(prefix);
+        }
 
         Matcher matcher = PLACEHOLDER_PATTERN.matcher(template);
         int lastIndex = 0;

@@ -49,3 +49,33 @@ permissions:
   maliness-core.god.use.others:
     description: Başka oyuncuların god modunu yönetir.
     default: op
+  maliness-core.home.use:
+    description: Eve ışınlanır.
+    default: true
+  maliness-core.home.sethome:
+    description: Ev kaydeder.
+    default: true
+  maliness-core.home.delhome:
+    description: Evi siler.
+    default: true
+  maliness-core.home.homes:
+    description: Evleri listeler.
+    default: true
+  maliness-core.home.rename:
+    description: Ev adını değiştirir.
+    default: true
+  maliness-core.home.bypasstime:
+    description: Eve ışınlanma bekleme süresini atlar.
+    default: op
+  maliness-core.home.others.list:
+    description: Başka oyuncuların evlerini listeler.
+    default: op
+  maliness-core.home.others.teleport:
+    description: Başka oyuncuların evlerine ışınlanır.
+    default: op
+  maliness-core.home.others.delete:
+    description: Başka oyuncuların evlerini siler.
+    default: op
+  maliness-core.confirm.use:
+    description: Onay komutlarını kullanır (/evet, /hayır, /iptal).
+    default: true

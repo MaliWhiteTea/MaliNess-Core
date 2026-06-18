@@ -31,7 +31,7 @@ IntelliJ kullanıyorsanız: **Maven → Lifecycle → package**
 ```
 plugins/MaliNess-Core/
 ├── config.yml              # Genel ayarlar (prefix, renkler)
-├── pluginlang.yml          # Eklentinin ana mesajları
+├── pluginlang.yml          # Eklenti ana mesajları ve onay butonları
 ├── configs/
 │   ├── heal.yml
 │   ├── feed.yml
@@ -39,15 +39,22 @@ plugins/MaliNess-Core/
 │   ├── hunger.yml
 │   ├── saturate.yml
 │   ├── saturation.yml
-│   └── god.yml
-└── langs/
-    ├── heal.yml
-    ├── feed.yml
-    ├── health.yml
-    ├── hunger.yml
-    ├── saturate.yml
-    ├── saturation.yml
-    └── god.yml
+│   ├── god.yml
+│   └── home.yml
+├── langs/
+│   ├── heal.yml
+│   ├── feed.yml
+│   ├── health.yml
+│   ├── hunger.yml
+│   ├── saturate.yml
+│   ├── saturation.yml
+│   ├── god.yml
+│   └── home.yml
+├── data/
+│   └── homes/              # Oyuncu ev verileri (<uuid>.yml)
+└── logs/
+    ├── home-player.log
+    └── home-admin.log
 ```
 
 Her sistem config dosyasında `enabled: true/false` ile açılıp kapatılabilir. Kapalı sistemler komut olarak kayıt edilmez.
@@ -72,7 +79,7 @@ Tüm mesajlarda ortak bir prefix ve dört mesaj tipi kullanılır.
 | Hata | `&#ff1100` | Reddedilen işlemler |
 | Normal | `&#f3e9e3` | Bilgi mesajları |
 | Başarı | `&#87d498` | Başarılı işlemler |
-| Belirteç | `&#ffdb57` | Dinamik veriler (`{player}`, `{amount}` vb.) |
+| Belirteç | `&#ffdb57` | Dinamik veriler (`{player}`, `{home}` vb.) |
 
 Renkler `config.yml` → `messages.colors` altından özelleştirilebilir.
 
@@ -88,13 +95,14 @@ Desteklenen renk kodları: `&a`, `&e` ve `&#RRGGBB` (hex).
 
 ## Sistem özeti
 
-Eklenti altı oyun sistemi içerir. İki gruba ayrılırlar:
+Eklenti **sekiz** oyun sistemi içerir:
 
 | Grup | Sistemler | Amaç |
 |------|-----------|------|
 | Hızlı doldurma | heal, feed, saturate | Tek komutla tam veya kısmi doldurma |
 | Hassas ayar | health, hunger, saturation | `set` / `add` / `remove` ile değer yönetimi |
 | Oyuncu modu | god | Hasar almama ve saldırgan mob koruması |
+| Konum | home | Ev kaydetme, ışınlanma ve yönetim |
 
 | Minecraft değeri | Hızlı komut | Hassas komut |
 |------------------|-------------|--------------|
@@ -110,10 +118,32 @@ Tüm sistemler `/mn` (veya `/maliness`) alt komutu olarak da kullanılabilir. Ba
 /mn heal ...
 /mn feed ...
 /mn health set Oyuncu 10
-/mn saturate ...
+/mn home
+/mn sethome maden
+/mn ev
 ```
 
 Tab tamamlama tüm komutlarda desteklenir; boş argümanda Tab'a basıldığında o seviyedeki tüm seçenekler listelenir.
+
+### Onay sistemi
+
+Silme, üzerine yazma ve güvensiz ışınlanma gibi işlemlerde genel onay akışı kullanılır:
+
+| Komut | Açıklama |
+|-------|----------|
+| `/evet` | Bekleyen onayı kabul eder |
+| `/hayır` | Bekleyen onayı reddeder |
+| `/iptal` | Bekleyen onayı veya warmup'ı iptal eder |
+
+Onay mesajında `[/evet] [/hayır] [/iptal]` tıklanabilir butonları gösterilir. Komut olarak yazıldığında kod gerekmez; son bekleyen onaya otomatik uygulanır.
+
+| İzin | Açıklama | Varsayılan |
+|------|----------|------------|
+| `maliness-core.confirm.use` | Onay komutlarını kullanma | `true` |
+
+Mesajlar: `pluginlang.yml`
+
+---
 
 ## Mevcut sistemler
 
@@ -191,7 +221,7 @@ Config: `configs/health.yml` — Lang: `langs/health.yml`
 | `/açlık ayarla/ekle/azalt ...` | Türkçe komut ve alt komut alternatifleri |
 | `/mn hunger ...` / `/mn açlık ...` | Alternatif komut |
 
-> `add` ile girilen değer 20'yi geçerse veya toplam 20'nin üstüne çıkarsa açlık doğrudan **20'ye** ayarlanır ve ayarlandı mesajı gösterilir. `remove` ile azaltılacak miktar mevcut açlıktan fazla olamaz.
+> `add` ile girilen değer 20'yi geçerse veya toplam 20'nin üstüne çıkarsa açlık doğrudan **20'ye** ayarlanır. `remove` ile azaltılacak miktar mevcut açlıktan fazla olamaz.
 
 | İzin | Açıklama | Varsayılan |
 |------|----------|------------|
@@ -267,10 +297,111 @@ Config: `configs/god.yml` — Lang: `langs/god.yml`
 
 ---
 
+### Home — Ev sistemi
+
+#### Komutlar
+
+| Komut | Açıklama |
+|-------|----------|
+| `/sethome [isim]` | Bulunduğun konumu ev olarak kaydeder |
+| `/home [isim]` | Kayıtlı eve ışınlanır |
+| `/delhome [isim]` | Evi siler (onay gerekir) |
+| `/homes [oyuncu]` | Evleri listeler |
+| `/renamehome <eski> <yeni>` | Ev adını değiştirir |
+| `/evayarla`, `/ev`, `/house`, `/remhome` | Kısa / Türkçe alternatifler |
+| `/evadıdeğiştir`, `/evismideğiştir` | `/renamehome` alternatifleri |
+| `/home <oyuncu> <ev>` | Yetkili: oyuncunun evine anında ışınlanma |
+| `/delhome <oyuncu> <ev>` | Yetkili: oyuncunun evini silme (oyuncu onaylı, konsol onaysız) |
+| `/mn home ...`, `/mn sethome ...`, `/mn ev` vb. | Alternatif komut |
+
+#### İsim kuralları
+
+- Varsayılan isim: `ev` (isimsiz `/sethome` için)
+- `ev` doluysa isimsiz kayıtta sırayla `ev-2`, `ev-3` … oluşur
+- Geçerli karakterler: `a-z`, `0-9`, `-`, `_` (en fazla 12 karakter, küçük harfe normalize edilir)
+- Rezerve isimler: `evet`, `hayir`, `hayır`, `yes`, `no`, `iptal`
+
+#### `/home` davranışı
+
+| Durum | Sonuç |
+|-------|--------|
+| Tek ev var | İsimsiz `/home` → o eve ışınlanır (adı `ev` olmasa bile) |
+| Birden fazla ev var | İsimsiz `/home` → hata + ev listesi gösterilir |
+| İsim belirtilmiş | Belirtilen eve ışınlanır |
+
+#### Warmup ve cooldown
+
+Varsayılan değerler (`configs/home.yml`):
+
+| Ayar | Varsayılan |
+|------|------------|
+| Warmup | 5 saniye |
+| Eve gitme cooldown | 10 saniye |
+| Ev kaydetme cooldown | 3 saniye |
+| Fire resistance süresi | 3 saniye |
+
+Warmup akışı (sohbet):
+
+1. `Eve ışınlanıyorsun... 5 saniye bekle`
+2. Geri sayım: `4 → 3 → 2 → 1`
+3. `Işınlanıyorsun...`
+
+Warmup sırasında **hareket** (blok değişimi), **hasar**, **saldırı**, **elytra**, **araç** veya **düşme** → anında iptal.
+
+**OP** oyuncular ve `maliness-core.home.bypasstime` izni olanlar warmup ile tüm cooldown'lardan muaf tutulur.
+
+#### Güvenlik ve konum
+
+- `sethome`: dünya sınırı ve yükseklik kontrolü
+- `blocked-worlds` config ile belirli dünyalarda ev kaydı engellenir
+- Işınlanmada güvensiz konum tespit edilirse onay istenir (lav, ateş, kaktüs vb.)
+- Eve varınca kısa süreli fire resistance
+- Chunk preload ile ışınlanma
+
+#### Ev limiti
+
+- Varsayılan: **1 ev** (`limits.default-max-homes`)
+- `maliness-core.home.count.N` izinleriyle artırılır (en yüksek N geçerli, örn. `.3` → 3 ev)
+- Limit aşıldığında `/home` ve `/sethome` kapalıdır; mevcut evler silinmez
+- `/homes` listesinde limit uyarısı gösterilir
+
+#### Liste ve tıklama
+
+- Kendi `/homes` listende satırlar tıklanabilir → `/home <ev>`
+- Yetkili `/homes <oyuncu>` listesinde satırlar tıklanabilir → anında `/home <oyuncu> <ev>`
+
+#### Konsol
+
+- Konsoldan yalnızca `delhome <oyuncu> <ev>` desteklenir (onay yok, anında siler)
+- Diğer ev komutları oyuncu gerektirir
+
+#### Rate limit
+
+Çok sayıda hatalı komut (geçersiz isim, olmayan ev, olmayan oyuncu vb.) varsayılan olarak **5 hata / 30 saniye** penceresinde komutları geçici kilitler. Başarılı işlem sayacı sıfırlar.
+
+#### İzinler
+
+| İzin | Açıklama | Varsayılan |
+|------|----------|------------|
+| `maliness-core.home.use` | Eve ışınlanma | `true` |
+| `maliness-core.home.sethome` | Ev kaydetme | `true` |
+| `maliness-core.home.delhome` | Ev silme | `true` |
+| `maliness-core.home.homes` | Kendi evlerini listeleme | `true` |
+| `maliness-core.home.rename` | Ev adı değiştirme | `true` |
+| `maliness-core.home.bypasstime` | Warmup ve cooldown atlama | `op` |
+| `maliness-core.home.count.N` | En fazla N ev | — |
+| `maliness-core.home.others.list` | Başkasının evlerini listeleme | `op` |
+| `maliness-core.home.others.teleport` | Başkasının evine ışınlanma | `op` |
+| `maliness-core.home.others.delete` | Başkasının evini silme | `op` |
+
+Config: `configs/home.yml` — Lang: `langs/home.yml`
+
+---
+
 ## Türkçe komut özeti
 
-| İngilizce | Türkçe |
-|-----------|--------|
+| İngilizce | Türkçe / alternatif |
+|-----------|---------------------|
 | `/heal` | `/iyileştir` |
 | `/feed` | `/doyur` |
 | `/health` | `/sağlık` |
@@ -278,6 +409,11 @@ Config: `configs/god.yml` — Lang: `langs/god.yml`
 | `/saturate` | `/tokla` |
 | `/saturation` | `/doygunluk` |
 | `/god` | `/tanrı` |
+| `/sethome` | `/evayarla` |
+| `/home` | `/ev`, `/house` |
+| `/delhome` | `/remhome` |
+| `/renamehome` | `/evadıdeğiştir`, `/evismideğiştir` |
+| — | `/evet`, `/hayır`, `/iptal` |
 
 Hassas ayar sistemlerinde alt komutlar: `set`/`ayarla`, `add`/`ekle`, `remove`/`azalt`
 
@@ -289,6 +425,7 @@ God modu durumları: `aktif`/`deaktif`, `on`/`off`, `active`/`deactivate`
 src/main/java/com/mertaliakcay/malinesscore/
 ├── MaliNessCore.java
 ├── command/                    # /mn komutu
+├── confirmation/               # /evet /hayır /iptal onay sistemi
 ├── messages/                   # Mesaj tipi ve renk sistemi
 ├── systems/
 │   ├── AbstractGameSystem.java
@@ -299,7 +436,8 @@ src/main/java/com/mertaliakcay/malinesscore/
 │   ├── hunger/
 │   ├── saturate/
 │   ├── saturation/
-│   └── god/
+│   ├── god/
+│   └── home/
 └── util/                       # Config, lang, renk, tab tamamlama
 
 src/main/resources/

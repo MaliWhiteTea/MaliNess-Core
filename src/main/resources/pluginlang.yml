@@ -31,8 +31,72 @@ system-disable-failed:
 
 mn-root-usage:
   type: normal
-  text: "Kullanım: /mn <heal|feed|health|hunger> ..."
+  text: "Kullanım: /mn <heal|feed|health|hunger|home|sethome|...> ..."
 
 mn-unknown-subcommand:
   type: error
   text: "{subcommand} adlı alt komut bulunamadı."
+
+confirm-button-yes:
+  type: success
+  text: "[/evet]"
+
+confirm-button-yes-hover:
+  type: normal
+  text: "Onaylamak için tıkla"
+
+confirm-button-no:
+  type: error
+  text: "[/hayır]"
+
+confirm-button-no-hover:
+  type: normal
+  text: "Reddetmek için tıkla"
+
+confirm-button-cancel:
+  type: warning
+  text: "[/iptal]"
+
+confirm-button-cancel-hover:
+  type: normal
+  text: "İşlemi iptal etmek için tıkla"
+
+confirm-reference-code:
+  type: normal
+  text: "Referans kodu: {code}"
+
+confirm-pending-code:
+  type: normal
+  text: "Bekleyen onay kodun: {code} — /evet {code} veya /hayır {code}"
+
+confirm-accepted:
+  type: success
+  text: "Onaylandı."
+
+confirm-denied:
+  type: warning
+  text: "İşlem reddedildi."
+
+confirm-cancelled:
+  type: warning
+  text: "Bekleyen işlem iptal edildi."
+
+confirm-nothing-pending:
+  type: warning
+  text: "Bekleyen bir onayın yok."
+
+confirm-expired:
+  type: warning
+  text: "Onay süresi doldu."
+
+confirm-invalid-token:
+  type: error
+  text: "Geçersiz onay kodu."
+
+confirm-usage-yes:
+  type: warning
+  text: "Kullanım: /evet <kod> veya mesajdaki butona tıkla."
+
+confirm-usage-no:
+  type: warning
+  text: "Kullanım: /hayır <kod> veya mesajdaki butona tıkla."

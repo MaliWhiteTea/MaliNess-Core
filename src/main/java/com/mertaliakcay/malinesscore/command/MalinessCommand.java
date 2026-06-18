@@ -7,6 +7,8 @@ import com.mertaliakcay.malinesscore.systems.heal.HealCommand;
 import com.mertaliakcay.malinesscore.systems.heal.HealSystem;
 import com.mertaliakcay.malinesscore.systems.god.GodCommand;
 import com.mertaliakcay.malinesscore.systems.god.GodSystem;
+import com.mertaliakcay.malinesscore.systems.home.HomeMnCommand;
+import com.mertaliakcay.malinesscore.systems.home.HomeSystem;
 import com.mertaliakcay.malinesscore.systems.health.HealthCommand;
 import com.mertaliakcay.malinesscore.systems.health.HealthSystem;
 import com.mertaliakcay.malinesscore.systems.hunger.HungerCommand;
@@ -43,6 +45,8 @@ public final class MalinessCommand implements CommandExecutor, TabCompleter {
     private SaturationCommand saturationCommand;
     private GodSystem godSystem;
     private GodCommand godCommand;
+    private HomeSystem homeSystem;
+    private HomeMnCommand homeMnCommand;
 
     public MalinessCommand(MaliNessCore plugin) {
         this.plugin = plugin;
@@ -116,6 +120,16 @@ public final class MalinessCommand implements CommandExecutor, TabCompleter {
     public void clearGod() {
         this.godSystem = null;
         this.godCommand = null;
+    }
+
+    public void setHome(HomeSystem homeSystem, HomeMnCommand homeMnCommand) {
+        this.homeSystem = homeSystem;
+        this.homeMnCommand = homeMnCommand;
+    }
+
+    public void clearHome() {
+        this.homeSystem = null;
+        this.homeMnCommand = null;
     }
 
     @Override
@@ -216,6 +230,19 @@ public final class MalinessCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
+        if (HomeMnCommand.isHomeSubcommand(args[0])) {
+            if (homeMnCommand == null || homeSystem == null) {
+                if (homeSystem != null) {
+                    homeSystem.getLang().send(sender, "system-disabled");
+                } else {
+                    plugin.getPluginLang().send(sender, "mn-unknown-subcommand", "subcommand", args[0]);
+                }
+                return true;
+            }
+            homeMnCommand.handle(sender, args[0], Arrays.copyOfRange(args, 1, args.length));
+            return true;
+        }
+
         plugin.getPluginLang().send(sender, "mn-unknown-subcommand", "subcommand", args[0]);
         return true;
     }
@@ -230,7 +257,7 @@ public final class MalinessCommand implements CommandExecutor, TabCompleter {
 
         if (args.length == 1) {
             if (CommandSuggestions.isExactMatch(args[0], subcommands)) {
-                return nestedTabComplete(sender, command, alias, args[0], new String[0]);
+                return Collections.emptyList();
             }
             return CommandSuggestions.filter(subcommands, args[0]);
         }
@@ -272,6 +299,9 @@ public final class MalinessCommand implements CommandExecutor, TabCompleter {
             subcommands.add("god");
             subcommands.add(GodSystem.ALIAS_TURKISH);
         }
+        if (homeSystem != null && homeSystem.isEnabled()) {
+            subcommands.addAll(HomeMnCommand.subcommandNames());
+        }
         return subcommands;
     }
 
@@ -302,6 +332,10 @@ public final class MalinessCommand implements CommandExecutor, TabCompleter {
 
         if (isGodSubcommand(subcommand) && godCommand != null) {
             return nullableList(godCommand.onTabComplete(sender, command, alias, nestedArgs));
+        }
+
+        if (HomeMnCommand.isHomeSubcommand(subcommand) && homeMnCommand != null) {
+            return nullableList(homeMnCommand.onTabComplete(sender, subcommand, nestedArgs));
         }
 
         return Collections.emptyList();

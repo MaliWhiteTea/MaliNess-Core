@@ -1,0 +1,179 @@
+system-disabled:
+  type: error
+  text: "Ev sistemi şu anda kapalı."
+
+no-permission:
+  type: error
+  text: "Bu komutu kullanma yetkin yok!"
+
+no-permission-others:
+  type: error
+  text: "Başka oyuncuların evlerini yönetme yetkin yok!"
+
+console-not-supported:
+  type: error
+  text: "Bu komut yalnızca oyuncular tarafından kullanılabilir."
+
+rate-limited:
+  type: error
+  text: "Çok fazla hatalı komut girdin. Biraz bekle."
+
+blocked-world:
+  type: error
+  text: "Bu dünyada ev kaydedemezsin."
+
+invalid-set-location:
+  type: error
+  text: "Buraya ev kaydedemezsin. Dünya sınırı veya yükseklik geçersiz."
+
+invalid-home-name:
+  type: error
+  text: "{name} geçerli bir ev ismi değil. En fazla 12 karakter; a-z, 0-9, - ve _ kullan."
+
+home-limit-reached:
+  type: error
+  text: "Ev limitine ulaştın! Maksimum: {limit}"
+
+over-limit-blocked:
+  type: error
+  text: "Ev limitini aştığın için eve gidemezsin ({count}/{limit}). Silmen gereken evler: {homes}"
+
+over-limit-warning:
+  type: warning
+  text: "Ev limitini aştın ({count}/{limit}). Fazla evleri sil: {homes}"
+
+home-not-found:
+  type: error
+  text: "{home} adlı bir evin yok."
+
+home-specify-name:
+  type: error
+  text: "Birden fazla evin var. Hangi eve gitmek istediğini belirt:"
+
+console-delhome-usage:
+  type: warning
+  text: "Konsol kullanımı: delhome <oyuncu> <ev>"
+
+player-not-found:
+  type: error
+  text: "{player} adlı oyuncu bulunamadı."
+
+world-not-loaded:
+  type: error
+  text: "Ev dünyası şu anda yüklü değil."
+
+home-cooldown:
+  type: warning
+  text: "Tekrar eve gitmek için {seconds} saniye bekle."
+
+sethome-cooldown:
+  type: warning
+  text: "Tekrar ev kaydetmek için {seconds} saniye bekle."
+
+home-set:
+  type: success
+  text: "{home} adlı evin kaydedildi!"
+
+home-overwritten:
+  type: success
+  text: "{home} adlı evin güncellendi!"
+
+home-deleted:
+  type: success
+  text: "{home} adlı evin silindi."
+
+home-deleted-by-admin:
+  type: warning
+  text: "{home} adlı evin bir yetkili tarafından silindi."
+
+home-renamed:
+  type: success
+  text: "Ev adın {old} → {new} olarak değiştirildi."
+
+rename-same-name:
+  type: warning
+  text: "Yeni isim eski isimle aynı."
+
+usage-rename:
+  type: warning
+  text: "Kullanım: /renamehome <eski> <yeni>"
+
+confirm-overwrite:
+  type: warning
+  text: "Zaten {home} isimli bir evin var. Üzerine yazılsın mı?"
+
+confirm-overwrite-rename:
+  type: warning
+  text: "{new} isimli bir ev zaten var. {old} evini bu isimle değiştirmek istiyor musun?"
+
+confirm-delete:
+  type: warning
+  text: "{home} adlı evini silmek istediğine emin misin?"
+
+confirm-delete-other:
+  type: warning
+  text: "{player} oyuncusunun {home} adlı evini silmek istediğine emin misin?"
+
+confirm-unsafe-teleport:
+  type: warning
+  text: "{home} adlı ev güvenli görünmüyor. Yine de ışınlanmak istiyor musun?"
+
+unsafe-home-blocked:
+  type: error
+  text: "{home} adlı ev güvenli değil. Işınlanma iptal edildi."
+
+teleport-started:
+  type: normal
+  text: "Eve ışınlanıyorsun... {seconds} saniye bekle. Hareket etme ve hasar alma!"
+
+teleport-countdown:
+  type: normal
+  text: "Eve ışınlanma: {seconds}"
+
+teleport-starting:
+  type: success
+  text: "Işınlanıyorsun..."
+
+teleport-success:
+  type: success
+  text: "{home} adlı evine ışınlandın!"
+
+teleport-cancelled:
+  type: error
+  text: "Eve ışınlanma iptal edildi!"
+
+teleport-failed:
+  type: error
+  text: "Işınlanma başarısız oldu."
+
+teleport-already-pending:
+  type: warning
+  text: "Zaten bekleyen bir eve ışınlanma işlemin var."
+
+admin-teleported:
+  type: success
+  text: "{player} oyuncusunun {home} adlı evine ışınlandın."
+
+admin-deleted:
+  type: success
+  text: "{player} oyuncusunun {home} adlı evi silindi."
+
+homes-empty:
+  type: normal
+  text: "Kayıtlı evin yok."
+
+homes-header:
+  type: normal
+  text: "Evlerin ({count}/{limit}):"
+
+homes-entry:
+  type: normal
+  text: "• {home} — {world} ({x}, {y}, {z})"
+
+homes-entry-hover:
+  type: normal
+  text: "{home} evine gitmek için tıkla"
+
+homes-entry-admin-hover:
+  type: normal
+  text: "{player} oyuncusunun {home} evine ışınlanmak için tıkla"

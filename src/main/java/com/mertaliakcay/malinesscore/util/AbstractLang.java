@@ -39,6 +39,10 @@ public abstract class AbstractLang {
         return plugin.getMessageService().format(getType(key), getText(key), placeholders);
     }
 
+    public Component getPlain(String key, Object... placeholders) {
+        return plugin.getMessageService().formatWithoutPrefix(getType(key), getText(key), placeholders);
+    }
+
     public void send(CommandSender sender, String key, Object... placeholders) {
         sender.sendMessage(get(key, placeholders));
     }
