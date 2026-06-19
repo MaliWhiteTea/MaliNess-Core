@@ -1,8 +1,8 @@
 # MaliNess Core
 
-MaliNess Network sunucuları için modüler bir Paper eklentisi. Her oyun sistemi kendi config ve lang dosyası ile yönetilir; sunucu açılışında aktif ve deaktif sistemler özet olarak konsola yazılır.
+MaliNess Network sunucuları için modüler bir Paper eklentisi. Her oyun sistemi kendi config ve lang dosyası ile yönetilir; sunucu açılışında aktif ve deaktif sistemler özet olarak konsola yazılır. Yetkililer `/systems` ve `/system` komutlarıyla sistemleri oyun içinden açıp kapatabilir.
 
-**Sürüm:** `0.1.1` · **API:** Paper / Purpur **1.21.4** · **Java** **21**
+**Sürüm:** `0.1.2` · **API:** Paper / Purpur **1.21.4** · **Java** **21**
 
 ## Gereksinimler
 
@@ -33,7 +33,7 @@ IntelliJ kullanıyorsanız: **Maven → Lifecycle → package**
 ```
 plugins/MaliNess-Core/
 ├── config.yml              # Genel ayarlar (prefix, renkler)
-├── pluginlang.yml          # Eklenti ana mesajları, /mn yardım, onay butonları
+├── pluginlang.yml          # Eklenti ana mesajları, /mn yardım, onay butonları, sistem yönetimi
 ├── configs/
 │   ├── heal.yml
 │   ├── feed.yml
@@ -57,10 +57,16 @@ plugins/MaliNess-Core/
 │   └── god-reload-cache.yml  # /mn reload sırasında geçici god durumu (otomatik)
 └── logs/
     ├── home-player.log
-    └── home-admin.log
+    ├── home-admin.log
+    └── systems-audit.log   # Sistem açma/kapama kayıtları
 ```
 
-Her sistem config dosyasında `enabled: true/false` ile açılıp kapatılabilir. Kapalı sistemler aktif olmaz (komutlar çalışmaz, dinleyiciler kayıt edilmez); ancak komut kayıtları ve `/mn` entegrasyonu korunur.
+Her oyun sistemi config dosyasında `enabled: true/false` ile açılıp kapatılabilir. Kapalı sistemler yüklenir ancak **aktif olmaz** (dinleyiciler ve zamanlayıcılar çalışmaz); komutlar `system-disabled` mesajı verir. Komut kayıtları ve `/mn` entegrasyonu korunur.
+
+Sistem durumu iki yolla değiştirilebilir:
+
+- **Manuel:** `configs/<sistem>.yml` içinde `enabled` değerini düzenleyip `/mn reload`
+- **Oyun içi:** `/system on|off <sistem>` — yalnızca ilgili sistemi reload eder, config dosyasını günceller
 
 ## Mesaj sistemi
 
@@ -98,22 +104,24 @@ Desteklenen renk kodları: `&a`, `&e` ve `&#RRGGBB` (hex).
 
 ## Mimari
 
-Eklenti modüler **sistem** yapısı kullanır. Her sistem `AbstractGameSystem` üzerinden yüklenir:
+Eklenti modüler **sistem** yapısı kullanır. Her oyun sistemi `AbstractGameSystem` üzerinden yüklenir:
 
 ```
 MaliNessCore
-├── SystemManager          → heal, feed, health, hunger, saturate, saturation, god, home
-├── MalinessCommand (/mn)  → tüm sistemlere delegasyon
-├── ConfirmationService    → /evet /hayır /iptal
-├── HomeTeleportManager    → warmup ve ışınlanma (plugin genelinde singleton)
-└── MessageService         → prefix, renkler, Adventure Component formatı
+├── SystemManager              → heal, feed, health, hunger, saturate, saturation, god, home
+├── SystemControlService       → /systems, /system, audit log, sistem katalogu
+├── MalinessCommand (/mn)      → tüm sistemlere delegasyon
+├── ConfirmationService        → /evet /hayır /iptal
+├── HomeTeleportManager          → warmup ve ışınlanma (plugin genelinde singleton)
+└── MessageService               → prefix, renkler, Adventure Component formatı
 ```
 
 ### Komut kaydı
 
-- **Paper `BasicCommand`:** `/heal`, `/home`, `/god` vb. doğrudan komutlar
+- **Paper `BasicCommand`:** `/heal`, `/home`, `/god`, `/systems`, `/system` vb. doğrudan komutlar
 - **Bukkit `CommandExecutor`:** `/mn` kök komutu ve paylaşılan handler mantığı
-- Her sistem hem kendi komutunu hem `/mn <altkomut>` yolunu destekler
+- Her oyun sistemi hem kendi komutunu hem `/mn <altkomut>` yolunu destekler
+- Ana komut adları **İngilizce**; Türkçe alias'lar ayrıca tanımlıdır
 
 ### Reload
 
@@ -126,6 +134,76 @@ MaliNessCore
 - Dinleyici birikmesini önlemek için sistemler önce unregister, sonra yeniden register edilir
 
 Tam plugin disable/enable (PlugMan vb.) farklı davranabilir; production'da tercih edilen yol `/mn reload`dır.
+
+`/system on|off` ise yalnızca **tek bir sistemi** reload eder; tam eklenti reload'u yapmaz.
+
+## Sistem yönetimi
+
+Yetkililer oyun sistemlerini komut satırından yönetebilir. Çekirdek altyapı (`core`) listede görünür ancak kapatılamaz.
+
+### Komutlar
+
+| Komut | Alias | Açıklama |
+|-------|-------|----------|
+| `/systems [sayfa]` | `/sistemler` | Sayfalı sistem listesi (yalnızca oyuncu) |
+| `/system <on\|off\|info> <sistem>` | `/sistem` | Sistemi aç, kapat veya bilgi göster |
+| `/mn systems [sayfa]` | `/mn sistemler` | `/systems` ile aynı |
+| `/mn system ...` | `/mn sistem ...` | `/system` ile aynı |
+
+Alt komut alias'ları: `on`, `off`, `info`, `aç`, `kapa`, `bilgi`, `enable`, `disable`, `aktif`, `deaktif`
+
+### Liste (`/systems`)
+
+```
+prefix + Sistemler:
+• [Aktif] Ev (home) [Kapat]
+• [Kapalı] God (god) [Aç]
+• [Aktif] Çekirdek (core)
+prefix + Sayfa 1/1 < >
+```
+
+- Aktif sistemde yalnızca **[Kapat]**, kapalı sistemde yalnızca **[Aç]** gösterilir
+- Zaten açık/kapalıyken `/system on|off` → uyarı mesajı
+- Sistem adına hover → kısa açıklama
+- Yönetim yetkisi olmayan sistemlerin yanında kırmızı **`!`** — hover: *"Bu sistemi açıp kapatma yetkin yok."*
+- Açma/kapama onay gerektirir; kapatırken yan etki uyarıları gösterilir (ör. home: warmup iptali, god: koruma kalkar)
+
+### Bilgi (`/system info <sistem>`)
+
+Sohbette sistem özeti gösterir (en fazla ~20 satır):
+
+```
+Sistem bilgisi:
+Ad: Ev (home)
+Durum: Aktif
+Açıklama: Ev kaydetme ve ışınlanma sistemi.
+Komutlar: /sethome, /home, /delhome, ...
+Config: configs/home.yml
+Kapatılabilir: Evet
+```
+
+### Konsol
+
+Konsoldan yalnızca `/system on|off|info <sistem>` desteklenir. Onay akışı yoktur; değişiklik doğrudan uygulanır ve `logs/systems-audit.log` dosyasına yazılır.
+
+### İzinler
+
+| İzin | Açıklama | Varsayılan |
+|------|----------|------------|
+| `maliness-core.systems.list` | Sistem listesini görüntüleme | `op` |
+| `maliness-core.systems.manage.*` | Tüm sistemleri açma/kapama | `op` |
+| `maliness-core.systems.manage.<id>` | Belirli sistemi açma/kapama (ör. `.home`, `.god`) | `op` |
+
+`systems.list` veya herhangi bir `systems.manage.*` izni olmadan `/systems` kullanılamaz. Tek bir sisteme yetki verilmiş admin tüm listeyi görür; yetkisiz sistemler **`!`** ile işaretlenir.
+
+### Altyapı
+
+| Bileşen | Amaç |
+|---------|------|
+| `SystemCatalog` | Kayıtlı sistemler + sanal `core` girdisi |
+| `NonClosableSystemRegistry` | Kapatılamayan sistemler (`core` ve ileride eklenecekler) |
+| `SystemDependencyRegistry` | Sistem bağımlılıkları için boş altyapı (gelecek kullanım) |
+| `SystemsAuditLogger` | `logs/systems-audit.log` — kısa satır formatı |
 
 ## Sistem özeti
 
@@ -152,6 +230,8 @@ Tüm sistemler `/mn` (veya `/maliness`) alt komutu olarak da kullanılabilir. Ba
 /mn                    → yetkili olduğun komutların yardım listesi
 /mn 2                  → 2. sayfa (komut sayısı arttıkça otomatik sayfalanır)
 /mn reload             → config ve lang yenileme
+/mn systems            → oyun sistemleri listesi
+/mn system info home   → ev sistemi bilgisi
 /mn heal ...
 /mn home
 /mn sethome maden
@@ -179,7 +259,7 @@ Tüm sistemler `/mn` (veya `/maliness`) alt komutu olarak da kullanılabilir. Ba
 
 ### Onay sistemi
 
-Silme, üzerine yazma ve güvensiz ışınlanma gibi işlemlerde genel onay akışı kullanılır:
+Silme, üzerine yazma, güvensiz ışınlanma ve sistem açma/kapama gibi işlemlerde genel onay akışı kullanılır:
 
 | Komut | Açıklama |
 |-------|----------|
@@ -189,10 +269,10 @@ Silme, üzerine yazma ve güvensiz ışınlanma gibi işlemlerde genel onay akı
 
 Chat formatı:
 
-1. Soru satırı (prefix + onay metni, örn. “Evini silmek istediğine emin misin?”)
+1. Soru satırı (prefix + onay metni)
 2. Buton satırı: **prefix + [/evet] [/hayır] [/iptal]** — tıklanabilir, tam olarak bu metinlerle gösterilir
 
-Komut olarak `/evet` yazıldığında kod gerekmez; son bekleyen onaya otomatik uygulanır. Oyundan çıkış veya ölüm bekleyen onayı iptal eder.
+`/evet` yazıldığında son bekleyen onaya otomatik uygulanır. Oyundan çıkış veya ölüm bekleyen onayı iptal eder.
 
 | İzin | Açıklama | Varsayılan |
 |------|----------|------------|
@@ -367,7 +447,8 @@ Config: `configs/god.yml` — Lang: `langs/god.yml`
 | `/delhome [isim]` | Evi siler (onay gerekir) |
 | `/homes [oyuncu]` | Evleri listeler |
 | `/renamehome <eski> <yeni>` | Ev adını değiştirir |
-| `/evayarla`, `/ev`, `/house`, `/remhome` | Kısa / Türkçe alternatifler |
+| `/evayarla`, `/ev`, `/house` | Kısa / Türkçe alternatifler |
+| `/evsil`, `/remhome` | `/delhome` alternatifleri |
 | `/evadıdeğiştir`, `/evismideğiştir` | `/renamehome` alternatifleri |
 | `/home <oyuncu> <ev>` | Yetkili: oyuncunun evine anında ışınlanma |
 | `/delhome <oyuncu> <ev>` | Yetkili: oyuncunun evini silme (onay gerekir) |
@@ -435,9 +516,9 @@ Warmup sırasında **hareket** (mesafe eşiği), **hasar**, **saldırı**, **ely
 Ev dosyaları yüklenirken `HomeDataValidator` ile doğrulanır. Geçersiz kayıtlar atlanır:
 
 - **Konsol:** klasik prefix ile uyarı logu
-- **Oyunda:** `maliness-core.home.invalid-home.broadcast` iznine sahip yetkililere anlık bildirim
+- **Oyunda:** `maliness-core.home.invalid-home.broadcast` iznine sahip yetkililere anlık bildirim (oturum başına dedupe)
 
-Ev verileri oyuncu başına `data/homes/<uuid>.yml` dosyasında tutulur; yazımlar async kuyruk ile sıraya alınır, shutdown/reload öncesi `flushAll()` ile diske yazılır.
+Ev verileri oyuncu başına `data/homes/<uuid>.yml` dosyasında tutulur; yazımlar async kuyruk ile sıraya alınır, atomik temp+rename ile diske yazılır, shutdown/reload öncesi `flushAll()` ile tamamlanır.
 
 #### Konsol
 
@@ -482,13 +563,17 @@ Config: `configs/home.yml` — Lang: `langs/home.yml`
 | `/god` | `/tanrı` |
 | `/sethome` | `/evayarla` |
 | `/home` | `/ev`, `/house` |
-| `/delhome` | `/remhome` |
+| `/delhome` | `/evsil`, `/remhome` |
 | `/renamehome` | `/evadıdeğiştir`, `/evismideğiştir` |
+| `/systems` | `/sistemler` |
+| `/system` | `/sistem` |
 | — | `/evet`, `/hayır`, `/iptal` |
 
 Hassas ayar sistemlerinde alt komutlar: `set`/`ayarla`, `add`/`ekle`, `remove`/`azalt`
 
 God modu durumları: `aktif`/`deaktif`, `on`/`off`, `active`/`deactivate`
+
+Sistem yönetimi alt komutları: `on`/`aç`, `off`/`kapa`, `info`/`bilgi`
 
 ## Yeni sistem ekleme
 
@@ -496,7 +581,10 @@ God modu durumları: `aktif`/`deaktif`, `on`/`off`, `active`/`deactivate`
 2. `configs/<id>.yml` ve `langs/<id>.yml` ekle
 3. `MaliNessCore.registerSystems()` içine kaydet
 4. Gerekirse `MalinessCommand` ve `MnCommandHelp` entegrasyonu ekle
-5. `plugin.yml` izinlerini tanımla
+5. `plugin.yml` izinlerini tanımla (`maliness-core.systems.manage.<id>` dahil)
+6. `pluginlang.yml` içine `systems-display-<id>`, `systems-desc-<id>`, `systems-commands-<id>` ekle
+
+Yeni sistem otomatik olarak `SystemCatalog`'a dahil olur. Kapatılamaz yapmak için `NonClosableSystemRegistry.register("<id>")` kullanılabilir.
 
 `configs/example.yml` ve `langs/example.yml` şablon olarak jar içinde durur; yüklenmez.
 
@@ -507,13 +595,13 @@ src/main/java/com/mertaliakcay/malinesscore/
 ├── MaliNessCore.java
 ├── command/
 │   ├── MalinessCommand.java    # /mn delegasyon + tab
-│   ├── MnCommandHelp.java      # sayfalı yardım
-│   └── CommandSuggestGate.java
+│   └── MnCommandHelp.java      # sayfalı yardım
 ├── confirmation/               # /evet /hayır /iptal
 ├── messages/                   # MessageService, MessageType
 ├── systems/
 │   ├── AbstractGameSystem.java
 │   ├── SystemManager.java
+│   ├── control/                # /systems, /system, audit, katalog
 │   ├── heal/
 │   ├── feed/
 │   ├── health/
@@ -532,22 +620,11 @@ src/main/resources/
 └── langs/
 ```
 
-## Planlanan iyileştirmeler
-
-Aşağıdaki maddeler bilinen sınırlamalardır; sıradaki geliştirme turunda ele alınacaktır:
+## Bilinen sınırlamalar
 
 | Öncelik | Konu |
 |---------|------|
-| Yüksek | Tüm ev mutasyonlarında tutarlı `withHomeLock` kullanımı |
-| Yüksek | Atomik YAML yazımı (temp + rename) |
-| Yüksek | Onay callback exception güvenliği |
-| Yüksek | Global komut (`/evet` vb.) register-once guard |
-| Orta | Onay token'ının chat'te gösterilmesi ve butonlara bağlanması |
-| Orta | Geçersiz ev broadcast dedupe (spam önleme) |
-| Orta | Async chunk/teleport hata yolları |
-| Orta | `HomeRateLimiter` thread-safety |
-| Düşük | Bellek map temizliği (`writeStates`, `homeLocks`) |
-| — | `/sistemler` komutu ve otomatik sistem keşfi |
+| Düşük | `HomeRateLimiter` thread-safety (çok eşzamanlı erişimde teorik risk) |
 
 ## Lisans
 

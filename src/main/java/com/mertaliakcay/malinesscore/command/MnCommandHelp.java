@@ -114,13 +114,19 @@ final class MnCommandHelp {
             entries.add(entry("home", "/home", "/mn home", "/mn home [ev]", "/home [ev] | /ev"));
         }
         if (commands.isHomeDeleteAvailable(sender)) {
-            entries.add(entry("delhome", "/delhome", "/mn delhome", "/mn delhome [ev]", "/delhome [ev]"));
+            entries.add(entry("delhome", "/delhome", "/mn delhome", "/mn delhome [ev]", "/delhome [ev] | /evsil"));
         }
         if (commands.isHomeListAvailable(sender)) {
             entries.add(entry("homes", "/homes", "/mn homes", "/mn homes [oyuncu]", "/homes [oyuncu]"));
         }
         if (commands.isHomeRenameAvailable(sender)) {
             entries.add(entry("renamehome", "/renamehome", "/mn renamehome", "/mn renamehome <eski> <yeni>", "/renamehome <eski> <yeni>"));
+        }
+        if (commands.isSystemsListAvailable(sender)) {
+            entries.add(entry("systems", "/systems", "/mn systems", "/mn systems [sayfa]", "/systems | /sistemler"));
+        }
+        if (commands.isSystemControlAvailable(sender)) {
+            entries.add(entry("system", "/system", "/mn system", "/mn system <on|off|info> <sistem>", "/system | /sistem"));
         }
 
         return entries;

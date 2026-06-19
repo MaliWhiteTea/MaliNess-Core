@@ -166,7 +166,7 @@ confirm-accepted:
 
 confirm-failed:
   type: error
-  text: "Onay islemi tamamlanamadi. Lutfen tekrar dene."
+  text: "Onay işlemi tamamlanamadı. Lütfen tekrar deneyin."
 
 confirm-denied:
   type: warning
@@ -195,3 +195,270 @@ confirm-usage-yes:
 confirm-usage-no:
   type: warning
   text: "Kullanım: /hayır <kod> veya mesajdaki butona tıkla."
+
+systems-list-header:
+  type: normal
+  text: "Sistemler:"
+
+systems-list-entry-prefix:
+  type: normal
+  text: "• "
+
+systems-list-status-active:
+  type: success
+  text: "[Aktif]"
+
+systems-list-status-inactive:
+  type: warning
+  text: "[Kapalı]"
+
+systems-list-entry-name:
+  type: normal
+  text: "{display} ({id})"
+
+systems-list-hover:
+  type: normal
+  text: "{description}"
+
+systems-list-action-on:
+  type: success
+  text: "[Aç]"
+
+systems-list-action-on-hover:
+  type: normal
+  text: "Sistemi acmak icin tikla"
+
+systems-list-action-off:
+  type: error
+  text: "[Kapat]"
+
+systems-list-action-off-hover:
+  type: normal
+  text: "Sistemi kapatmak icin tikla"
+
+systems-list-no-permission-marker:
+  type: error
+  text: "!"
+
+systems-list-no-permission-hover:
+  type: error
+  text: "Bu sistemi acip kapatma yetkin yok."
+
+systems-list-nav-prev:
+  type: normal
+  text: "<"
+
+systems-list-nav-prev-hover:
+  type: normal
+  text: "Onceki sayfa"
+
+systems-list-nav-prev-disabled:
+  type: normal
+  text: "<"
+
+systems-list-nav-page:
+  type: normal
+  text: "Sayfa {current}/{total}"
+
+systems-list-nav-next:
+  type: normal
+  text: ">"
+
+systems-list-nav-next-hover:
+  type: normal
+  text: "Sonraki sayfa"
+
+systems-list-nav-next-disabled:
+  type: normal
+  text: ">"
+
+systems-list-invalid-page:
+  type: error
+  text: "Gecersiz sayfa numarasi."
+
+systems-no-list-permission:
+  type: error
+  text: "Sistem listesini goruntuleme yetkin yok."
+
+systems-no-manage-permission:
+  type: error
+  text: "{system} sistemini yonetme yetkin yok."
+
+systems-console-unsupported:
+  type: error
+  text: "Konsoldan yalnizca /system komutu kullanilabilir."
+
+systems-usage-system:
+  type: warning
+  text: "Kullanim: /system <on|off|info> <sistem>"
+
+systems-unknown:
+  type: error
+  text: "Bilinmeyen sistem: {system}"
+
+systems-non-closable:
+  type: error
+  text: "{system} kapatilamaz."
+
+systems-already-active:
+  type: warning
+  text: "{system} zaten acik."
+
+systems-already-inactive:
+  type: warning
+  text: "{system} zaten kapali."
+
+systems-enabled:
+  type: success
+  text: "{system} acildi."
+
+systems-disabled:
+  type: success
+  text: "{system} kapatildi."
+
+systems-toggle-failed:
+  type: error
+  text: "{system} durumu degistirilemedi."
+
+systems-confirm-enable:
+  type: warning
+  text: "{system} acilsin mi?"
+
+systems-confirm-disable:
+  type: warning
+  text: "{system} kapatilsin mi?"
+
+systems-info-header:
+  type: normal
+  text: "Sistem bilgisi:"
+
+systems-info-name:
+  type: normal
+  text: "Ad: {display} ({id})"
+
+systems-info-status-active:
+  type: success
+  text: "Durum: Aktif"
+
+systems-info-status-inactive:
+  type: warning
+  text: "Durum: Kapali"
+
+systems-info-description:
+  type: normal
+  text: "Aciklama: {description}"
+
+systems-info-commands:
+  type: normal
+  text: "Komutlar: {commands}"
+
+systems-info-config:
+  type: normal
+  text: "Config: {path}"
+
+systems-info-closable-yes:
+  type: normal
+  text: "Kapatilabilir: Evet"
+
+systems-info-closable-no:
+  type: normal
+  text: "Kapatilabilir: Hayir (her zaman acik)"
+
+systems-info-no-manage:
+  type: warning
+  text: "Bu sistemi acip kapatma yetkin yok."
+
+systems-side-effect-home:
+  type: warning
+  text: "Uyari: Bekleyen ev isinlanmalari iptal edilecek."
+
+systems-side-effect-god:
+  type: warning
+  text: "Uyari: God modundaki oyuncularin korumasi kaldirilacak."
+
+systems-display-core:
+  text: "Cekirdek"
+
+systems-desc-core:
+  text: "Ana eklenti cekirdegi. /mn, /systems ve /system komut altyapisi."
+
+systems-commands-core:
+  text: "/mn, /systems, /system"
+
+systems-display-heal:
+  text: "Iyilestirme"
+
+systems-desc-heal:
+  text: "Can yenileme sistemi."
+
+systems-commands-heal:
+  text: "/heal, /iyilestir"
+
+systems-display-feed:
+  text: "Doyurma"
+
+systems-desc-feed:
+  text: "Aclik giderme sistemi."
+
+systems-commands-feed:
+  text: "/feed, /doyur"
+
+systems-display-health:
+  text: "Can"
+
+systems-desc-health:
+  text: "Oyuncu can degeri yonetimi."
+
+systems-commands-health:
+  text: "/health, /can"
+
+systems-display-hunger:
+  text: "Aclik"
+
+systems-desc-hunger:
+  text: "Oyuncu aclik degeri yonetimi."
+
+systems-commands-hunger:
+  text: "/hunger, /aclik"
+
+systems-display-saturate:
+  text: "Doygunluk"
+
+systems-desc-saturate:
+  text: "Doygunluk ve aclik doldurma sistemi."
+
+systems-commands-saturate:
+  text: "/saturate, /doygunluk"
+
+systems-display-saturation:
+  text: "Doygunluk Degeri"
+
+systems-desc-saturation:
+  text: "Oyuncu doygunluk degeri yonetimi."
+
+systems-commands-saturation:
+  text: "/saturation"
+
+systems-display-god:
+  text: "God"
+
+systems-desc-god:
+  text: "Olumsuzluk (god) modu sistemi."
+
+systems-commands-god:
+  text: "/god, /tanri"
+
+systems-display-home:
+  text: "Ev"
+
+systems-desc-home:
+  text: "Ev kaydetme ve isinlanma sistemi."
+
+systems-commands-home:
+  text: "/sethome, /home, /delhome, /evsil, /homes, /renamehome"
+
+mn-help-desc-systems:
+  text: "Oyun sistemlerini listeler ve yonetir."
+
+mn-help-desc-system:
+  text: "Belirli bir sistemi acar, kapatir veya bilgi gosterir."

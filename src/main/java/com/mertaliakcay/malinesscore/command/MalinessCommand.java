@@ -18,6 +18,8 @@ import com.mertaliakcay.malinesscore.systems.saturate.SaturateSystem;
 import com.mertaliakcay.malinesscore.systems.saturation.SaturationCommand;
 import com.mertaliakcay.malinesscore.systems.saturation.SaturationSystem;
 import com.mertaliakcay.malinesscore.systems.AbstractGameSystem;
+import com.mertaliakcay.malinesscore.systems.control.SystemControlService;
+import com.mertaliakcay.malinesscore.systems.control.SystemMnCommand;
 import com.mertaliakcay.malinesscore.util.CommandSuggestions;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -50,6 +52,8 @@ public final class MalinessCommand implements CommandExecutor, TabCompleter {
     private GodCommand godCommand;
     private HomeSystem homeSystem;
     private HomeMnCommand homeMnCommand;
+    private SystemMnCommand systemMnCommand;
+    private SystemControlService systemControlService;
 
     public MalinessCommand(MaliNessCore plugin) {
         this.plugin = plugin;
@@ -133,6 +137,16 @@ public final class MalinessCommand implements CommandExecutor, TabCompleter {
     public void clearHome() {
         this.homeSystem = null;
         this.homeMnCommand = null;
+    }
+
+    public void setSystemControl(SystemMnCommand systemMnCommand, SystemControlService systemControlService) {
+        this.systemMnCommand = systemMnCommand;
+        this.systemControlService = systemControlService;
+    }
+
+    public void clearSystemControl() {
+        this.systemMnCommand = null;
+        this.systemControlService = null;
     }
 
     @Override
@@ -220,6 +234,20 @@ public final class MalinessCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
+        if (SystemMnCommand.isSystemsSubcommand(args[0])) {
+            if (!isSystemsListAvailable(sender)) {
+                plugin.getPluginLang().send(sender, "systems-no-list-permission");
+                return true;
+            }
+            systemMnCommand.handleList(sender, Arrays.copyOfRange(args, 1, args.length));
+            return true;
+        }
+
+        if (SystemMnCommand.isSystemSubcommand(args[0])) {
+            systemMnCommand.handleSystem(sender, Arrays.copyOfRange(args, 1, args.length));
+            return true;
+        }
+
         plugin.getPluginLang().send(sender, "mn-unknown-subcommand", "subcommand", args[0]);
         return true;
     }
@@ -294,6 +322,14 @@ public final class MalinessCommand implements CommandExecutor, TabCompleter {
             subcommands.add(GodSystem.ALIAS_TURKISH);
         }
         addAvailableHomeSubcommands(sender, subcommands);
+        if (isSystemsListAvailable(sender)) {
+            subcommands.add("systems");
+            subcommands.add(SystemControlService.ALIAS_SYSTEMS_TR);
+        }
+        if (isSystemControlAvailable(sender)) {
+            subcommands.add("system");
+            subcommands.add(SystemControlService.ALIAS_SYSTEM_TR);
+        }
         return subcommands;
     }
 
@@ -313,6 +349,7 @@ public final class MalinessCommand implements CommandExecutor, TabCompleter {
         if (isHomeDeleteAvailable(sender)) {
             subcommands.add("delhome");
             subcommands.add("remhome");
+            subcommands.add(HomeSystem.ALIAS_DELHOME);
         }
         if (isHomeListAvailable(sender)) {
             subcommands.add("homes");
@@ -387,6 +424,26 @@ public final class MalinessCommand implements CommandExecutor, TabCompleter {
                 return Collections.emptyList();
             }
             return nullableList(homeMnCommand.onTabComplete(sender, subcommand, nestedArgs));
+        }
+
+        if (SystemMnCommand.isSystemsSubcommand(subcommand)) {
+            if (!isSystemsListAvailable(sender) || systemMnCommand == null) {
+                return Collections.emptyList();
+            }
+            if (nestedArgs.length == 0) {
+                return CommandSuggestions.filter(List.of("1", "2", "3"), "");
+            }
+            if (nestedArgs.length == 1) {
+                return CommandSuggestions.filter(List.of("1", "2", "3"), nestedArgs[0]);
+            }
+            return Collections.emptyList();
+        }
+
+        if (SystemMnCommand.isSystemSubcommand(subcommand)) {
+            if (!isSystemControlAvailable(sender) || systemMnCommand == null) {
+                return Collections.emptyList();
+            }
+            return nullableList(systemMnCommand.suggestSystemNested(sender, nestedArgs));
         }
 
         return Collections.emptyList();
@@ -501,5 +558,24 @@ public final class MalinessCommand implements CommandExecutor, TabCompleter {
     boolean isHomeRenameAvailable(CommandSender sender) {
         return homeSystem != null && homeSystem.isEnabled()
                 && sender.hasPermission(HomeSystem.PERM_RENAME);
+    }
+
+    boolean isSystemsListAvailable(CommandSender sender) {
+        return systemControlService != null && systemControlService.canList(sender);
+    }
+
+    boolean isSystemControlAvailable(CommandSender sender) {
+        if (systemControlService == null) {
+            return false;
+        }
+        if (systemControlService.canList(sender)) {
+            return true;
+        }
+        for (String systemId : systemControlService.getCatalog().gameSystemIds()) {
+            if (systemControlService.canManage(sender, systemId)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

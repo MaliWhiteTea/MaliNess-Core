@@ -30,6 +30,7 @@ public final class HomeSystem extends AbstractGameSystem {
     public static final String ALIAS_HOME_2 = "ev";
     public static final String ALIAS_RENAME_1 = "evadıdeğiştir";
     public static final String ALIAS_RENAME_2 = "evismideğiştir";
+    public static final String ALIAS_DELHOME = "evsil";
 
     public static boolean bypassesHomeRestrictions(Player player) {
         return player.isOp() || player.hasPermission(PERM_BYPASS_TIME);
@@ -51,7 +52,7 @@ public final class HomeSystem extends AbstractGameSystem {
         registerLifecycleCommandsOnce(registrar -> {
             registrar.register("sethome", "Ev kaydeder.", List.of(ALIAS_SETHOME), new SetHomeCommand(this));
             registrar.register("home", "Eve ışınlanır.", List.of(ALIAS_HOME_1, ALIAS_HOME_2), new HomeCommand(this));
-            registrar.register("delhome", "Evi siler.", List.of("remhome"), new DelHomeCommand(this));
+            registrar.register("delhome", "Evi siler.", List.of("remhome", ALIAS_DELHOME), new DelHomeCommand(this));
             registrar.register("homes", "Evleri listeler.", List.of(), new HomesCommand(this));
             registrar.register("renamehome", "Ev adını değiştirir.", List.of(ALIAS_RENAME_1, ALIAS_RENAME_2), new RenameHomeCommand(this));
         });

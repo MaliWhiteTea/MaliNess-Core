@@ -8,6 +8,13 @@ import com.mertaliakcay.malinesscore.confirmation.ConfirmationListener;
 import com.mertaliakcay.malinesscore.confirmation.ConfirmationService;
 import com.mertaliakcay.malinesscore.messages.MessageService;
 import com.mertaliakcay.malinesscore.systems.SystemManager;
+import com.mertaliakcay.malinesscore.systems.control.NonClosableSystemRegistry;
+import com.mertaliakcay.malinesscore.systems.control.SystemBasicCommand;
+import com.mertaliakcay.malinesscore.systems.control.SystemControlService;
+import com.mertaliakcay.malinesscore.systems.control.SystemDependencyRegistry;
+import com.mertaliakcay.malinesscore.systems.control.SystemMnCommand;
+import com.mertaliakcay.malinesscore.systems.control.SystemsAuditLogger;
+import com.mertaliakcay.malinesscore.systems.control.SystemsBasicCommand;
 import com.mertaliakcay.malinesscore.systems.feed.FeedSystem;
 import com.mertaliakcay.malinesscore.systems.god.GodSystem;
 import com.mertaliakcay.malinesscore.systems.heal.HealSystem;
@@ -34,8 +41,11 @@ public final class MaliNessCore extends JavaPlugin {
     private SystemManager systemManager;
     private ConfirmationService confirmationService;
     private HomeTeleportManager homeTeleportManager;
+    private SystemControlService systemControlService;
+    private SystemMnCommand systemMnCommand;
     private volatile boolean reloading;
     private boolean globalCommandsRegistered;
+    private boolean systemCommandsRegistered;
 
     @Override
     public void onEnable() {
@@ -58,6 +68,7 @@ public final class MaliNessCore extends JavaPlugin {
         systemManager = new SystemManager(this);
         registerSystems();
         systemManager.enableAll();
+        registerSystemControlCommands();
 
         pluginLang.logInfo("plugin-enabled");
     }
@@ -103,6 +114,14 @@ public final class MaliNessCore extends JavaPlugin {
         return homeTeleportManager;
     }
 
+    public SystemControlService getSystemControlService() {
+        return systemControlService;
+    }
+
+    public SystemMnCommand getSystemMnCommand() {
+        return systemMnCommand;
+    }
+
     public void reloadPlugin(CommandSender sender) {
         reloading = true;
         try {
@@ -112,6 +131,9 @@ public final class MaliNessCore extends JavaPlugin {
             confirmationService.cancelAll();
             homeTeleportManager.cancelAllWarmups();
             systemManager.reloadAll();
+            if (systemControlService != null) {
+                systemControlService.refreshCatalog();
+            }
 
             if (sender == null) {
                 pluginLang.logInfo("reload-success");
@@ -165,5 +187,41 @@ public final class MaliNessCore extends JavaPlugin {
         systemManager.register(new SaturationSystem());
         systemManager.register(new GodSystem());
         systemManager.register(new HomeSystem());
+    }
+
+    private void registerSystemControlCommands() {
+        if (systemCommandsRegistered) {
+            return;
+        }
+        systemCommandsRegistered = true;
+
+        NonClosableSystemRegistry nonClosableRegistry = new NonClosableSystemRegistry();
+        SystemDependencyRegistry dependencyRegistry = new SystemDependencyRegistry();
+        SystemsAuditLogger auditLogger = new SystemsAuditLogger(this);
+
+        systemControlService = new SystemControlService(
+                this,
+                systemManager,
+                nonClosableRegistry,
+                dependencyRegistry,
+                auditLogger
+        );
+        systemMnCommand = new SystemMnCommand(this, systemControlService);
+        malinessCommand.setSystemControl(systemMnCommand, systemControlService);
+
+        getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {
+            event.registrar().register(
+                    "systems",
+                    "Oyun sistemlerini listeler.",
+                    List.of(SystemControlService.ALIAS_SYSTEMS_TR),
+                    new SystemsBasicCommand(this, systemControlService)
+            );
+            event.registrar().register(
+                    "system",
+                    "Oyun sistemini acar, kapatir veya bilgi gosterir.",
+                    List.of(SystemControlService.ALIAS_SYSTEM_TR),
+                    new SystemBasicCommand(this, systemControlService)
+            );
+        });
     }
 }

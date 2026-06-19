@@ -3,7 +3,7 @@
 > Son güncelleme: 2026-06-20  
 > Durum: **Test edilecek** — audit düzeltmeleri sonrası henüz oyun içi doğrulanmadı.
 
-Bu dosya ileride test turuna dönmek için tutulur. Tamamlanan maddelerin başına `[x]` koy.
+Bu dosya ileride test turuna dönmek için tutulur. Tamamlanan maddelerin başına `[x]` koyulur.
 
 ---
 

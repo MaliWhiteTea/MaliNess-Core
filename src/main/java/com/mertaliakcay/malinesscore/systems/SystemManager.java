@@ -85,6 +85,40 @@ public final class SystemManager {
         return Collections.unmodifiableList(systems);
     }
 
+    public AbstractGameSystem findAbstractSystem(String systemId) {
+        if (systemId == null) {
+            return null;
+        }
+
+        for (GameSystem system : systems) {
+            if (system instanceof AbstractGameSystem abstractSystem
+                    && abstractSystem.getName().equalsIgnoreCase(systemId)) {
+                return abstractSystem;
+            }
+        }
+
+        return null;
+    }
+
+    public boolean setSystemEnabled(String systemId, boolean enabled) {
+        AbstractGameSystem system = findAbstractSystem(systemId);
+        if (system == null) {
+            return false;
+        }
+
+        system.getConfig().get().set("enabled", enabled);
+        system.getConfig().save();
+        system.reload();
+
+        if (system.isActive()) {
+            activeSystems.add(system.getName());
+        } else {
+            activeSystems.remove(system.getName());
+        }
+
+        return true;
+    }
+
     public void reloadAll() {
         List<String> enabled = new ArrayList<>();
         List<String> disabled = new ArrayList<>();

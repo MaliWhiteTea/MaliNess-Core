@@ -56,6 +56,7 @@ public final class HomeMnCommand {
         names.add(HomeSystem.ALIAS_HOME_2);
         names.add("delhome");
         names.add("remhome");
+        names.add(HomeSystem.ALIAS_DELHOME);
         names.add("homes");
         names.add("renamehome");
         names.add(HomeSystem.ALIAS_RENAME_1);
@@ -78,7 +79,9 @@ public final class HomeMnCommand {
     }
 
     public static boolean isDelHome(String arg) {
-        return arg.equalsIgnoreCase("delhome") || arg.equalsIgnoreCase("remhome");
+        return arg.equalsIgnoreCase("delhome")
+                || arg.equalsIgnoreCase("remhome")
+                || arg.equalsIgnoreCase(HomeSystem.ALIAS_DELHOME);
     }
 
     public static boolean isHomes(String arg) {

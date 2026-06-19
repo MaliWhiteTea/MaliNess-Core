@@ -12,7 +12,7 @@ website: https://github.com/MaliWhiteTea/MaliNess-Core
 commands:
   maliness:
     description: MaliNess Network komutlari.
-    usage: /mn <reload|heal|feed|health|hunger|saturate|saturation|god|sethome|home|delhome|homes|renamehome|...>
+    usage: /mn <reload|heal|feed|health|hunger|saturate|saturation|god|sethome|home|delhome|homes|renamehome|systems|system|...>
     aliases: [mn]
 
 permissions:
@@ -87,4 +87,34 @@ permissions:
     default: true
   maliness-core.reload:
     description: Config ve lang dosyalarını yeniden yükler.
+    default: op
+  maliness-core.systems.list:
+    description: Oyun sistemleri listesini goruntuler.
+    default: op
+  maliness-core.systems.manage.*:
+    description: Tum oyun sistemlerini acip kapatir.
+    default: op
+  maliness-core.systems.manage.heal:
+    description: Iyilestirme sistemini acip kapatir.
+    default: op
+  maliness-core.systems.manage.feed:
+    description: Doyurma sistemini acip kapatir.
+    default: op
+  maliness-core.systems.manage.health:
+    description: Can sistemini acip kapatir.
+    default: op
+  maliness-core.systems.manage.hunger:
+    description: Aclik sistemini acip kapatir.
+    default: op
+  maliness-core.systems.manage.saturate:
+    description: Doygunluk sistemini acip kapatir.
+    default: op
+  maliness-core.systems.manage.saturation:
+    description: Doygunluk degeri sistemini acip kapatir.
+    default: op
+  maliness-core.systems.manage.god:
+    description: God sistemini acip kapatir.
+    default: op
+  maliness-core.systems.manage.home:
+    description: Ev sistemini acip kapatir.
     default: op
