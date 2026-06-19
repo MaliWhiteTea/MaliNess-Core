@@ -2,6 +2,8 @@
 
 MaliNess Network sunucuları için modüler bir Paper eklentisi. Her oyun sistemi kendi config ve lang dosyası ile yönetilir; sunucu açılışında aktif ve deaktif sistemler özet olarak konsola yazılır.
 
+**Sürüm:** `0.1.1` · **API:** Paper / Purpur **1.21.4** · **Java** **21**
+
 ## Gereksinimler
 
 | Gereksinim | Sürüm |
@@ -14,7 +16,7 @@ MaliNess Network sunucuları için modüler bir Paper eklentisi. Her oyun sistem
 1. Projeyi derleyin veya releases bölümünden jar dosyasını indirin.
 2. `MaliNess-Core-*.jar` dosyasını sunucunun `plugins/` klasörüne atın.
 3. Sunucuyu başlatın veya yeniden başlatın.
-4. İlk açılışta `plugins/MaliNess-Core/` altında config ve lang dosyaları otomatik oluşur.
+4. İlk açılışta `plugins/MaliNess-Core/` altında config ve lang dosyaları otomatik oluşur (jar içindeki varsayılanlar kullanıcı dosyalarıyla birleştirilir).
 
 ## Derleme
 
@@ -31,7 +33,7 @@ IntelliJ kullanıyorsanız: **Maven → Lifecycle → package**
 ```
 plugins/MaliNess-Core/
 ├── config.yml              # Genel ayarlar (prefix, renkler)
-├── pluginlang.yml          # Eklenti ana mesajları ve onay butonları
+├── pluginlang.yml          # Eklenti ana mesajları, /mn yardım, onay butonları
 ├── configs/
 │   ├── heal.yml
 │   ├── feed.yml
@@ -51,17 +53,18 @@ plugins/MaliNess-Core/
 │   ├── god.yml
 │   └── home.yml
 ├── data/
-│   └── homes/              # Oyuncu ev verileri (<uuid>.yml)
+│   ├── homes/              # Oyuncu ev verileri (<uuid>.yml)
+│   └── god-reload-cache.yml  # /mn reload sırasında geçici god durumu (otomatik)
 └── logs/
     ├── home-player.log
     └── home-admin.log
 ```
 
-Her sistem config dosyasında `enabled: true/false` ile açılıp kapatılabilir. Kapalı sistemler komut olarak kayıt edilmez.
+Her sistem config dosyasında `enabled: true/false` ile açılıp kapatılabilir. Kapalı sistemler aktif olmaz (komutlar çalışmaz, dinleyiciler kayıt edilmez); ancak komut kayıtları ve `/mn` entegrasyonu korunur.
 
 ## Mesaj sistemi
 
-Tüm mesajlarda ortak bir prefix ve dört mesaj tipi kullanılır.
+Tüm mesajlarda ortak bir prefix ve mesaj tipleri kullanılır. Konsol logları da aynı prefix ile yazılır.
 
 ### Prefix
 
@@ -93,6 +96,37 @@ ornek-mesaj:
 
 Desteklenen renk kodları: `&a`, `&e` ve `&#RRGGBB` (hex).
 
+## Mimari
+
+Eklenti modüler **sistem** yapısı kullanır. Her sistem `AbstractGameSystem` üzerinden yüklenir:
+
+```
+MaliNessCore
+├── SystemManager          → heal, feed, health, hunger, saturate, saturation, god, home
+├── MalinessCommand (/mn)  → tüm sistemlere delegasyon
+├── ConfirmationService    → /evet /hayır /iptal
+├── HomeTeleportManager    → warmup ve ışınlanma (plugin genelinde singleton)
+└── MessageService         → prefix, renkler, Adventure Component formatı
+```
+
+### Komut kaydı
+
+- **Paper `BasicCommand`:** `/heal`, `/home`, `/god` vb. doğrudan komutlar
+- **Bukkit `CommandExecutor`:** `/mn` kök komutu ve paylaşılan handler mantığı
+- Her sistem hem kendi komutunu hem `/mn <altkomut>` yolunu destekler
+
+### Reload
+
+`/mn reload` (veya konsoldan eşdeğeri) şunları yapar:
+
+- `config.yml`, `pluginlang.yml` ve tüm sistem config/lang dosyalarını yeniden yükler
+- Bekleyen onayları ve ev warmup'larını iptal eder
+- God modu durumunu geçici cache dosyasına yazar, reload sonrası geri yükler
+- Ev verilerini `flushAll()` ile diske yazar
+- Dinleyici birikmesini önlemek için sistemler önce unregister, sonra yeniden register edilir
+
+Tam plugin disable/enable (PlugMan vb.) farklı davranabilir; production'da tercih edilen yol `/mn reload`dır.
+
 ## Sistem özeti
 
 Eklenti **sekiz** oyun sistemi içerir:
@@ -115,15 +149,33 @@ Eklenti **sekiz** oyun sistemi içerir:
 Tüm sistemler `/mn` (veya `/maliness`) alt komutu olarak da kullanılabilir. Başka bir eklentiyle komut çakışması olduğunda yedek yol olarak kullanılır.
 
 ```
+/mn                    → yetkili olduğun komutların yardım listesi
+/mn 2                  → 2. sayfa (komut sayısı arttıkça otomatik sayfalanır)
+/mn reload             → config ve lang yenileme
 /mn heal ...
-/mn feed ...
-/mn health set Oyuncu 10
 /mn home
 /mn sethome maden
 /mn ev
 ```
 
-Tab tamamlama tüm komutlarda desteklenir; boş argümanda Tab'a basıldığında o seviyedeki tüm seçenekler listelenir.
+#### Yardım sayfalama
+
+`/mn` veya `/mn <sayfa>` ile kullanılabileceğin komutlar listelenir:
+
+- Her sayfa en fazla **20 satır:** 1 başlık + 18 komut + 1 sayfa navigasyonu
+- Başlık: **Kullanabileceğin komutlar:**
+- Komut satırları tıklanabilir; hover ile açıklama, `/mn` ve direkt komut kullanımı gösterilir
+- Sayfa satırı: `prefix + Sayfa X/N < >` (ok tuşları tıklanabilir)
+
+| İzin | Açıklama | Varsayılan |
+|------|----------|------------|
+| `maliness-core.reload` | `/mn reload` | `op` |
+
+### Tab tamamlama ve yetkiler
+
+- Tab tamamlama yalnızca **yetkili** olduğun komut ve argümanları gösterir
+- Komut çalıştırma yetkisi handler katmanında kontrol edilir; yetkisiz kullanımda sistem kendi hata mesajını gösterir (Minecraft varsayılan “unknown command” yerine)
+- Boş argümanda Tab'a basıldığında o seviyedeki tüm seçenekler listelenir
 
 ### Onay sistemi
 
@@ -135,7 +187,12 @@ Silme, üzerine yazma ve güvensiz ışınlanma gibi işlemlerde genel onay akı
 | `/hayır` | Bekleyen onayı reddeder |
 | `/iptal` | Bekleyen onayı veya warmup'ı iptal eder |
 
-Onay mesajında `[/evet] [/hayır] [/iptal]` tıklanabilir butonları gösterilir. Komut olarak yazıldığında kod gerekmez; son bekleyen onaya otomatik uygulanır.
+Chat formatı:
+
+1. Soru satırı (prefix + onay metni, örn. “Evini silmek istediğine emin misin?”)
+2. Buton satırı: **prefix + [/evet] [/hayır] [/iptal]** — tıklanabilir, tam olarak bu metinlerle gösterilir
+
+Komut olarak `/evet` yazıldığında kod gerekmez; son bekleyen onaya otomatik uygulanır. Oyundan çıkış veya ölüm bekleyen onayı iptal eder.
 
 | İzin | Açıklama | Varsayılan |
 |------|----------|------------|
@@ -295,6 +352,8 @@ Config: `configs/god.yml` — Lang: `langs/god.yml`
 
 `configs/god.yml` içinde `clear-target-radius` ile god açıldığında hedefi temizlenecek mob mesafesi ayarlanabilir (varsayılan: `64`).
 
+**Reload davranışı:** `/mn reload` sırasında aktif god oyuncuları geçici cache dosyasına yazılır ve reload bitince geri yüklenir. Oturum kapanışında (quit) god modu sıfırlanır.
+
 ---
 
 ### Home — Ev sistemi
@@ -311,7 +370,7 @@ Config: `configs/god.yml` — Lang: `langs/god.yml`
 | `/evayarla`, `/ev`, `/house`, `/remhome` | Kısa / Türkçe alternatifler |
 | `/evadıdeğiştir`, `/evismideğiştir` | `/renamehome` alternatifleri |
 | `/home <oyuncu> <ev>` | Yetkili: oyuncunun evine anında ışınlanma |
-| `/delhome <oyuncu> <ev>` | Yetkili: oyuncunun evini silme (oyuncu onaylı, konsol onaysız) |
+| `/delhome <oyuncu> <ev>` | Yetkili: oyuncunun evini silme (onay gerekir) |
 | `/mn home ...`, `/mn sethome ...`, `/mn ev` vb. | Alternatif komut |
 
 #### İsim kuralları
@@ -346,9 +405,9 @@ Warmup akışı (sohbet):
 2. Geri sayım: `4 → 3 → 2 → 1`
 3. `Işınlanıyorsun...`
 
-Warmup sırasında **hareket** (blok değişimi), **hasar**, **saldırı**, **elytra**, **araç** veya **düşme** → anında iptal.
+Warmup sırasında **hareket** (mesafe eşiği), **hasar**, **saldırı**, **elytra** veya **binek hayvanı sürme** → anında iptal.
 
-**OP** oyuncular ve `maliness-core.home.bypasstime` izni olanlar warmup ile tüm cooldown'lardan muaf tutulur.
+**OP** ve `maliness-core.home.bypasstime` izni olanlar warmup, cooldown ve **binek kısıtlamasından** muaf tutulur.
 
 #### Güvenlik ve konum
 
@@ -356,7 +415,7 @@ Warmup sırasında **hareket** (blok değişimi), **hasar**, **saldırı**, **el
 - `blocked-worlds` config ile belirli dünyalarda ev kaydı engellenir
 - Işınlanmada güvensiz konum tespit edilirse onay istenir (lav, ateş, kaktüs vb.)
 - Eve varınca kısa süreli fire resistance
-- Chunk preload ile ışınlanma
+- Chunk preload ile ışınlanma (async chunk yükleme + main thread teleport)
 
 #### Ev limiti
 
@@ -369,11 +428,22 @@ Warmup sırasında **hareket** (blok değişimi), **hasar**, **saldırı**, **el
 
 - Kendi `/homes` listende satırlar tıklanabilir → `/home <ev>`
 - Yetkili `/homes <oyuncu>` listesinde satırlar tıklanabilir → anında `/home <oyuncu> <ev>`
+- Offline oyuncuların evleri de listelenebilir ve ışınlanılabilir (diskte kayıtlı UUID)
+
+#### Veri doğrulama ve uyarılar
+
+Ev dosyaları yüklenirken `HomeDataValidator` ile doğrulanır. Geçersiz kayıtlar atlanır:
+
+- **Konsol:** klasik prefix ile uyarı logu
+- **Oyunda:** `maliness-core.home.invalid-home.broadcast` iznine sahip yetkililere anlık bildirim
+
+Ev verileri oyuncu başına `data/homes/<uuid>.yml` dosyasında tutulur; yazımlar async kuyruk ile sıraya alınır, shutdown/reload öncesi `flushAll()` ile diske yazılır.
 
 #### Konsol
 
-- Konsoldan yalnızca `delhome <oyuncu> <ev>` desteklenir (onay yok, anında siler)
+- Konsoldan yalnızca `delhome <oyuncu> <ev> --confirm` desteklenir (`--confirm` zorunlu)
 - Diğer ev komutları oyuncu gerektirir
+- Konsoldan eve ışınlanma desteklenmez
 
 #### Rate limit
 
@@ -388,11 +458,12 @@ Warmup sırasında **hareket** (blok değişimi), **hasar**, **saldırı**, **el
 | `maliness-core.home.delhome` | Ev silme | `true` |
 | `maliness-core.home.homes` | Kendi evlerini listeleme | `true` |
 | `maliness-core.home.rename` | Ev adı değiştirme | `true` |
-| `maliness-core.home.bypasstime` | Warmup ve cooldown atlama | `op` |
+| `maliness-core.home.bypasstime` | Warmup, cooldown ve binek kısıtlaması atlama | `op` |
 | `maliness-core.home.count.N` | En fazla N ev | — |
 | `maliness-core.home.others.list` | Başkasının evlerini listeleme | `op` |
 | `maliness-core.home.others.teleport` | Başkasının evine ışınlanma | `op` |
 | `maliness-core.home.others.delete` | Başkasının evini silme | `op` |
+| `maliness-core.home.invalid-home.broadcast` | Geçersiz ev verisi uyarısı (oyun içi) | `op` |
 
 Config: `configs/home.yml` — Lang: `langs/home.yml`
 
@@ -419,14 +490,27 @@ Hassas ayar sistemlerinde alt komutlar: `set`/`ayarla`, `add`/`ekle`, `remove`/`
 
 God modu durumları: `aktif`/`deaktif`, `on`/`off`, `active`/`deactivate`
 
+## Yeni sistem ekleme
+
+1. `AbstractGameSystem` alt sınıfı oluştur (`getSystemId()` → config/lang dosya adı)
+2. `configs/<id>.yml` ve `langs/<id>.yml` ekle
+3. `MaliNessCore.registerSystems()` içine kaydet
+4. Gerekirse `MalinessCommand` ve `MnCommandHelp` entegrasyonu ekle
+5. `plugin.yml` izinlerini tanımla
+
+`configs/example.yml` ve `langs/example.yml` şablon olarak jar içinde durur; yüklenmez.
+
 ## Proje yapısı (kaynak kod)
 
 ```
 src/main/java/com/mertaliakcay/malinesscore/
 ├── MaliNessCore.java
-├── command/                    # /mn komutu
-├── confirmation/               # /evet /hayır /iptal onay sistemi
-├── messages/                   # Mesaj tipi ve renk sistemi
+├── command/
+│   ├── MalinessCommand.java    # /mn delegasyon + tab
+│   ├── MnCommandHelp.java      # sayfalı yardım
+│   └── CommandSuggestGate.java
+├── confirmation/               # /evet /hayır /iptal
+├── messages/                   # MessageService, MessageType
 ├── systems/
 │   ├── AbstractGameSystem.java
 │   ├── SystemManager.java
@@ -436,8 +520,8 @@ src/main/java/com/mertaliakcay/malinesscore/
 │   ├── hunger/
 │   ├── saturate/
 │   ├── saturation/
-│   ├── god/
-│   └── home/
+│   ├── god/                    # GodStateStorage, GodListener
+│   └── home/                   # HomeService, HomeStorage, HomeTeleportManager, ...
 └── util/                       # Config, lang, renk, tab tamamlama
 
 src/main/resources/
@@ -447,6 +531,23 @@ src/main/resources/
 ├── configs/
 └── langs/
 ```
+
+## Planlanan iyileştirmeler
+
+Aşağıdaki maddeler bilinen sınırlamalardır; sıradaki geliştirme turunda ele alınacaktır:
+
+| Öncelik | Konu |
+|---------|------|
+| Yüksek | Tüm ev mutasyonlarında tutarlı `withHomeLock` kullanımı |
+| Yüksek | Atomik YAML yazımı (temp + rename) |
+| Yüksek | Onay callback exception güvenliği |
+| Yüksek | Global komut (`/evet` vb.) register-once guard |
+| Orta | Onay token'ının chat'te gösterilmesi ve butonlara bağlanması |
+| Orta | Geçersiz ev broadcast dedupe (spam önleme) |
+| Orta | Async chunk/teleport hata yolları |
+| Orta | `HomeRateLimiter` thread-safety |
+| Düşük | Bellek map temizliği (`writeStates`, `homeLocks`) |
+| — | `/sistemler` komutu ve otomatik sistem keşfi |
 
 ## Lisans
 
