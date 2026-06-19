@@ -13,7 +13,7 @@ import java.util.function.Consumer;
 /**
  * Yeni sistemler bu sınıftan türetilir.
  * Otomatik olarak configs/&lt;sistemId&gt;.yml ve langs/&lt;sistemId&gt;.yml yüklenir.
- * Config'de {@code enabled: false} ise sistem yuklenir ancak kullanilamaz (dinleyici ve gorevler calismaz).
+ * Config'de {@code enabled: false} ise sistem yüklenir ancak kullanılamaz (dinleyici ve görevler çalışmaz).
  */
 public abstract class AbstractGameSystem implements GameSystem {
 
@@ -115,18 +115,18 @@ public abstract class AbstractGameSystem implements GameSystem {
     }
 
     /**
-     * Sistem kaynaklari her zaman yuklenir (config enabled olsa da olmasa da).
+     * Sistem kaynakları her zaman yüklenir (config enabled olsa da olmasa da).
      */
     protected abstract void onEnable();
 
     /**
-     * Config'de enabled: true iken calistirilir (dinleyici, zamanlayici vb.).
+     * Config'de enabled: true iken çalıştırılır (dinleyici, zamanlayıcı vb.).
      */
     protected void onActivate() {
     }
 
     /**
-     * Config'de enabled: false olunca veya reload/shutdown oncesi calistirilir.
+     * Config'de enabled: false olunca veya reload/shutdown öncesi çalıştırılır.
      */
     protected void onDeactivate() {
     }
@@ -154,7 +154,7 @@ public abstract class AbstractGameSystem implements GameSystem {
     }
 
     /**
-     * Dinleyici ve zamanlayicilar calisiyor mu (config enabled ile esit).
+     * Dinleyici ve zamanlayıcılar çalışıyor mu (config enabled ile eşit).
      */
     public boolean isActive() {
         return active;

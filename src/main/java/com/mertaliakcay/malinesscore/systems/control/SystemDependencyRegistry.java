@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Sistem bagimliliklari icin bos altyapi. Ileride kurallar buraya eklenecek.
+ * Sistem bağımlılıkları için boş altyapı. İleride kurallar buraya eklenecek.
  */
 public final class SystemDependencyRegistry {
 

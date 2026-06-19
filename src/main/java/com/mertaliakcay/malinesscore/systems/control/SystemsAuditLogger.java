@@ -42,7 +42,7 @@ public final class SystemsAuditLogger {
         try (PrintWriter writer = new PrintWriter(new FileWriter(auditFile, true))) {
             writer.println(line);
         } catch (IOException exception) {
-            plugin.getLogger().log(Level.WARNING, "Sistem audit logu yazilamadi.", exception);
+            plugin.getLogger().log(Level.WARNING, "Sistem audit logu yazılamadı.", exception);
         }
     }
 

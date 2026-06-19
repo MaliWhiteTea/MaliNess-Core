@@ -204,12 +204,12 @@ homes-entry-admin-hover:
 
 storage-invalid-home-skipped:
   type: warning
-  text: "Gecersiz ev verisi atlandi ({player}, ev: {home}): {reason}"
+  text: "Geçersiz ev verisi atlandı ({player}, ev: {home}): {reason}"
 
 invalid-home-skipped-broadcast:
   type: warning
-  text: "{player} oyuncusunun {home} adli evi gecersiz veri iceriyor ve atlandi: {reason}"
+  text: "{player} oyuncusunun {home} adlı evi geçersiz veri içeriyor ve atlandı: {reason}"
 
 storage-invalid-file-name:
   type: warning
-  text: "Gecersiz ev dosyasi adi: {file}"
+  text: "Geçersiz ev dosyası adı: {file}"

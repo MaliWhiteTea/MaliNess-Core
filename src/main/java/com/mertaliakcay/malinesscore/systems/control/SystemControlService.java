@@ -181,6 +181,17 @@ public final class SystemControlService {
                     "DISABLE"
             );
         }
+
+        refreshSystemsList(sender, systemId);
+    }
+
+    private void refreshSystemsList(CommandSender sender, String systemId) {
+        if (!(sender instanceof Player player) || !canList(sender)) {
+            return;
+        }
+
+        int page = SystemsListHelp.pageForSystem(this, systemId);
+        SystemsListHelp.send(plugin, this, player, page);
     }
 
     public void showInfo(CommandSender sender, String systemId) {

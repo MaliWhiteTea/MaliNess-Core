@@ -44,7 +44,7 @@ final class GodStateStorage {
         } catch (IOException exception) {
             plugin.getLogger().log(Level.SEVERE, "God modu reload onbellegi kaydedilemedi.", exception);
             if (tempFile.exists() && !tempFile.delete()) {
-                plugin.getLogger().warning("God cache gecici dosyasi silinemedi: " + tempFile.getPath());
+                plugin.getLogger().warning("God cache geçici dosyası silinemedi: " + tempFile.getPath());
             }
             return false;
         }
@@ -62,7 +62,7 @@ final class GodStateStorage {
             try {
                 restored.add(UUID.fromString(uuidText));
             } catch (IllegalArgumentException exception) {
-                plugin.getLogger().warning("Gecersiz god cache UUID: " + uuidText);
+                plugin.getLogger().warning("Geçersiz god cache UUID: " + uuidText);
             }
         }
 

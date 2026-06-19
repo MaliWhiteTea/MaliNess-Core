@@ -2,7 +2,7 @@
 
 MaliNess Network sunucuları için modüler bir Paper eklentisi. Her oyun sistemi kendi config ve lang dosyası ile yönetilir; sunucu açılışında aktif ve deaktif sistemler özet olarak konsola yazılır. Yetkililer `/systems` ve `/system` komutlarıyla sistemleri oyun içinden açıp kapatabilir.
 
-**Sürüm:** `0.1.2` · **API:** Paper / Purpur **1.21.4** · **Java** **21**
+**Sürüm:** `0.1.3` · **API:** Paper / Purpur **1.21.4** · **Java** **21**
 
 ## Gereksinimler
 
@@ -95,12 +95,16 @@ Renkler `config.yml` → `messages.colors` altından özelleştirilebilir.
 ### Lang dosyası formatı
 
 ```yaml
-ornek-mesaj:
+örnek-mesaj:
   type: success
   text: "{player} için işlem tamamlandı!"
 ```
 
 Desteklenen renk kodları: `&a`, `&e` ve `&#RRGGBB` (hex).
+
+### `pluginlang.yml` senkronizasyonu
+
+`pluginlang.yml` dosyasının başındaki `lang-version` değeri jar sürümünden yüksekse, `/mn reload` veya sunucu açılışında jar'daki varsayılan mesajlar sunucu dosyasına yazılır. Böylece güncelleme sonrası Türkçe karakter ve yeni mesaj anahtarları otomatik uygulanır. Özel düzenlediğin metinler üzerine yazılır; değişiklik yaptıysan yedek al.
 
 ## Mimari
 
@@ -156,17 +160,21 @@ Alt komut alias'ları: `on`, `off`, `info`, `aç`, `kapa`, `bilgi`, `enable`, `d
 
 ```
 prefix + Sistemler:
-• [Aktif] Ev (home) [Kapat]
-• [Kapalı] God (god) [Aç]
-• [Aktif] Çekirdek (core)
+• ✔ core
+• ✔ heal [Kapat]
+• ✕ god [Aç]
+• ✔ home [Kapat]
 prefix + Sayfa 1/1 < >
 ```
 
+- Satırda yalnızca **sistem id** gösterilir (`home`, `god`, `core` …)
+- **Aktif** → yeşil `✔` · **Kapalı** → kırmızı `✕`
 - Aktif sistemde yalnızca **[Kapat]**, kapalı sistemde yalnızca **[Aç]** gösterilir
 - Zaten açık/kapalıyken `/system on|off` → uyarı mesajı
-- Sistem adına hover → kısa açıklama
+- Sistem id'sine hover → kısa açıklama
 - Yönetim yetkisi olmayan sistemlerin yanında kırmızı **`!`** — hover: *"Bu sistemi açıp kapatma yetkin yok."*
 - Açma/kapama onay gerektirir; kapatırken yan etki uyarıları gösterilir (ör. home: warmup iptali, god: koruma kalkar)
+- Başarılı açma/kapama sonrası güncel `/systems` menüsü otomatik yenilenir (ilgili sayfa)
 
 ### Bilgi (`/system info <sistem>`)
 

@@ -80,7 +80,7 @@ permissions:
     description: Geçersiz ev verisi atlandığında oyun içi uyarı alır.
     default: op
   maliness-core.home.count.*:
-    description: Ev limiti (orn. maliness-core.home.count.3 = en fazla 3 ev).
+    description: Ev limiti (örn. maliness-core.home.count.3 = en fazla 3 ev).
     default: false
   maliness-core.confirm.use:
     description: Onay komutlarını kullanır (/evet, /hayır, /iptal).
@@ -89,32 +89,32 @@ permissions:
     description: Config ve lang dosyalarını yeniden yükler.
     default: op
   maliness-core.systems.list:
-    description: Oyun sistemleri listesini goruntuler.
+    description: Oyun sistemleri listesini görüntüler.
     default: op
   maliness-core.systems.manage.*:
-    description: Tum oyun sistemlerini acip kapatir.
+    description: Tüm oyun sistemlerini açıp kapatır.
     default: op
   maliness-core.systems.manage.heal:
-    description: Iyilestirme sistemini acip kapatir.
+    description: İyileştirme sistemini açıp kapatır.
     default: op
   maliness-core.systems.manage.feed:
-    description: Doyurma sistemini acip kapatir.
+    description: Doyurma sistemini açıp kapatır.
     default: op
   maliness-core.systems.manage.health:
-    description: Can sistemini acip kapatir.
+    description: Can sistemini açıp kapatır.
     default: op
   maliness-core.systems.manage.hunger:
-    description: Aclik sistemini acip kapatir.
+    description: Açlık sistemini açıp kapatır.
     default: op
   maliness-core.systems.manage.saturate:
-    description: Doygunluk sistemini acip kapatir.
+    description: Doygunluk sistemini açıp kapatır.
     default: op
   maliness-core.systems.manage.saturation:
-    description: Doygunluk degeri sistemini acip kapatir.
+    description: Doygunluk değeri sistemini açıp kapatır.
     default: op
   maliness-core.systems.manage.god:
-    description: God sistemini acip kapatir.
+    description: God sistemini açıp kapatır.
     default: op
   maliness-core.systems.manage.home:
-    description: Ev sistemini acip kapatir.
+    description: Ev sistemini açıp kapatır.
     default: op

@@ -218,7 +218,7 @@ public final class MaliNessCore extends JavaPlugin {
             );
             event.registrar().register(
                     "system",
-                    "Oyun sistemini acar, kapatir veya bilgi gosterir.",
+                    "Oyun sistemini açar, kapatır veya bilgi gösterir.",
                     List.of(SystemControlService.ALIAS_SYSTEM_TR),
                     new SystemBasicCommand(this, systemControlService)
             );

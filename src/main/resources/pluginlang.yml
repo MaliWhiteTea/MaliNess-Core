@@ -1,5 +1,8 @@
 # MaliNess Core - Ana mesajlar
 # Renkler ve prefix config.yml dosyasından otomatik uygulanır.
+# lang-version yükselince jar varsayılanları mevcut dosyaya yazılır (/mn reload).
+
+lang-version: 3
 
 plugin-enabled:
   type: success
@@ -50,43 +53,43 @@ mn-help-hover:
   text: "{description}\n\nMN: {mn}\nDirekt: {direct}"
 
 mn-help-desc-reload:
-  text: "Config ve lang dosyalarini yeniden yukler."
+  text: "Config ve lang dosyalarını yeniden yükler."
 
 mn-help-desc-heal:
-  text: "Canini veya baska oyuncunun canini yeniler."
+  text: "Canını veya başka oyuncunun canını yeniler."
 
 mn-help-desc-feed:
-  text: "Acligini veya baska oyuncunun acligini giderir."
+  text: "Açlığını veya başka oyuncunun açlığını giderir."
 
 mn-help-desc-health:
-  text: "Oyuncu canini ayarlar, ekler veya azaltir."
+  text: "Oyuncu canını ayarlar, ekler veya azaltır."
 
 mn-help-desc-hunger:
-  text: "Oyuncu acligini ayarlar, ekler veya azaltir."
+  text: "Oyuncu açlığını ayarlar, ekler veya azaltır."
 
 mn-help-desc-saturate:
-  text: "Doygunlugunu doldurur ve acligini giderir."
+  text: "Doygunluğunu doldurur ve açlığını giderir."
 
 mn-help-desc-saturation:
-  text: "Oyuncu doygunlugunu ayarlar, ekler veya azaltir."
+  text: "Oyuncu doygunluğunu ayarlar, ekler veya azaltır."
 
 mn-help-desc-god:
-  text: "God modunu acar veya kapatir."
+  text: "God modunu açar veya kapatır."
 
 mn-help-desc-sethome:
-  text: "Bulundugun konumu ev olarak kaydeder."
+  text: "Bulunduğun konumu ev olarak kaydeder."
 
 mn-help-desc-home:
-  text: "Kayitli evine veya baska oyuncunun evine isinlanir."
+  text: "Kayıtlı evine veya başka oyuncunun evine ışınlanır."
 
 mn-help-desc-delhome:
-  text: "Kayitli evini veya baska oyuncunun evini siler."
+  text: "Kayıtlı evini veya başka oyuncunun evini siler."
 
 mn-help-desc-homes:
-  text: "Evlerini veya baska oyuncunun evlerini listeler."
+  text: "Evlerini veya başka oyuncunun evlerini listeler."
 
 mn-help-desc-renamehome:
-  text: "Ev adini degistirir."
+  text: "Ev adını değiştirir."
 
 mn-help-nav-prev:
   type: normal
@@ -94,7 +97,7 @@ mn-help-nav-prev:
 
 mn-help-nav-prev-hover:
   type: normal
-  text: "Onceki sayfa"
+  text: "Önceki sayfa"
 
 mn-help-nav-prev-disabled:
   type: normal
@@ -134,7 +137,7 @@ confirm-button-yes:
 
 confirm-button-yes-hover:
   type: normal
-  text: "Onaylamak icin tikla (/evet)"
+  text: "Onaylamak için tıkla (/evet)"
 
 confirm-button-no:
   type: error
@@ -142,7 +145,7 @@ confirm-button-no:
 
 confirm-button-no-hover:
   type: normal
-  text: "Reddetmek icin tikla (/hayir)"
+  text: "Reddetmek için tıkla (/hayir)"
 
 confirm-button-cancel:
   type: warning
@@ -150,7 +153,7 @@ confirm-button-cancel:
 
 confirm-button-cancel-hover:
   type: normal
-  text: "Islemi iptal etmek icin tikla (/iptal)"
+  text: "İşlemi iptal etmek için tıkla (/iptal)"
 
 confirm-reference-code:
   type: normal
@@ -206,15 +209,15 @@ systems-list-entry-prefix:
 
 systems-list-status-active:
   type: success
-  text: "[Aktif]"
+  text: "✔"
 
 systems-list-status-inactive:
-  type: warning
-  text: "[Kapalı]"
+  type: error
+  text: "✕"
 
 systems-list-entry-name:
   type: normal
-  text: "{display} ({id})"
+  text: "{id}"
 
 systems-list-hover:
   type: normal
@@ -226,7 +229,7 @@ systems-list-action-on:
 
 systems-list-action-on-hover:
   type: normal
-  text: "Sistemi acmak icin tikla"
+  text: "Sistemi açmak için tıkla"
 
 systems-list-action-off:
   type: error
@@ -234,7 +237,7 @@ systems-list-action-off:
 
 systems-list-action-off-hover:
   type: normal
-  text: "Sistemi kapatmak icin tikla"
+  text: "Sistemi kapatmak için tıkla"
 
 systems-list-no-permission-marker:
   type: error
@@ -242,7 +245,7 @@ systems-list-no-permission-marker:
 
 systems-list-no-permission-hover:
   type: error
-  text: "Bu sistemi acip kapatma yetkin yok."
+  text: "Bu sistemi açıp kapatma yetkin yok."
 
 systems-list-nav-prev:
   type: normal
@@ -250,7 +253,7 @@ systems-list-nav-prev:
 
 systems-list-nav-prev-hover:
   type: normal
-  text: "Onceki sayfa"
+  text: "Önceki sayfa"
 
 systems-list-nav-prev-disabled:
   type: normal
@@ -274,23 +277,23 @@ systems-list-nav-next-disabled:
 
 systems-list-invalid-page:
   type: error
-  text: "Gecersiz sayfa numarasi."
+  text: "Geçersiz sayfa numarası."
 
 systems-no-list-permission:
   type: error
-  text: "Sistem listesini goruntuleme yetkin yok."
+  text: "Sistem listesini görüntüleme yetkin yok."
 
 systems-no-manage-permission:
   type: error
-  text: "{system} sistemini yonetme yetkin yok."
+  text: "{system} sistemini yönetme yetkin yok."
 
 systems-console-unsupported:
   type: error
-  text: "Konsoldan yalnizca /system komutu kullanilabilir."
+  text: "Konsoldan yalnızca /system komutu kullanılabilir."
 
 systems-usage-system:
   type: warning
-  text: "Kullanim: /system <on|off|info> <sistem>"
+  text: "Kullanım: /system <on|off|info> <sistem>"
 
 systems-unknown:
   type: error
@@ -298,35 +301,35 @@ systems-unknown:
 
 systems-non-closable:
   type: error
-  text: "{system} kapatilamaz."
+  text: "{system} kapatılamaz."
 
 systems-already-active:
   type: warning
-  text: "{system} zaten acik."
+  text: "{system} zaten açık."
 
 systems-already-inactive:
   type: warning
-  text: "{system} zaten kapali."
+  text: "{system} zaten kapalı."
 
 systems-enabled:
   type: success
-  text: "{system} acildi."
+  text: "{system} açıldı."
 
 systems-disabled:
   type: success
-  text: "{system} kapatildi."
+  text: "{system} kapatıldı."
 
 systems-toggle-failed:
   type: error
-  text: "{system} durumu degistirilemedi."
+  text: "{system} durumu değiştirilemedi."
 
 systems-confirm-enable:
   type: warning
-  text: "{system} acilsin mi?"
+  text: "{system} açılsın mı?"
 
 systems-confirm-disable:
   type: warning
-  text: "{system} kapatilsin mi?"
+  text: "{system} kapatılsın mı?"
 
 systems-info-header:
   type: normal
@@ -342,11 +345,11 @@ systems-info-status-active:
 
 systems-info-status-inactive:
   type: warning
-  text: "Durum: Kapali"
+  text: "Durum: Kapalı"
 
 systems-info-description:
   type: normal
-  text: "Aciklama: {description}"
+  text: "Açıklama: {description}"
 
 systems-info-commands:
   type: normal
@@ -358,47 +361,47 @@ systems-info-config:
 
 systems-info-closable-yes:
   type: normal
-  text: "Kapatilabilir: Evet"
+  text: "Kapatılabilir: Evet"
 
 systems-info-closable-no:
   type: normal
-  text: "Kapatilabilir: Hayir (her zaman acik)"
+  text: "Kapatılabilir: Hayır (her zaman açık)"
 
 systems-info-no-manage:
   type: warning
-  text: "Bu sistemi acip kapatma yetkin yok."
+  text: "Bu sistemi açıp kapatma yetkin yok."
 
 systems-side-effect-home:
   type: warning
-  text: "Uyari: Bekleyen ev isinlanmalari iptal edilecek."
+  text: "Uyarı: Bekleyen ev ışınlanmaları iptal edilecek."
 
 systems-side-effect-god:
   type: warning
-  text: "Uyari: God modundaki oyuncularin korumasi kaldirilacak."
+  text: "Uyarı: God modundaki oyuncuların koruması kaldırılacak."
 
 systems-display-core:
-  text: "Cekirdek"
+  text: "Çekirdek"
 
 systems-desc-core:
-  text: "Ana eklenti cekirdegi. /mn, /systems ve /system komut altyapisi."
+  text: "Ana eklenti çekirdeği. /mn, /systems ve /system komut altyapısı."
 
 systems-commands-core:
   text: "/mn, /systems, /system"
 
 systems-display-heal:
-  text: "Iyilestirme"
+  text: "İyileştirme"
 
 systems-desc-heal:
   text: "Can yenileme sistemi."
 
 systems-commands-heal:
-  text: "/heal, /iyilestir"
+  text: "/heal, /iyileştir"
 
 systems-display-feed:
   text: "Doyurma"
 
 systems-desc-feed:
-  text: "Aclik giderme sistemi."
+  text: "Açlık giderme sistemi."
 
 systems-commands-feed:
   text: "/feed, /doyur"
@@ -407,34 +410,34 @@ systems-display-health:
   text: "Can"
 
 systems-desc-health:
-  text: "Oyuncu can degeri yonetimi."
+  text: "Oyuncu can değeri yönetimi."
 
 systems-commands-health:
   text: "/health, /can"
 
 systems-display-hunger:
-  text: "Aclik"
+  text: "Açlık"
 
 systems-desc-hunger:
-  text: "Oyuncu aclik degeri yonetimi."
+  text: "Oyuncu açlık değeri yönetimi."
 
 systems-commands-hunger:
-  text: "/hunger, /aclik"
+  text: "/hunger, /açlık"
 
 systems-display-saturate:
   text: "Doygunluk"
 
 systems-desc-saturate:
-  text: "Doygunluk ve aclik doldurma sistemi."
+  text: "Doygunluk ve açlık doldurma sistemi."
 
 systems-commands-saturate:
   text: "/saturate, /doygunluk"
 
 systems-display-saturation:
-  text: "Doygunluk Degeri"
+  text: "Doygunluk Değeri"
 
 systems-desc-saturation:
-  text: "Oyuncu doygunluk degeri yonetimi."
+  text: "Oyuncu doygunluk değeri yönetimi."
 
 systems-commands-saturation:
   text: "/saturation"
@@ -443,22 +446,22 @@ systems-display-god:
   text: "God"
 
 systems-desc-god:
-  text: "Olumsuzluk (god) modu sistemi."
+  text: "Ölümsüzlük (god) modu sistemi."
 
 systems-commands-god:
-  text: "/god, /tanri"
+  text: "/god, /tanrı"
 
 systems-display-home:
   text: "Ev"
 
 systems-desc-home:
-  text: "Ev kaydetme ve isinlanma sistemi."
+  text: "Ev kaydetme ve ışınlanma sistemi."
 
 systems-commands-home:
   text: "/sethome, /home, /delhome, /evsil, /homes, /renamehome"
 
 mn-help-desc-systems:
-  text: "Oyun sistemlerini listeler ve yonetir."
+  text: "Oyun sistemlerini listeler ve yönetir."
 
 mn-help-desc-system:
-  text: "Belirli bir sistemi acar, kapatir veya bilgi gosterir."
+  text: "Belirli bir sistemi açar, kapatır veya bilgi gösterir."

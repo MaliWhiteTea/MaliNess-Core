@@ -5,7 +5,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
- * Kapatilamayan sistem kimliklerini tutar (or. core).
+ * Kapatılamayan sistem kimliklerini tutar (ör. core).
  */
 public final class NonClosableSystemRegistry {
 

@@ -12,6 +12,7 @@ import java.util.List;
 
 final class MnCommandHelp {
 
+    /** Toplam satir: 1 baslik + 18 komut + 1 sayfa navigasyonu = 20 */
     static final int COMMANDS_PER_PAGE = 18;
 
     private MnCommandHelp() {
@@ -83,7 +84,7 @@ final class MnCommandHelp {
         List<HelpEntry> entries = new ArrayList<>();
 
         if (sender.hasPermission(MalinessCommand.PERM_RELOAD)) {
-            entries.add(entry("reload", "/reload", "/mn reload", "/mn reload", "(yalnizca /mn)"));
+            entries.add(entry("reload", "/reload", "/mn reload", "/mn reload", "(yalnızca /mn)"));
         }
 
         if (commands.isHealAvailable(sender)) {

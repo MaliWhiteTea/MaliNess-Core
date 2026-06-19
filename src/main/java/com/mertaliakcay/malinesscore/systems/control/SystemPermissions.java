@@ -39,7 +39,7 @@ public final class SystemPermissions {
     public static Permission createManagePermission(String systemId) {
         return new Permission(
                 managePermission(systemId),
-                "Belirli bir oyun sistemini acar veya kapatir.",
+                "Belirli bir oyun sistemini açar veya kapatır.",
                 PermissionDefault.OP
         );
     }

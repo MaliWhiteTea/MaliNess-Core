@@ -11,9 +11,20 @@ import java.util.List;
 
 final class SystemsListHelp {
 
+    /** Toplam satir: 1 baslik + 18 sistem + 1 sayfa navigasyonu = 20 */
     static final int SYSTEMS_PER_PAGE = 18;
 
     private SystemsListHelp() {
+    }
+
+    static int pageForSystem(SystemControlService control, String systemId) {
+        List<SystemDescriptor> entries = control.getCatalog().listAll();
+        for (int i = 0; i < entries.size(); i++) {
+            if (entries.get(i).getId().equalsIgnoreCase(systemId)) {
+                return (i / SYSTEMS_PER_PAGE) + 1;
+            }
+        }
+        return 1;
     }
 
     static void send(MaliNessCore plugin, SystemControlService control, CommandSender sender, int requestedPage) {
@@ -42,7 +53,6 @@ final class SystemsListHelp {
             SystemDescriptor descriptor
     ) {
         String systemId = descriptor.getId();
-        String display = control.displayName(systemId);
         boolean active = control.isActive(descriptor);
         String statusKey = active ? "systems-list-status-active" : "systems-list-status-inactive";
 
@@ -50,7 +60,7 @@ final class SystemsListHelp {
                 .append(lang.getPlain("systems-list-entry-prefix"))
                 .append(lang.getPlain(statusKey))
                 .append(Component.space())
-                .append(lang.getPlain("systems-list-entry-name", "display", display, "id", systemId))
+                .append(lang.getPlain("systems-list-entry-name", "id", systemId))
                 .hoverEvent(HoverEvent.showText(lang.get(
                         "systems-list-hover",
                         "description", lang.getText("systems-desc-" + systemId)

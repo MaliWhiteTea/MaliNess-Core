@@ -334,7 +334,7 @@ public final class HomeStorage {
         } catch (IOException exception) {
             plugin.getLogger().log(Level.SEVERE, "Ev verisi kaydedilemedi: " + playerId, exception);
             if (tempFile.exists() && !tempFile.delete()) {
-                plugin.getLogger().warning("Ev gecici dosyasi silinemedi: " + tempFile.getPath());
+                plugin.getLogger().warning("Ev geçici dosyası silinemedi: " + tempFile.getPath());
             }
         }
     }

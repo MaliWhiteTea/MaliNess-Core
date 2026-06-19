@@ -211,7 +211,7 @@ public final class HomeTeleportManager {
             }
 
             if (chunkError != null) {
-                plugin.getLogger().log(Level.SEVERE, "Ev chunk yuklenemedi: " + player.getName(), chunkError);
+                plugin.getLogger().log(Level.SEVERE, "Ev chunk yüklenemedi: " + player.getName(), chunkError);
                 lang.send(player, "teleport-failed");
                 return;
             }
@@ -222,7 +222,7 @@ public final class HomeTeleportManager {
                 }
 
                 if (teleportError != null) {
-                    plugin.getLogger().log(Level.SEVERE, "Ev isinlanmasi basarisiz: " + player.getName(), teleportError);
+                    plugin.getLogger().log(Level.SEVERE, "Ev ışınlanması başarısız: " + player.getName(), teleportError);
                     lang.send(player, "teleport-failed");
                     return;
                 }

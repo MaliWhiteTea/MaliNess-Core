@@ -16,7 +16,7 @@ Bu dosya ileride test turuna dönmek için tutulur. Tamamlanan maddelerin başı
 ### Onay sistemi
 - [ ] Onay sorusu + buton satırı: `prefix + [/evet] [/hayır] [/iptal]` (küçük harf, `/` ile)
 - [ ] `/evet` başarılı → "Onaylandı."
-- [ ] Onay callback hata verirse → "Onay islemi tamamlanamadi. Lutfen tekrar dene." + konsol log
+- [ ] Onay callback hata verirse → "Onay işlemi tamamlanamadı. Lütfen tekrar deneyin." + konsol log
 - [ ] Token yok; `/evet` tek başına son bekleyen onayı kabul eder
 
 ### Onay sonrası yeniden doğrulama
