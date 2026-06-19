@@ -38,6 +38,7 @@ public final class HomeSystem extends AbstractGameSystem {
     private HomeStorage storage;
     private HomeService homeService;
     private HomeMnCommand homeMnCommand;
+    private HomeListener homeListener;
     private BukkitTask cacheCleanupTask;
 
     @Override
@@ -55,7 +56,7 @@ public final class HomeSystem extends AbstractGameSystem {
             registrar.register("renamehome", "Ev adını değiştirir.", List.of(ALIAS_RENAME_1, ALIAS_RENAME_2), new RenameHomeCommand(this));
         });
 
-        plugin.getMalinessCommand().setHome(this, null);
+        plugin.getMalinessCommand().setHome(this, homeMnCommand);
     }
 
     @Override
@@ -65,7 +66,13 @@ public final class HomeSystem extends AbstractGameSystem {
                 configuration.getStringList("names.reserved"),
                 configuration.getString("names.default-name", "ev")
         );
-        storage = new HomeStorage(plugin, nameValidator, lang);
+
+        if (storage != null) {
+            storage.updateNameValidator(nameValidator);
+        } else {
+            storage = new HomeStorage(plugin, nameValidator, lang);
+        }
+
         HomeLimitService limitService = new HomeLimitService(
                 configuration.getInt("limits.default-max-homes", 1),
                 configuration.getInt("limits.max-count-permission-scan", 20)
@@ -87,46 +94,70 @@ public final class HomeSystem extends AbstractGameSystem {
                 lang
         );
 
-        homeService = new HomeService(
-                plugin,
-                this,
-                storage,
-                limitService,
-                nameValidator,
-                homeLogger,
-                rateLimiter,
-                teleportManager,
-                plugin.getConfirmationService()
-        );
+        if (homeService == null) {
+            homeService = new HomeService(
+                    plugin,
+                    this,
+                    storage,
+                    limitService,
+                    nameValidator,
+                    homeLogger,
+                    rateLimiter,
+                    teleportManager,
+                    plugin.getConfirmationService()
+            );
+        } else {
+            homeService = new HomeService(
+                    plugin,
+                    this,
+                    storage,
+                    limitService,
+                    nameValidator,
+                    homeLogger,
+                    rateLimiter,
+                    teleportManager,
+                    plugin.getConfirmationService()
+            );
+        }
+
         homeService.reloadFromConfig();
-
-        registerListener(new HomeListener(teleportManager, homeService));
-
         homeMnCommand = new HomeMnCommand(homeService);
         plugin.getMalinessCommand().setHome(this, homeMnCommand);
+    }
+
+    @Override
+    protected void onActivate() {
+        HomeTeleportManager teleportManager = plugin.getHomeTeleportManager();
+        homeListener = new HomeListener(teleportManager, homeService);
+        registerListener(homeListener);
 
         cacheCleanupTask = plugin.getServer().getScheduler().runTaskTimerAsynchronously(
                 plugin,
-                homeService::purgeExpiredCaches,
+                () -> {
+                    homeService.purgeExpiredCaches();
+                    homeService.purgeInactiveLocks();
+                },
                 20L * 60 * 15,
                 20L * 60 * 30
         );
     }
 
     @Override
-    protected void onDisable() {
+    protected void onDeactivate() {
         if (cacheCleanupTask != null) {
             cacheCleanupTask.cancel();
             cacheCleanupTask = null;
         }
 
         plugin.getHomeTeleportManager().cancelAllWarmups();
+    }
+
+    @Override
+    protected void onDisable() {
+        onDeactivate();
         if (storage != null) {
             storage.flushAll();
         }
-        homeService = null;
-        homeMnCommand = null;
-        storage = null;
     }
 
     @Override

@@ -32,7 +32,7 @@ public final class DelHomeCommand implements BasicCommand {
 
     @Override
     public Collection<String> suggest(CommandSourceStack source, String[] args) {
-        if (!system.isActive() || !HomeCommandSupport.canSuggestDelHome(source.getSender())) {
+        if (!system.isEnabled() || !HomeCommandSupport.canSuggestDelHome(source.getSender())) {
             return List.of();
         }
         HomeService service = system.getHomeService();

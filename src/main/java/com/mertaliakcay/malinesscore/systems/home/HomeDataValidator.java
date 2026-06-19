@@ -28,11 +28,18 @@ final class HomeDataValidator {
             return ValidationResult.invalid("eksik koordinat: " + rawName);
         }
 
-        double x = section.getDouble("x");
-        double y = section.getDouble("y");
-        double z = section.getDouble("z");
-        float yaw = section.isSet("yaw") ? (float) section.getDouble("yaw") : 0F;
-        float pitch = section.isSet("pitch") ? (float) section.getDouble("pitch") : 0F;
+        Double x = readCoordinate(section, "x");
+        Double y = readCoordinate(section, "y");
+        Double z = readCoordinate(section, "z");
+        if (x == null || y == null || z == null) {
+            return ValidationResult.invalid("gecersiz koordinat tipi: " + rawName);
+        }
+
+        Float yaw = readAngle(section, "yaw", 0F);
+        Float pitch = readAngle(section, "pitch", 0F);
+        if (yaw == null || pitch == null) {
+            return ValidationResult.invalid("gecersiz bakis acisi tipi: " + rawName);
+        }
 
         if (!isFiniteCoordinate(x) || !isFiniteCoordinate(y) || !isFiniteCoordinate(z)) {
             return ValidationResult.invalid("gecersiz koordinat: " + rawName);
@@ -42,7 +49,36 @@ final class HomeDataValidator {
             return ValidationResult.invalid("gecersiz bakis acisi: " + rawName);
         }
 
-        return ValidationResult.valid(normalizedName, worldName.trim(), x, y, z, yaw, pitch, section.getLong("created", System.currentTimeMillis()));
+        long createdAt = readCreatedAt(section);
+
+        return ValidationResult.valid(normalizedName, worldName.trim(), x, y, z, yaw, pitch, createdAt);
+    }
+
+    private static Double readCoordinate(ConfigurationSection section, String key) {
+        if (section.isDouble(key) || section.isInt(key)) {
+            return section.getDouble(key);
+        }
+        return null;
+    }
+
+    private static Float readAngle(ConfigurationSection section, String key, float defaultValue) {
+        if (!section.isSet(key)) {
+            return defaultValue;
+        }
+        if (section.isDouble(key) || section.isInt(key)) {
+            return (float) section.getDouble(key);
+        }
+        return null;
+    }
+
+    private static long readCreatedAt(ConfigurationSection section) {
+        if (!section.isSet("created")) {
+            return System.currentTimeMillis();
+        }
+        if (section.isLong("created") || section.isInt("created")) {
+            return section.getLong("created");
+        }
+        return System.currentTimeMillis();
     }
 
     private static boolean isFiniteCoordinate(double value) {

@@ -32,7 +32,7 @@ public final class RenameHomeCommand implements BasicCommand {
 
     @Override
     public Collection<String> suggest(CommandSourceStack source, String[] args) {
-        if (!system.isActive() || !HomeCommandSupport.canSuggestRenameHome(source.getSender())) {
+        if (!system.isEnabled() || !HomeCommandSupport.canSuggestRenameHome(source.getSender())) {
             return List.of();
         }
         HomeService service = system.getHomeService();

@@ -230,7 +230,7 @@ public final class MalinessCommand implements CommandExecutor, TabCompleter {
             return false;
         }
 
-        if (!system.isActive()) {
+        if (!system.isEnabled()) {
             system.getLang().send(sender, "system-disabled");
             return false;
         }
@@ -298,7 +298,7 @@ public final class MalinessCommand implements CommandExecutor, TabCompleter {
     }
 
     private void addAvailableHomeSubcommands(CommandSender sender, List<String> subcommands) {
-        if (homeSystem == null || !homeSystem.isActive()) {
+        if (homeSystem == null || !homeSystem.isEnabled()) {
             return;
         }
         if (isHomeSetAvailable(sender)) {
@@ -444,62 +444,62 @@ public final class MalinessCommand implements CommandExecutor, TabCompleter {
     }
 
     boolean isHealAvailable(CommandSender sender) {
-        return healSystem != null && healSystem.isActive()
+        return healSystem != null && healSystem.isEnabled()
                 && (sender.hasPermission(HealSystem.PERM_USE) || sender.hasPermission(HealSystem.PERM_OTHERS));
     }
 
     boolean isFeedAvailable(CommandSender sender) {
-        return feedSystem != null && feedSystem.isActive()
+        return feedSystem != null && feedSystem.isEnabled()
                 && (sender.hasPermission(FeedSystem.PERM_USE) || sender.hasPermission(FeedSystem.PERM_OTHERS));
     }
 
     boolean isHealthAvailable(CommandSender sender) {
-        return healthSystem != null && healthSystem.isActive()
+        return healthSystem != null && healthSystem.isEnabled()
                 && sender.hasPermission(HealthSystem.PERM_USE);
     }
 
     boolean isHungerAvailable(CommandSender sender) {
-        return hungerSystem != null && hungerSystem.isActive()
+        return hungerSystem != null && hungerSystem.isEnabled()
                 && sender.hasPermission(HungerSystem.PERM_USE);
     }
 
     boolean isSaturateAvailable(CommandSender sender) {
-        return saturateSystem != null && saturateSystem.isActive()
+        return saturateSystem != null && saturateSystem.isEnabled()
                 && (sender.hasPermission(SaturateSystem.PERM_USE) || sender.hasPermission(SaturateSystem.PERM_OTHERS));
     }
 
     boolean isSaturationAvailable(CommandSender sender) {
-        return saturationSystem != null && saturationSystem.isActive()
+        return saturationSystem != null && saturationSystem.isEnabled()
                 && sender.hasPermission(SaturationSystem.PERM_USE);
     }
 
     boolean isGodAvailable(CommandSender sender) {
-        return godSystem != null && godSystem.isActive()
+        return godSystem != null && godSystem.isEnabled()
                 && (sender.hasPermission(GodSystem.PERM_USE) || sender.hasPermission(GodSystem.PERM_OTHERS));
     }
 
     boolean isHomeSetAvailable(CommandSender sender) {
-        return homeSystem != null && homeSystem.isActive()
+        return homeSystem != null && homeSystem.isEnabled()
                 && sender.hasPermission(HomeSystem.PERM_SETHOME);
     }
 
     boolean isHomeTeleportAvailable(CommandSender sender) {
-        return homeSystem != null && homeSystem.isActive()
+        return homeSystem != null && homeSystem.isEnabled()
                 && (sender.hasPermission(HomeSystem.PERM_USE) || sender.hasPermission(HomeSystem.PERM_OTHERS_TELEPORT));
     }
 
     boolean isHomeDeleteAvailable(CommandSender sender) {
-        return homeSystem != null && homeSystem.isActive()
+        return homeSystem != null && homeSystem.isEnabled()
                 && (sender.hasPermission(HomeSystem.PERM_DELHOME) || sender.hasPermission(HomeSystem.PERM_OTHERS_DELETE));
     }
 
     boolean isHomeListAvailable(CommandSender sender) {
-        return homeSystem != null && homeSystem.isActive()
+        return homeSystem != null && homeSystem.isEnabled()
                 && (sender.hasPermission(HomeSystem.PERM_HOMES) || sender.hasPermission(HomeSystem.PERM_OTHERS_LIST));
     }
 
     boolean isHomeRenameAvailable(CommandSender sender) {
-        return homeSystem != null && homeSystem.isActive()
+        return homeSystem != null && homeSystem.isEnabled()
                 && sender.hasPermission(HomeSystem.PERM_RENAME);
     }
 }

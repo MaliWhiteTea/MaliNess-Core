@@ -12,7 +12,7 @@ import org.bukkit.entity.Player;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.logging.Level;
 
 public final class ConfirmationService {
 
@@ -28,10 +28,8 @@ public final class ConfirmationService {
     public void request(Player player, Component prompt, Runnable onAccept, Runnable onDeny) {
         cancel(player.getUniqueId(), false);
 
-        String token = generateToken();
         long expiresAt = System.currentTimeMillis() + TIMEOUT_MS;
-
-        PendingConfirmation confirmation = new PendingConfirmation(token, expiresAt, onAccept, onDeny);
+        PendingConfirmation confirmation = new PendingConfirmation(expiresAt, onAccept, onDeny);
         pending.put(player.getUniqueId(), confirmation);
 
         PluginLang pluginLang = plugin.getPluginLang();
@@ -55,28 +53,27 @@ public final class ConfirmationService {
                 .append(cancelButton));
     }
 
-    public String getPendingToken(UUID playerId) {
-        PendingConfirmation confirmation = pending.get(playerId);
-        if (confirmation == null || confirmation.isExpired()) {
-            return null;
-        }
-        return confirmation.token();
-    }
-
-    public boolean accept(Player player, String token) {
-        PendingConfirmation confirmation = getValid(player, token);
+    public boolean accept(Player player) {
+        PendingConfirmation confirmation = getValid(player);
         if (confirmation == null) {
             return false;
         }
 
+        try {
+            confirmation.onAccept().run();
+        } catch (Exception exception) {
+            plugin.getLogger().log(Level.SEVERE, "Onay islemi tamamlanamadi: " + player.getName(), exception);
+            plugin.getPluginLang().send(player, "confirm-failed");
+            return false;
+        }
+
         pending.remove(player.getUniqueId());
-        confirmation.onAccept().run();
         plugin.getPluginLang().send(player, "confirm-accepted");
         return true;
     }
 
-    public boolean deny(Player player, String token) {
-        PendingConfirmation confirmation = getValid(player, token);
+    public boolean deny(Player player) {
+        PendingConfirmation confirmation = getValid(player);
         if (confirmation == null) {
             return false;
         }
@@ -124,7 +121,7 @@ public final class ConfirmationService {
         }
     }
 
-    private PendingConfirmation getValid(Player player, String token) {
+    private PendingConfirmation getValid(Player player) {
         PendingConfirmation confirmation = pending.get(player.getUniqueId());
         if (confirmation == null) {
             plugin.getPluginLang().send(player, "confirm-nothing-pending");
@@ -137,15 +134,6 @@ public final class ConfirmationService {
             return null;
         }
 
-        if (!confirmation.token().equals(token)) {
-            plugin.getPluginLang().send(player, "confirm-invalid-token");
-            return null;
-        }
-
         return confirmation;
-    }
-
-    private String generateToken() {
-        return Integer.toHexString(ThreadLocalRandom.current().nextInt(0x100000, 0xFFFFFF));
     }
 }

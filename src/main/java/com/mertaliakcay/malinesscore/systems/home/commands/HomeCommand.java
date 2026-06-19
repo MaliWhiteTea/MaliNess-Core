@@ -32,7 +32,7 @@ public final class HomeCommand implements BasicCommand {
 
     @Override
     public Collection<String> suggest(CommandSourceStack source, String[] args) {
-        if (!system.isActive() || !HomeCommandSupport.canSuggestHome(source.getSender())) {
+        if (!system.isEnabled() || !HomeCommandSupport.canSuggestHome(source.getSender())) {
             return List.of();
         }
         HomeService service = system.getHomeService();

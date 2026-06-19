@@ -13,6 +13,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 
 public final class HomeTeleportManager {
 
@@ -204,17 +205,29 @@ public final class HomeTeleportManager {
         }
 
         World world = location.getWorld();
-        world.getChunkAtAsync(location).thenAccept(chunk -> plugin.getServer().getScheduler().runTask(plugin, () -> {
+        world.getChunkAtAsync(location).whenComplete((chunk, chunkError) -> plugin.getServer().getScheduler().runTask(plugin, () -> {
             if (!player.isOnline()) {
                 return;
             }
 
-            player.teleportAsync(location).thenAccept(success -> plugin.getServer().getScheduler().runTask(plugin, () -> {
+            if (chunkError != null) {
+                plugin.getLogger().log(Level.SEVERE, "Ev chunk yuklenemedi: " + player.getName(), chunkError);
+                lang.send(player, "teleport-failed");
+                return;
+            }
+
+            player.teleportAsync(location).whenComplete((success, teleportError) -> plugin.getServer().getScheduler().runTask(plugin, () -> {
                 if (!player.isOnline()) {
                     return;
                 }
 
-                if (success) {
+                if (teleportError != null) {
+                    plugin.getLogger().log(Level.SEVERE, "Ev isinlanmasi basarisiz: " + player.getName(), teleportError);
+                    lang.send(player, "teleport-failed");
+                    return;
+                }
+
+                if (Boolean.TRUE.equals(success)) {
                     player.addPotionEffect(new PotionEffect(
                             PotionEffectType.FIRE_RESISTANCE,
                             fireResistanceSeconds * 20,

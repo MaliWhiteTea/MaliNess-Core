@@ -12,8 +12,12 @@ import org.bukkit.entity.Player;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -28,10 +32,11 @@ public final class HomeStorage {
 
     private final MaliNessCore plugin;
     private final File homesFolder;
-    private final HomeNameValidator nameValidator;
+    private HomeNameValidator nameValidator;
     private final SystemLang lang;
     private final Map<UUID, PlayerWriteState> writeStates = new ConcurrentHashMap<>();
     private final Object flushMonitor = new Object();
+    private final java.util.Set<String> notifiedInvalidHomes = ConcurrentHashMap.newKeySet();
 
     public HomeStorage(MaliNessCore plugin, HomeNameValidator nameValidator, SystemLang lang) {
         this.plugin = plugin;
@@ -41,6 +46,10 @@ public final class HomeStorage {
         if (!homesFolder.exists()) {
             homesFolder.mkdirs();
         }
+    }
+
+    void updateNameValidator(HomeNameValidator nameValidator) {
+        this.nameValidator = nameValidator;
     }
 
     public PlayerHomes load(UUID playerId) {
@@ -108,6 +117,11 @@ public final class HomeStorage {
 
     private void notifyInvalidHomeSkipped(String playerName, String homeName, String reason) {
         lang.logInfo("storage-invalid-home-skipped", "player", playerName, "home", homeName, "reason", reason);
+
+        String dedupeKey = playerName.toLowerCase(Locale.ROOT) + "|" + homeName.toLowerCase(Locale.ROOT) + "|" + reason;
+        if (!notifiedInvalidHomes.add(dedupeKey)) {
+            return;
+        }
 
         Component broadcast = lang.get("invalid-home-skipped-broadcast", "player", playerName, "home", homeName, "reason", reason);
         for (Player online : Bukkit.getOnlinePlayers()) {
@@ -270,6 +284,7 @@ public final class HomeStorage {
                             state.drainRunning = true;
                             continue;
                         }
+                        writeStates.remove(playerId);
                         return;
                     }
                     state.pendingSave = null;
@@ -308,10 +323,19 @@ public final class HomeStorage {
             yaml.set(path + ".created", location.getCreatedAt());
         }
 
+        File tempFile = new File(parent, file.getName() + ".tmp");
         try {
-            yaml.save(file);
+            yaml.save(tempFile);
+            try {
+                Files.move(tempFile.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            } catch (AtomicMoveNotSupportedException exception) {
+                Files.move(tempFile.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            }
         } catch (IOException exception) {
             plugin.getLogger().log(Level.SEVERE, "Ev verisi kaydedilemedi: " + playerId, exception);
+            if (tempFile.exists() && !tempFile.delete()) {
+                plugin.getLogger().warning("Ev gecici dosyasi silinemedi: " + tempFile.getPath());
+            }
         }
     }
 

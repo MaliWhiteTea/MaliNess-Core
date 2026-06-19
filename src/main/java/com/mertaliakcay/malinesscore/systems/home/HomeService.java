@@ -91,6 +91,136 @@ public final class HomeService {
         purgeExpiredCooldowns(setHomeCooldowns, setHomeCooldownSeconds);
     }
 
+    public void purgeInactiveLocks() {
+        homeLocks.keySet().removeIf(playerId -> {
+            Player online = Bukkit.getPlayer(playerId);
+            return online == null || !online.isOnline();
+        });
+    }
+
+    private void confirmSetHomeOverwrite(Player player, String homeName, Location location) {
+        SystemLang lang = system.getLang();
+        if (!player.isOnline()) {
+            return;
+        }
+        if (!validateSetHomeLocation(player, location, lang)) {
+            return;
+        }
+
+        PlayerHomes fresh = storage.load(player.getUniqueId());
+        if (!fresh.contains(homeName)) {
+            lang.send(player, "home-not-found", "home", homeName);
+            return;
+        }
+        if (limitService.isOverLimit(player, fresh)) {
+            lang.send(player, "over-limit-blocked",
+                    "count", fresh.size(),
+                    "limit", limitService.getMaxHomes(player),
+                    "homes", formatHomeList(fresh));
+            return;
+        }
+        saveHome(player, fresh, homeName, location);
+    }
+
+    private void confirmDeleteOwnHome(Player player, String homeName) {
+        SystemLang lang = system.getLang();
+        if (!player.isOnline()) {
+            return;
+        }
+
+        PlayerHomes fresh = storage.load(player.getUniqueId());
+        if (!fresh.contains(homeName)) {
+            lang.send(player, "home-not-found", "home", homeName);
+            return;
+        }
+        deleteHome(player, player, fresh, homeName, false);
+    }
+
+    private void confirmRenameHome(Player player, String oldName, String newName) {
+        SystemLang lang = system.getLang();
+        if (!player.isOnline()) {
+            return;
+        }
+        if (!nameValidator.isValid(newName)) {
+            lang.send(player, "invalid-home-name", "name", newName);
+            return;
+        }
+
+        PlayerHomes fresh = storage.load(player.getUniqueId());
+        if (!fresh.contains(oldName)) {
+            lang.send(player, "home-not-found", "home", oldName);
+            return;
+        }
+        renameHome(player, fresh, oldName, newName);
+    }
+
+    private void confirmAdminDeleteHome(Player admin, OfflinePlayer target, String homeName) {
+        SystemLang lang = system.getLang();
+        if (!admin.isOnline()) {
+            return;
+        }
+
+        PlayerHomes fresh = storage.load(target.getUniqueId());
+        if (!fresh.contains(homeName)) {
+            lang.send(admin, "home-not-found", "home", homeName);
+            return;
+        }
+        deleteHome(admin, target, fresh, homeName, true);
+    }
+
+    private void confirmUnsafeTeleport(Player traveler, Player owner, String homeName, boolean adminTeleport, Runnable onSuccess) {
+        SystemLang lang = system.getLang();
+        if (!traveler.isOnline()) {
+            return;
+        }
+
+        if (traveler.isInsideVehicle() && !HomeSystem.bypassesHomeRestrictions(traveler)) {
+            lang.send(traveler, "teleport-vehicle-blocked");
+            return;
+        }
+
+        PlayerHomes homes = adminTeleport ? storage.load(owner.getUniqueId()) : homesOf(traveler);
+        HomeLocation home = homes.get(homeName);
+        if (home == null) {
+            lang.send(traveler, "home-not-found", "home", homeName);
+            return;
+        }
+
+        Location location = home.toLocation();
+        if (location == null || location.getWorld() == null) {
+            lang.send(traveler, "world-not-loaded");
+            return;
+        }
+
+        if (safeTeleportEnabled && !HomeSafeTeleport.isSafe(location)) {
+            lang.send(traveler, "unsafe-home-blocked", "home", homeName);
+            return;
+        }
+
+        if (!adminTeleport && !bypassesTimers(traveler) && isOnCooldown(homeCooldowns, traveler, homeCooldownSeconds)) {
+            lang.send(traveler, "home-cooldown", "seconds", remainingCooldown(homeCooldowns, traveler, homeCooldownSeconds));
+            return;
+        }
+
+        startTeleport(traveler, home, onSuccess);
+    }
+
+    private boolean validateSetHomeLocation(Player player, Location location, SystemLang lang) {
+        if (location.getWorld() == null) {
+            lang.send(player, "invalid-set-location");
+            return false;
+        }
+        if (isBlockedWorld(location.getWorld())) {
+            lang.send(player, "blocked-world");
+            return false;
+        }
+        if (!HomeSafeTeleport.isValidSetLocation(player, location)) {
+            lang.send(player, "invalid-set-location");
+            return false;
+        }
+        return true;
+    }
+
     private void purgeExpiredCooldowns(Map<UUID, Long> map, int seconds) {
         long maxAge = seconds * 1000L;
         long now = System.currentTimeMillis();
@@ -163,10 +293,7 @@ public final class HomeService {
             confirmationService.request(
                     player,
                     lang.get("confirm-overwrite", "home", homeName),
-                    () -> withHomeLock(player.getUniqueId(), () -> {
-                        PlayerHomes fresh = storage.load(player.getUniqueId());
-                        saveHome(player, fresh, homeName, confirmedLocation);
-                    }),
+                    () -> withHomeLock(player.getUniqueId(), () -> confirmSetHomeOverwrite(player, homeName, confirmedLocation)),
                     null
             );
             return;
@@ -177,7 +304,10 @@ public final class HomeService {
             return;
         }
 
-        saveHome(player, homes, homeName, location);
+        withHomeLock(player.getUniqueId(), () -> {
+            PlayerHomes fresh = storage.load(player.getUniqueId());
+            saveHome(player, fresh, homeName, location);
+        });
     }
 
     public void handleHome(CommandSender sender, String[] args) {
@@ -275,10 +405,7 @@ public final class HomeService {
         confirmationService.request(
                 player,
                 lang.get("confirm-delete", "home", homeName),
-                () -> withHomeLock(player.getUniqueId(), () -> {
-                    PlayerHomes fresh = storage.load(player.getUniqueId());
-                    deleteHome(player, player, fresh, homeName, false);
-                }),
+                () -> withHomeLock(player.getUniqueId(), () -> confirmDeleteOwnHome(player, homeName)),
                 null
         );
     }
@@ -383,16 +510,16 @@ public final class HomeService {
             confirmationService.request(
                     player,
                     lang.get("confirm-overwrite-rename", "old", oldName, "new", newName),
-                    () -> withHomeLock(player.getUniqueId(), () -> {
-                        PlayerHomes fresh = storage.load(player.getUniqueId());
-                        renameHome(player, fresh, oldName, newName);
-                    }),
+                    () -> withHomeLock(player.getUniqueId(), () -> confirmRenameHome(player, oldName, newName)),
                     null
             );
             return;
         }
 
-        renameHome(player, homes, oldName, newName);
+        withHomeLock(player.getUniqueId(), () -> {
+            PlayerHomes fresh = storage.load(player.getUniqueId());
+            renameHome(player, fresh, oldName, newName);
+        });
     }
 
     public List<String> suggestSetHome(CommandSender sender, String[] args) {
@@ -534,10 +661,7 @@ public final class HomeService {
             confirmationService.request(
                     admin,
                     lang.get("confirm-delete-other", "player", displayName, "home", normalizedHome),
-                    () -> withHomeLock(ownerId, () -> {
-                        PlayerHomes fresh = storage.load(ownerId);
-                        deleteHome(admin, target, fresh, normalizedHome, true);
-                    }),
+                    () -> withHomeLock(ownerId, () -> confirmAdminDeleteHome(admin, target, normalizedHome)),
                     null
             );
             return;
@@ -548,7 +672,10 @@ public final class HomeService {
             return;
         }
 
-        deleteHomeConsole(sender, target, homes, normalizedHome);
+        withHomeLock(target.getUniqueId(), () -> {
+            PlayerHomes fresh = storage.load(target.getUniqueId());
+            deleteHomeConsole(sender, target, fresh, normalizedHome);
+        });
     }
 
     private void withHomeLock(UUID ownerId, Runnable action) {
@@ -616,7 +743,7 @@ public final class HomeService {
                 confirmationService.request(
                         traveler,
                         lang.get("confirm-unsafe-teleport", "home", homeName),
-                        () -> startTeleport(traveler, home, onSuccess),
+                        () -> confirmUnsafeTeleport(traveler, owner, homeName, adminTeleport, onSuccess),
                         null
                 );
                 return;
@@ -650,6 +777,12 @@ public final class HomeService {
     }
 
     private void saveHome(Player player, PlayerHomes homes, String homeName, Location location) {
+        SystemLang lang = system.getLang();
+        if (location.getWorld() == null) {
+            lang.send(player, "invalid-set-location");
+            return;
+        }
+
         boolean overwrite = homes.contains(homeName);
         if (!overwrite && !limitService.canCreateHome(player, homes)) {
             system.getLang().send(player, "home-limit-reached", "limit", limitService.getMaxHomes(player));

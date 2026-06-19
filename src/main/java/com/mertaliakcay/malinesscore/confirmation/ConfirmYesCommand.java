@@ -20,17 +20,7 @@ public final class ConfirmYesCommand implements BasicCommand {
             return;
         }
 
-        if (args.length == 0) {
-            String token = plugin.getConfirmationService().getPendingToken(player.getUniqueId());
-            if (token == null) {
-                plugin.getPluginLang().send(player, "confirm-nothing-pending");
-                return;
-            }
-            plugin.getConfirmationService().accept(player, token);
-            return;
-        }
-
-        plugin.getConfirmationService().accept(player, args[0]);
+        plugin.getConfirmationService().accept(player);
     }
 
     @Override

@@ -13,7 +13,7 @@ import java.util.function.Consumer;
 /**
  * Yeni sistemler bu sınıftan türetilir.
  * Otomatik olarak configs/&lt;sistemId&gt;.yml ve langs/&lt;sistemId&gt;.yml yüklenir.
- * Config'de {@code enabled: false} ise komut ve dinleyici kaydı yapılmaz.
+ * Config'de {@code enabled: false} ise sistem yuklenir ancak kullanilamaz (dinleyici ve gorevler calismaz).
  */
 public abstract class AbstractGameSystem implements GameSystem {
 
@@ -39,44 +39,46 @@ public abstract class AbstractGameSystem implements GameSystem {
         this.lang = new SystemLang(plugin, getSystemId());
 
         onRegister();
-
-        if (!isConfigEnabled()) {
-            return;
-        }
-
-        active = true;
         onEnable();
+
+        if (isConfigEnabled()) {
+            active = true;
+            onActivate();
+        } else {
+            active = false;
+        }
     }
 
     @Override
     public final void disable() {
-        unregisterListener();
         if (active) {
-            onDisable();
-            active = false;
+            onDeactivate();
         }
+        unregisterListener();
+        onDisable();
         onUnregister();
+        active = false;
     }
 
     public final void reload() {
-        unregisterListener();
         if (active) {
-            onDisable();
-            active = false;
+            onDeactivate();
         }
+        unregisterListener();
+        onDisable();
 
         config.reload();
         lang.reload();
 
         onRegister();
-
-        if (!isConfigEnabled()) {
-            onUnregister();
-            return;
-        }
-
-        active = true;
         onEnable();
+
+        if (isConfigEnabled()) {
+            active = true;
+            onActivate();
+        } else {
+            active = false;
+        }
     }
 
     /**
@@ -113,12 +115,24 @@ public abstract class AbstractGameSystem implements GameSystem {
     }
 
     /**
-     * Sistem yalnızca config'de enabled: true ise çağrılır.
+     * Sistem kaynaklari her zaman yuklenir (config enabled olsa da olmasa da).
      */
     protected abstract void onEnable();
 
     /**
-     * Aktif sistem kapatılırken çağrılır.
+     * Config'de enabled: true iken calistirilir (dinleyici, zamanlayici vb.).
+     */
+    protected void onActivate() {
+    }
+
+    /**
+     * Config'de enabled: false olunca veya reload/shutdown oncesi calistirilir.
+     */
+    protected void onDeactivate() {
+    }
+
+    /**
+     * Reload veya plugin kapanisinda kaynaklari temizler / diske yazar.
      */
     protected abstract void onDisable();
 
@@ -132,12 +146,18 @@ public abstract class AbstractGameSystem implements GameSystem {
         return config != null && config.get().getBoolean("enabled", true);
     }
 
-    public boolean isActive() {
-        return active;
+    /**
+     * Config'de enabled: true ise komutlar kullanilabilir.
+     */
+    public boolean isEnabled() {
+        return isConfigEnabled();
     }
 
-    public boolean isEnabled() {
-        return isActive();
+    /**
+     * Dinleyici ve zamanlayicilar calisiyor mu (config enabled ile esit).
+     */
+    public boolean isActive() {
+        return active;
     }
 
     public SystemLang getLang() {

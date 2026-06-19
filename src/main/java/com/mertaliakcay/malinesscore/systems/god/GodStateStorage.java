@@ -5,6 +5,9 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -25,14 +28,25 @@ final class GodStateStorage {
         }
     }
 
-    void save(Collection<UUID> godPlayers) {
+    boolean save(Collection<UUID> godPlayers) {
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.set("players", godPlayers.stream().map(UUID::toString).toList());
 
+        File tempFile = new File(cacheFile.getParentFile(), cacheFile.getName() + ".tmp");
         try {
-            yaml.save(cacheFile);
+            yaml.save(tempFile);
+            try {
+                Files.move(tempFile.toPath(), cacheFile.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            } catch (AtomicMoveNotSupportedException exception) {
+                Files.move(tempFile.toPath(), cacheFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            }
+            return true;
         } catch (IOException exception) {
             plugin.getLogger().log(Level.SEVERE, "God modu reload onbellegi kaydedilemedi.", exception);
+            if (tempFile.exists() && !tempFile.delete()) {
+                plugin.getLogger().warning("God cache gecici dosyasi silinemedi: " + tempFile.getPath());
+            }
+            return false;
         }
     }
 

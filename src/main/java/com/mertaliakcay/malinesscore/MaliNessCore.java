@@ -35,6 +35,7 @@ public final class MaliNessCore extends JavaPlugin {
     private ConfirmationService confirmationService;
     private HomeTeleportManager homeTeleportManager;
     private volatile boolean reloading;
+    private boolean globalCommandsRegistered;
 
     @Override
     public void onEnable() {
@@ -63,6 +64,12 @@ public final class MaliNessCore extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (confirmationService != null) {
+            confirmationService.cancelAll();
+        }
+        if (homeTeleportManager != null) {
+            homeTeleportManager.cancelAllWarmups();
+        }
         if (systemManager != null) {
             systemManager.disableAll();
         }
@@ -129,6 +136,11 @@ public final class MaliNessCore extends JavaPlugin {
     }
 
     private void registerGlobalCommands() {
+        if (globalCommandsRegistered) {
+            return;
+        }
+        globalCommandsRegistered = true;
+
         ConfirmYesCommand yesCommand = new ConfirmYesCommand(this);
         ConfirmNoCommand noCommand = new ConfirmNoCommand(this);
         ConfirmCancelCommand cancelCommand = new ConfirmCancelCommand(this);

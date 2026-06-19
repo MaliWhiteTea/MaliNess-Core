@@ -10,7 +10,7 @@ final class HomeCommandSupport {
     }
 
     static HomeService requireService(HomeSystem system, CommandSender sender) {
-        if (!system.isActive()) {
+        if (!system.isEnabled()) {
             system.getLang().send(sender, "system-disabled");
             return null;
         }

@@ -47,7 +47,10 @@ public final class GodSystem extends AbstractGameSystem {
         if (stateStorage == null) {
             stateStorage = new GodStateStorage(plugin);
         }
+    }
 
+    @Override
+    protected void onActivate() {
         registerListener(new GodListener(this));
 
         if (plugin.isReloading()) {
@@ -62,7 +65,12 @@ public final class GodSystem extends AbstractGameSystem {
         }
 
         if (plugin.isReloading()) {
-            stateStorage.save(godPlayers);
+            if (!stateStorage.save(godPlayers)) {
+                plugin.getLogger().severe(
+                        "God modu reload onbellegi kaydedilemedi; bellekteki durum korunuyor."
+                );
+                return;
+            }
         } else {
             stateStorage.delete();
         }
@@ -121,7 +129,9 @@ public final class GodSystem extends AbstractGameSystem {
     }
 
     private void restoreGodStateAfterReload() {
-        godPlayers.addAll(stateStorage.load());
+        if (godPlayers.isEmpty()) {
+            godPlayers.addAll(stateStorage.load());
+        }
         stateStorage.delete();
 
         for (UUID playerId : godPlayers) {
