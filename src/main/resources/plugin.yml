@@ -12,7 +12,7 @@ website: https://github.com/MaliWhiteTea/MaliNess-Core
 commands:
   maliness:
     description: MaliNess Network komutlari.
-    usage: /maliness <heal|feed>
+    usage: /mn <reload|heal|feed|health|hunger|saturate|saturation|god|sethome|home|delhome|homes|renamehome|...>
     aliases: [mn]
 
 permissions:
@@ -76,6 +76,15 @@ permissions:
   maliness-core.home.others.delete:
     description: Başka oyuncuların evlerini siler.
     default: op
+  maliness-core.home.invalid-home.broadcast:
+    description: Geçersiz ev verisi atlandığında oyun içi uyarı alır.
+    default: op
+  maliness-core.home.count.*:
+    description: Ev limiti (orn. maliness-core.home.count.3 = en fazla 3 ev).
+    default: false
   maliness-core.confirm.use:
     description: Onay komutlarını kullanır (/evet, /hayır, /iptal).
     default: true
+  maliness-core.reload:
+    description: Config ve lang dosyalarını yeniden yükler.
+    default: op

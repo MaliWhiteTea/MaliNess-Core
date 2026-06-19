@@ -1,5 +1,6 @@
 package com.mertaliakcay.malinesscore.systems.heal;
 
+import com.mertaliakcay.malinesscore.util.CommandSuggestGate;
 import com.mertaliakcay.malinesscore.util.CommandSuggestions;
 import org.bukkit.Bukkit;
 import org.bukkit.attribute.Attribute;
@@ -61,7 +62,7 @@ public final class HealCommand implements CommandExecutor, TabCompleter {
     }
 
     public List<String> suggest(CommandSender sender, String[] args) {
-        if (!system.isEnabled()) {
+        if (!canSuggest(sender)) {
             return Collections.emptyList();
         }
 
@@ -86,6 +87,11 @@ public final class HealCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         return suggest(sender, args);
+    }
+
+    public boolean canSuggest(CommandSender sender) {
+        return system.isEnabled()
+                && CommandSuggestGate.hasAny(sender, HealSystem.PERM_USE, HealSystem.PERM_OTHERS);
     }
 
     private boolean handleSelfFullHeal(CommandSender sender) {

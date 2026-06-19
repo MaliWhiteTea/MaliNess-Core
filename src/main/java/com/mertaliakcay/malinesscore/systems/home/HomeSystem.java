@@ -1,14 +1,14 @@
 package com.mertaliakcay.malinesscore.systems.home;
 
 import com.mertaliakcay.malinesscore.systems.AbstractGameSystem;
-import com.mertaliakcay.malinesscore.systems.home.HomeMnCommand;
 import com.mertaliakcay.malinesscore.systems.home.commands.DelHomeCommand;
 import com.mertaliakcay.malinesscore.systems.home.commands.HomeCommand;
 import com.mertaliakcay.malinesscore.systems.home.commands.HomesCommand;
 import com.mertaliakcay.malinesscore.systems.home.commands.RenameHomeCommand;
 import com.mertaliakcay.malinesscore.systems.home.commands.SetHomeCommand;
-import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.util.List;
 
@@ -23,6 +23,7 @@ public final class HomeSystem extends AbstractGameSystem {
     public static final String PERM_OTHERS_LIST = "maliness-core.home.others.list";
     public static final String PERM_OTHERS_TELEPORT = "maliness-core.home.others.teleport";
     public static final String PERM_OTHERS_DELETE = "maliness-core.home.others.delete";
+    public static final String PERM_INVALID_HOME_BROADCAST = "maliness-core.home.invalid-home.broadcast";
 
     public static final String ALIAS_SETHOME = "evayarla";
     public static final String ALIAS_HOME_1 = "house";
@@ -30,10 +31,14 @@ public final class HomeSystem extends AbstractGameSystem {
     public static final String ALIAS_RENAME_1 = "evadıdeğiştir";
     public static final String ALIAS_RENAME_2 = "evismideğiştir";
 
+    public static boolean bypassesHomeRestrictions(Player player) {
+        return player.isOp() || player.hasPermission(PERM_BYPASS_TIME);
+    }
+
     private HomeStorage storage;
     private HomeService homeService;
-    private HomeListener homeListener;
     private HomeMnCommand homeMnCommand;
+    private BukkitTask cacheCleanupTask;
 
     @Override
     protected String getSystemId() {
@@ -41,20 +46,29 @@ public final class HomeSystem extends AbstractGameSystem {
     }
 
     @Override
-    protected void onEnable() {
-        if (!config.get().getBoolean("enabled", true)) {
-            return;
-        }
+    protected void onRegister() {
+        registerLifecycleCommandsOnce(registrar -> {
+            registrar.register("sethome", "Ev kaydeder.", List.of(ALIAS_SETHOME), new SetHomeCommand(this));
+            registrar.register("home", "Eve ışınlanır.", List.of(ALIAS_HOME_1, ALIAS_HOME_2), new HomeCommand(this));
+            registrar.register("delhome", "Evi siler.", List.of("remhome"), new DelHomeCommand(this));
+            registrar.register("homes", "Evleri listeler.", List.of(), new HomesCommand(this));
+            registrar.register("renamehome", "Ev adını değiştirir.", List.of(ALIAS_RENAME_1, ALIAS_RENAME_2), new RenameHomeCommand(this));
+        });
 
+        plugin.getMalinessCommand().setHome(this, null);
+    }
+
+    @Override
+    protected void onEnable() {
         FileConfiguration configuration = config.get();
-        storage = new HomeStorage(plugin);
-        HomeLimitService limitService = new HomeLimitService(
-                configuration.getInt("limits.default-max-homes", 1),
-                configuration.getInt("limits.max-count-permission-scan", 20)
-        );
         HomeNameValidator nameValidator = new HomeNameValidator(
                 configuration.getStringList("names.reserved"),
                 configuration.getString("names.default-name", "ev")
+        );
+        storage = new HomeStorage(plugin, nameValidator, lang);
+        HomeLimitService limitService = new HomeLimitService(
+                configuration.getInt("limits.default-max-homes", 1),
+                configuration.getInt("limits.max-count-permission-scan", 20)
         );
         HomeLogger homeLogger = new HomeLogger(
                 plugin,
@@ -86,37 +100,41 @@ public final class HomeSystem extends AbstractGameSystem {
         );
         homeService.reloadFromConfig();
 
-        homeListener = new HomeListener(teleportManager);
-        plugin.getServer().getPluginManager().registerEvents(homeListener, plugin);
+        registerListener(new HomeListener(teleportManager, homeService));
 
         homeMnCommand = new HomeMnCommand(homeService);
         plugin.getMalinessCommand().setHome(this, homeMnCommand);
 
-        SetHomeCommand setHomeCommand = new SetHomeCommand(homeService);
-        HomeCommand homeCommand = new HomeCommand(homeService);
-        DelHomeCommand delHomeCommand = new DelHomeCommand(homeService);
-        HomesCommand homesCommand = new HomesCommand(homeService);
-        RenameHomeCommand renameHomeCommand = new RenameHomeCommand(homeService);
-
-        plugin.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {
-            event.registrar().register("sethome", "Ev kaydeder.", List.of(ALIAS_SETHOME), setHomeCommand);
-            event.registrar().register("home", "Eve ışınlanır.", List.of(ALIAS_HOME_1, ALIAS_HOME_2), homeCommand);
-            event.registrar().register("delhome", "Evi siler.", List.of("remhome"), delHomeCommand);
-            event.registrar().register("homes", "Evleri listeler.", List.of(), homesCommand);
-            event.registrar().register("renamehome", "Ev adını değiştirir.", List.of(ALIAS_RENAME_1, ALIAS_RENAME_2), renameHomeCommand);
-        });
+        cacheCleanupTask = plugin.getServer().getScheduler().runTaskTimerAsynchronously(
+                plugin,
+                homeService::purgeExpiredCaches,
+                20L * 60 * 15,
+                20L * 60 * 30
+        );
     }
 
     @Override
     protected void onDisable() {
-        plugin.getMalinessCommand().clearHome();
+        if (cacheCleanupTask != null) {
+            cacheCleanupTask.cancel();
+            cacheCleanupTask = null;
+        }
+
+        plugin.getHomeTeleportManager().cancelAllWarmups();
+        if (storage != null) {
+            storage.flushAll();
+        }
         homeService = null;
-        homeListener = null;
         homeMnCommand = null;
         storage = null;
     }
 
-    public boolean isEnabled() {
-        return config.get().getBoolean("enabled", true);
+    @Override
+    protected void onUnregister() {
+        plugin.getMalinessCommand().clearHome();
+    }
+
+    public HomeService getHomeService() {
+        return homeService;
     }
 }

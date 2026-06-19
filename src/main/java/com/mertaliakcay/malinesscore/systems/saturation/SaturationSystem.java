@@ -1,7 +1,6 @@
 package com.mertaliakcay.malinesscore.systems.saturation;
 
 import com.mertaliakcay.malinesscore.systems.AbstractGameSystem;
-import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 
 import java.util.List;
 
@@ -26,33 +25,31 @@ public final class SaturationSystem extends AbstractGameSystem {
     }
 
     @Override
-    protected void onEnable() {
-        if (!config.get().getBoolean("enabled", true)) {
-            return;
+    protected void onRegister() {
+        if (saturationCommand == null) {
+            saturationCommand = new SaturationCommand(this);
         }
 
-        saturationCommand = new SaturationCommand(this);
-        SaturationBasicCommand saturationBasicCommand = new SaturationBasicCommand(saturationCommand);
-
-        plugin.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {
-            event.registrar().register(
-                    "saturation",
-                    "Oyuncu doygunluğunu ayarlar.",
-                    List.of(ALIAS_TURKISH),
-                    saturationBasicCommand
-            );
-        });
+        registerLifecycleCommandsOnce(registrar -> registrar.register(
+                "saturation",
+                "Oyuncu doygunluğunu ayarlar.",
+                List.of(ALIAS_TURKISH),
+                new SaturationBasicCommand(saturationCommand)
+        ));
 
         plugin.getMalinessCommand().setSaturation(this, saturationCommand);
     }
 
     @Override
-    protected void onDisable() {
-        plugin.getMalinessCommand().clearSaturation();
-        saturationCommand = null;
+    protected void onEnable() {
     }
 
-    public boolean isEnabled() {
-        return config.get().getBoolean("enabled", true);
+    @Override
+    protected void onDisable() {
+    }
+
+    @Override
+    protected void onUnregister() {
+        plugin.getMalinessCommand().clearSaturation();
     }
 }

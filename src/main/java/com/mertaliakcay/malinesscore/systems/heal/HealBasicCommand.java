@@ -22,11 +22,14 @@ public final class HealBasicCommand implements BasicCommand {
 
     @Override
     public boolean canUse(CommandSender sender) {
-        return sender.hasPermission(HealSystem.PERM_USE) || sender.hasPermission(HealSystem.PERM_OTHERS);
+        return true;
     }
 
     @Override
     public Collection<String> suggest(CommandSourceStack source, String[] args) {
+        if (!healCommand.canSuggest(source.getSender())) {
+            return List.of();
+        }
         return healCommand.suggest(source.getSender(), args);
     }
 }

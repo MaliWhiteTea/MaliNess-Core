@@ -38,6 +38,7 @@ public final class HomeService {
 
     private final Map<UUID, Long> homeCooldowns = new ConcurrentHashMap<>();
     private final Map<UUID, Long> setHomeCooldowns = new ConcurrentHashMap<>();
+    private final Map<UUID, Object> homeLocks = new ConcurrentHashMap<>();
 
     private List<String> blockedWorlds = List.of();
     private int homeCooldownSeconds = 10;
@@ -75,6 +76,25 @@ public final class HomeService {
         setHomeCooldownSeconds = system.getConfig().get().getInt("teleport.sethome-cooldown-seconds", 3);
         safeTeleportEnabled = system.getConfig().get().getBoolean("safe-teleport.enabled", true);
         askOnUnsafe = system.getConfig().get().getBoolean("safe-teleport.ask-on-unsafe", true);
+    }
+
+    public void cleanupPlayer(UUID playerId) {
+        homeCooldowns.remove(playerId);
+        setHomeCooldowns.remove(playerId);
+        homeLocks.remove(playerId);
+        rateLimiter.reset(playerId);
+    }
+
+    public void purgeExpiredCaches() {
+        rateLimiter.purgeExpiredEntries();
+        purgeExpiredCooldowns(homeCooldowns, homeCooldownSeconds);
+        purgeExpiredCooldowns(setHomeCooldowns, setHomeCooldownSeconds);
+    }
+
+    private void purgeExpiredCooldowns(Map<UUID, Long> map, int seconds) {
+        long maxAge = seconds * 1000L;
+        long now = System.currentTimeMillis();
+        map.entrySet().removeIf(entry -> now - entry.getValue() >= maxAge);
     }
 
     public void handleSetHome(CommandSender sender, String[] args) {
@@ -139,10 +159,14 @@ public final class HomeService {
         }
 
         if (homes.contains(homeName)) {
+            Location confirmedLocation = location.clone();
             confirmationService.request(
                     player,
                     lang.get("confirm-overwrite", "home", homeName),
-                    () -> saveHome(player, homes, homeName, location),
+                    () -> withHomeLock(player.getUniqueId(), () -> {
+                        PlayerHomes fresh = storage.load(player.getUniqueId());
+                        saveHome(player, fresh, homeName, confirmedLocation);
+                    }),
                     null
             );
             return;
@@ -174,7 +198,11 @@ public final class HomeService {
         }
 
         if (!player.hasPermission(HomeSystem.PERM_USE)) {
-            lang.send(sender, "no-permission");
+            if (player.hasPermission(HomeSystem.PERM_OTHERS_TELEPORT)) {
+                lang.send(sender, "usage-admin-home");
+            } else {
+                lang.send(sender, "no-permission");
+            }
             return;
         }
 
@@ -193,7 +221,7 @@ public final class HomeService {
             }
             if (homes.size() > 1) {
                 lang.send(player, "home-specify-name");
-                sendHomeList(sender, player, homes, true, false);
+                sendHomeList(sender, player, player.getName(), homes, true, false);
                 return;
             }
         }
@@ -209,8 +237,10 @@ public final class HomeService {
             return;
         }
 
-        if (args.length == 2) {
-            handleAdminDelete(sender, args[0], args[1]);
+        ParsedArgs parsed = parseArgs(args);
+
+        if (parsed.args.length == 2) {
+            handleAdminDelete(sender, parsed.args[0], parsed.args[1], parsed.confirmed);
             return;
         }
 
@@ -220,7 +250,11 @@ public final class HomeService {
         }
 
         if (!player.hasPermission(HomeSystem.PERM_DELHOME)) {
-            lang.send(sender, "no-permission");
+            if (player.hasPermission(HomeSystem.PERM_OTHERS_DELETE)) {
+                lang.send(sender, "usage-admin-delhome");
+            } else {
+                lang.send(sender, "no-permission");
+            }
             return;
         }
 
@@ -229,7 +263,7 @@ public final class HomeService {
             return;
         }
 
-        String homeName = args.length == 0 ? nameValidator.getDefaultName() : nameValidator.normalize(args[0]);
+        String homeName = parsed.args.length == 0 ? nameValidator.getDefaultName() : nameValidator.normalize(parsed.args[0]);
         PlayerHomes homes = storage.load(player.getUniqueId());
 
         if (!homes.contains(homeName)) {
@@ -241,7 +275,10 @@ public final class HomeService {
         confirmationService.request(
                 player,
                 lang.get("confirm-delete", "home", homeName),
-                () -> deleteHome(player, player, homes, homeName, false),
+                () -> withHomeLock(player.getUniqueId(), () -> {
+                    PlayerHomes fresh = storage.load(player.getUniqueId());
+                    deleteHome(player, player, fresh, homeName, false);
+                }),
                 null
         );
     }
@@ -261,14 +298,27 @@ public final class HomeService {
 
             Player target = Bukkit.getPlayerExact(args[0]);
             if (target == null) {
-                if (sender instanceof Player player) {
-                    rateLimiter.recordFailure(player);
+                OfflinePlayer offlineTarget = resolvePlayer(args[0]);
+                if (offlineTarget == null) {
+                    if (sender instanceof Player player) {
+                        rateLimiter.recordFailure(player);
+                    }
+                    lang.send(sender, "player-not-found", "player", args[0]);
+                    return;
                 }
-                lang.send(sender, "player-not-found", "player", args[0]);
+
+                sendHomeList(
+                        sender,
+                        offlineTarget,
+                        resolveDisplayName(offlineTarget, args[0]),
+                        storage.load(offlineTarget.getUniqueId()),
+                        false,
+                        sender instanceof Player && sender.hasPermission(HomeSystem.PERM_OTHERS_TELEPORT)
+                );
                 return;
             }
 
-            sendHomeList(sender, target, storage.load(target.getUniqueId()), false,
+            sendHomeList(sender, target, target.getName(), storage.load(target.getUniqueId()), false,
                     sender.hasPermission(HomeSystem.PERM_OTHERS_TELEPORT));
             return;
         }
@@ -283,7 +333,7 @@ public final class HomeService {
             return;
         }
 
-        sendHomeList(sender, player, storage.load(player.getUniqueId()), true, false);
+        sendHomeList(sender, player, player.getName(), storage.load(player.getUniqueId()), true, false);
     }
 
     public void handleRenameHome(CommandSender sender, String[] args) {
@@ -333,7 +383,10 @@ public final class HomeService {
             confirmationService.request(
                     player,
                     lang.get("confirm-overwrite-rename", "old", oldName, "new", newName),
-                    () -> renameHome(player, homes, oldName, newName),
+                    () -> withHomeLock(player.getUniqueId(), () -> {
+                        PlayerHomes fresh = storage.load(player.getUniqueId());
+                        renameHome(player, fresh, oldName, newName);
+                    }),
                     null
             );
             return;
@@ -347,6 +400,10 @@ public final class HomeService {
     }
 
     public List<String> suggestHome(CommandSender sender, String[] args) {
+        if (hasAdminTeleportOnly(sender)) {
+            return suggestAdminHome(sender, args);
+        }
+
         if (args.length == 0) {
             return ownHomeSuggestions(sender);
         }
@@ -354,13 +411,9 @@ public final class HomeService {
             return CommandSuggestions.filter(ownHomeSuggestions(sender), args[0]);
         }
         if (args.length == 2 && sender.hasPermission(HomeSystem.PERM_OTHERS_TELEPORT)) {
-            Player target = Bukkit.getPlayerExact(args[0]);
+            OfflinePlayer target = resolvePlayer(args[0]);
             if (target == null) {
-                List<String> playerNames = new ArrayList<>();
-                for (Player online : Bukkit.getOnlinePlayers()) {
-                    playerNames.add(online.getName());
-                }
-                return CommandSuggestions.filter(playerNames, args[0]);
+                return CommandSuggestions.filter(storedPlayerNames(), args[0]);
             }
             return CommandSuggestions.filter(new ArrayList<>(storage.load(target.getUniqueId()).getHomeNames()), args[1]);
         }
@@ -368,18 +421,21 @@ public final class HomeService {
     }
 
     public List<String> suggestDelHome(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player) || hasAdminDeleteOnly(sender)) {
+            return suggestAdminDelete(sender, args);
+        }
         return suggestHome(sender, args);
     }
 
     public List<String> suggestHomes(CommandSender sender, String[] args) {
         if (args.length == 0) {
             if (sender.hasPermission(HomeSystem.PERM_OTHERS_LIST)) {
-                return onlinePlayerNames();
+                return storedPlayerNames();
             }
             return List.of();
         }
         if (args.length == 1 && sender.hasPermission(HomeSystem.PERM_OTHERS_LIST)) {
-            return CommandSuggestions.filter(onlinePlayerNames(), args[0]);
+            return CommandSuggestions.filter(storedPlayerNames(), args[0]);
         }
         return List.of();
     }
@@ -408,7 +464,7 @@ public final class HomeService {
             return;
         }
 
-        Player target = Bukkit.getPlayerExact(targetName);
+        OfflinePlayer target = resolvePlayer(targetName);
         if (target == null) {
             if (sender instanceof Player player) {
                 rateLimiter.recordFailure(player);
@@ -417,8 +473,9 @@ public final class HomeService {
             return;
         }
 
+        String normalizedHome = nameValidator.normalize(homeName);
         PlayerHomes homes = storage.load(target.getUniqueId());
-        HomeLocation home = homes.get(nameValidator.normalize(homeName));
+        HomeLocation home = homes.get(normalizedHome);
         if (home == null) {
             if (sender instanceof Player player) {
                 rateLimiter.recordFailure(player);
@@ -438,13 +495,14 @@ public final class HomeService {
             return;
         }
 
+        String displayName = resolveDisplayName(target, targetName);
         teleportManager.teleportInstant(admin, home, () -> {
-            logger.logAdmin(admin.getName(), target.getName(), target.getUniqueId().toString(), "TELEPORT", homeName, home);
-            lang.send(sender, "admin-teleported", "player", target.getName(), "home", homeName);
+            logger.logAdmin(admin.getName(), displayName, target.getUniqueId().toString(), "TELEPORT", normalizedHome, home);
+            lang.send(sender, "admin-teleported", "player", displayName, "home", normalizedHome);
         });
     }
 
-    private void handleAdminDelete(CommandSender sender, String targetName, String homeName) {
+    private void handleAdminDelete(CommandSender sender, String targetName, String homeName, boolean confirmed) {
         SystemLang lang = system.getLang();
         if (!sender.hasPermission(HomeSystem.PERM_OTHERS_DELETE)) {
             lang.send(sender, "no-permission-others");
@@ -471,16 +529,32 @@ public final class HomeService {
         }
 
         if (sender instanceof Player admin) {
+            UUID ownerId = target.getUniqueId();
+            String displayName = resolveDisplayName(target, targetName);
             confirmationService.request(
                     admin,
-                    lang.get("confirm-delete-other", "player", target.getName(), "home", normalizedHome),
-                    () -> deleteHome(admin, target, homes, normalizedHome, true),
+                    lang.get("confirm-delete-other", "player", displayName, "home", normalizedHome),
+                    () -> withHomeLock(ownerId, () -> {
+                        PlayerHomes fresh = storage.load(ownerId);
+                        deleteHome(admin, target, fresh, normalizedHome, true);
+                    }),
                     null
             );
             return;
         }
 
+        if (!confirmed) {
+            lang.send(sender, "console-delhome-confirm-required");
+            return;
+        }
+
         deleteHomeConsole(sender, target, homes, normalizedHome);
+    }
+
+    private void withHomeLock(UUID ownerId, Runnable action) {
+        synchronized (homeLocks.computeIfAbsent(ownerId, ignored -> new Object())) {
+            action.run();
+        }
     }
 
     private void deleteHomeConsole(CommandSender sender, OfflinePlayer owner, PlayerHomes homes, String homeName) {
@@ -556,6 +630,11 @@ public final class HomeService {
     }
 
     private void startTeleport(Player player, HomeLocation home, Runnable onSuccess) {
+        if (player.isInsideVehicle() && !HomeSystem.bypassesHomeRestrictions(player)) {
+            system.getLang().send(player, "teleport-vehicle-blocked");
+            return;
+        }
+
         if (bypassesTimers(player)) {
             teleportManager.teleportInstant(player, home, onSuccess);
             return;
@@ -623,16 +702,31 @@ public final class HomeService {
         system.getLang().send(player, "home-renamed", "old", oldName, "new", newName);
     }
 
-    private void sendHomeList(CommandSender sender, Player owner, PlayerHomes homes, boolean clickable, boolean adminTeleportClickable) {
+    private void sendHomeList(
+            CommandSender sender,
+            OfflinePlayer owner,
+            String ownerDisplayName,
+            PlayerHomes homes,
+            boolean clickable,
+            boolean adminTeleportClickable
+    ) {
         SystemLang lang = system.getLang();
         int limit = limitService.getMaxHomes(owner);
 
         if (homes.size() == 0) {
-            lang.send(sender, "homes-empty");
+            if (adminTeleportClickable) {
+                lang.send(sender, "homes-empty-other", "player", ownerDisplayName);
+            } else {
+                lang.send(sender, "homes-empty");
+            }
             return;
         }
 
-        lang.send(sender, "homes-header", "count", homes.size(), "limit", limit);
+        if (adminTeleportClickable) {
+            lang.send(sender, "homes-header-other", "player", ownerDisplayName, "count", homes.size(), "limit", limit);
+        } else {
+            lang.send(sender, "homes-header", "count", homes.size(), "limit", limit);
+        }
 
         for (Map.Entry<String, HomeLocation> entry : homes.getHomes().entrySet()) {
             HomeLocation location = entry.getValue();
@@ -649,8 +743,12 @@ public final class HomeService {
                 line = line.clickEvent(ClickEvent.runCommand("/home " + entry.getKey()))
                         .hoverEvent(HoverEvent.showText(lang.get("homes-entry-hover", "home", entry.getKey())));
             } else if (adminTeleportClickable && sender instanceof Player) {
-                line = line.clickEvent(ClickEvent.runCommand("/home " + owner.getName() + " " + entry.getKey()))
-                        .hoverEvent(HoverEvent.showText(lang.get("homes-entry-admin-hover", "player", owner.getName(), "home", entry.getKey())));
+                line = line.clickEvent(ClickEvent.runCommand("/home " + ownerDisplayName + " " + entry.getKey()))
+                        .hoverEvent(HoverEvent.showText(lang.get(
+                                "homes-entry-admin-hover",
+                                "player", ownerDisplayName,
+                                "home", entry.getKey()
+                        )));
             }
 
             sender.sendMessage(line);
@@ -665,7 +763,7 @@ public final class HomeService {
     }
 
     private boolean bypassesTimers(Player player) {
-        return player.isOp() || player.hasPermission(HomeSystem.PERM_BYPASS_TIME);
+        return HomeSystem.bypassesHomeRestrictions(player);
     }
 
     private OfflinePlayer resolvePlayer(String name) {
@@ -679,8 +777,113 @@ public final class HomeService {
             return offline;
         }
 
+        for (UUID playerId : storage.listStoredPlayerIds()) {
+            OfflinePlayer candidate = Bukkit.getOfflinePlayer(playerId);
+            String candidateName = candidate.getName();
+            if (candidateName != null && candidateName.equalsIgnoreCase(name)) {
+                return candidate;
+            }
+        }
+
         return null;
     }
+
+    private String resolveDisplayName(OfflinePlayer player, String fallback) {
+        String name = player.getName();
+        return name != null ? name : fallback;
+    }
+
+    private ParsedArgs parseArgs(String[] args) {
+        List<String> cleaned = new ArrayList<>();
+        boolean confirmed = false;
+
+        for (String arg : args) {
+            if ("--confirm".equalsIgnoreCase(arg)) {
+                confirmed = true;
+            } else {
+                cleaned.add(arg);
+            }
+        }
+
+        return new ParsedArgs(cleaned.toArray(String[]::new), confirmed);
+    }
+
+    private boolean hasAdminDeleteOnly(CommandSender sender) {
+        return sender.hasPermission(HomeSystem.PERM_OTHERS_DELETE)
+                && !sender.hasPermission(HomeSystem.PERM_DELHOME);
+    }
+
+    private boolean hasAdminTeleportOnly(CommandSender sender) {
+        return sender.hasPermission(HomeSystem.PERM_OTHERS_TELEPORT)
+                && !sender.hasPermission(HomeSystem.PERM_USE);
+    }
+
+    private List<String> suggestAdminDelete(CommandSender sender, String[] args) {
+        if (args.length == 0) {
+            return CommandSuggestions.filter(storedPlayerNames(), "");
+        }
+        if (args.length == 1) {
+            if (CommandSuggestions.isExactMatch(args[0], storedPlayerNames())) {
+                OfflinePlayer target = resolvePlayer(args[0]);
+                if (target == null) {
+                    return List.of();
+                }
+                return CommandSuggestions.filter(new ArrayList<>(storage.load(target.getUniqueId()).getHomeNames()), "");
+            }
+            return CommandSuggestions.filter(storedPlayerNames(), args[0]);
+        }
+        if (args.length == 2) {
+            OfflinePlayer target = resolvePlayer(args[0]);
+            if (target == null) {
+                return List.of();
+            }
+            List<String> homeNames = new ArrayList<>(storage.load(target.getUniqueId()).getHomeNames());
+            if (CommandSuggestions.isExactMatch(args[1], homeNames)) {
+                return List.of("--confirm");
+            }
+            return CommandSuggestions.filter(homeNames, args[1]);
+        }
+        return List.of();
+    }
+
+    private List<String> suggestAdminHome(CommandSender sender, String[] args) {
+        if (args.length == 0) {
+            return CommandSuggestions.filter(storedPlayerNames(), "");
+        }
+        if (args.length == 1) {
+            if (CommandSuggestions.isExactMatch(args[0], storedPlayerNames())) {
+                OfflinePlayer target = resolvePlayer(args[0]);
+                if (target == null) {
+                    return List.of();
+                }
+                return CommandSuggestions.filter(new ArrayList<>(storage.load(target.getUniqueId()).getHomeNames()), "");
+            }
+            return CommandSuggestions.filter(storedPlayerNames(), args[0]);
+        }
+        if (args.length == 2) {
+            OfflinePlayer target = resolvePlayer(args[0]);
+            if (target == null) {
+                return List.of();
+            }
+            return CommandSuggestions.filter(new ArrayList<>(storage.load(target.getUniqueId()).getHomeNames()), args[1]);
+        }
+        return List.of();
+    }
+
+    private List<String> storedPlayerNames() {
+        List<String> names = new ArrayList<>(onlinePlayerNames());
+        for (UUID playerId : storage.listStoredPlayerIds()) {
+            OfflinePlayer offline = Bukkit.getOfflinePlayer(playerId);
+            String name = offline.getName();
+            if (name != null && !names.contains(name)) {
+                names.add(name);
+            }
+        }
+        names.sort(String.CASE_INSENSITIVE_ORDER);
+        return names;
+    }
+
+    private record ParsedArgs(String[] args, boolean confirmed) {}
 
     private PlayerHomes homesOf(Player player) {
         return storage.load(player.getUniqueId());
@@ -693,7 +896,7 @@ public final class HomeService {
 
         List<String> suggestions = new ArrayList<>(storage.load(player.getUniqueId()).getHomeNames());
         if (sender.hasPermission(HomeSystem.PERM_OTHERS_TELEPORT)) {
-            suggestions.addAll(onlinePlayerNames());
+            suggestions.addAll(storedPlayerNames());
         }
         return suggestions;
     }
@@ -710,8 +913,19 @@ public final class HomeService {
         if (bypassesTimers(player)) {
             return false;
         }
-        Long last = map.get(player.getUniqueId());
-        return last != null && System.currentTimeMillis() - last < seconds * 1000L;
+
+        UUID playerId = player.getUniqueId();
+        Long last = map.get(playerId);
+        if (last == null) {
+            return false;
+        }
+
+        if (System.currentTimeMillis() - last >= seconds * 1000L) {
+            map.remove(playerId);
+            return false;
+        }
+
+        return true;
     }
 
     private int remainingCooldown(Map<UUID, Long> map, Player player, int seconds) {

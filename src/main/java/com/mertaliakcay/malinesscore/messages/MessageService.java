@@ -47,6 +47,10 @@ public final class MessageService {
         return formatInternal(false, type, template, placeholders);
     }
 
+    public Component prefix() {
+        return ColorUtil.colorize(prefix);
+    }
+
     private Component formatInternal(boolean includePrefix, MessageType type, String template, Object... placeholders) {
         Map<String, String> values = toPlaceholderMap(placeholders);
         String typeColor = getTypeColor(type);

@@ -119,6 +119,10 @@ public final class SaturationCommand implements CommandExecutor, TabCompleter {
         return suggest(sender, args);
     }
 
+    public boolean canSuggest(CommandSender sender) {
+        return system.isEnabled() && sender.hasPermission(SaturationSystem.PERM_USE);
+    }
+
     private void handleSet(CommandSender sender, Player target, int amount) {
         if (amount < SaturationSystem.MIN_SET || amount > SaturationSystem.MAX_SET) {
             system.getLang().send(sender, "invalid-set-amount", "amount", amount);

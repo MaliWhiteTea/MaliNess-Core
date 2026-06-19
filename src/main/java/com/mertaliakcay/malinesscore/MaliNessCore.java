@@ -20,6 +20,7 @@ import com.mertaliakcay.malinesscore.systems.saturation.SaturationSystem;
 import com.mertaliakcay.malinesscore.util.PluginLang;
 import com.mertaliakcay.malinesscore.util.YamlMerger;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
+import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -33,6 +34,7 @@ public final class MaliNessCore extends JavaPlugin {
     private SystemManager systemManager;
     private ConfirmationService confirmationService;
     private HomeTeleportManager homeTeleportManager;
+    private volatile boolean reloading;
 
     @Override
     public void onEnable() {
@@ -92,6 +94,30 @@ public final class MaliNessCore extends JavaPlugin {
 
     public HomeTeleportManager getHomeTeleportManager() {
         return homeTeleportManager;
+    }
+
+    public void reloadPlugin(CommandSender sender) {
+        reloading = true;
+        try {
+            YamlMerger.mergeMainConfig(this);
+            messageService.reload();
+            pluginLang.reload();
+            confirmationService.cancelAll();
+            homeTeleportManager.cancelAllWarmups();
+            systemManager.reloadAll();
+
+            if (sender == null) {
+                pluginLang.logInfo("reload-success");
+            } else {
+                pluginLang.send(sender, "reload-success");
+            }
+        } finally {
+            reloading = false;
+        }
+    }
+
+    public boolean isReloading() {
+        return reloading;
     }
 
     private void registerMalinessCommand() {

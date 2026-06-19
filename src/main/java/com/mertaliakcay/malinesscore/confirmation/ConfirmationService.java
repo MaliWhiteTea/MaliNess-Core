@@ -1,6 +1,8 @@
 package com.mertaliakcay.malinesscore.confirmation;
 
 import com.mertaliakcay.malinesscore.MaliNessCore;
+import com.mertaliakcay.malinesscore.messages.MessageService;
+import com.mertaliakcay.malinesscore.messages.MessageType;
 import com.mertaliakcay.malinesscore.util.PluginLang;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -33,18 +35,20 @@ public final class ConfirmationService {
         pending.put(player.getUniqueId(), confirmation);
 
         PluginLang pluginLang = plugin.getPluginLang();
-        Component yes = pluginLang.getPlain("confirm-button-yes")
+        MessageService messages = plugin.getMessageService();
+        Component yes = messages.formatWithoutPrefix(MessageType.SUCCESS, "[/evet]")
                 .clickEvent(ClickEvent.runCommand("/evet"))
                 .hoverEvent(HoverEvent.showText(pluginLang.getPlain("confirm-button-yes-hover")));
-        Component no = pluginLang.getPlain("confirm-button-no")
+        Component no = messages.formatWithoutPrefix(MessageType.ERROR, "[/hayır]")
                 .clickEvent(ClickEvent.runCommand("/hayir"))
                 .hoverEvent(HoverEvent.showText(pluginLang.getPlain("confirm-button-no-hover")));
-        Component cancelButton = pluginLang.getPlain("confirm-button-cancel")
+        Component cancelButton = messages.formatWithoutPrefix(MessageType.WARNING, "[/iptal]")
                 .clickEvent(ClickEvent.runCommand("/iptal"))
                 .hoverEvent(HoverEvent.showText(pluginLang.getPlain("confirm-button-cancel-hover")));
 
         player.sendMessage(prompt);
-        player.sendMessage(yes
+        player.sendMessage(messages.prefix()
+                .append(yes)
                 .append(Component.space())
                 .append(no)
                 .append(Component.space())
@@ -112,6 +116,12 @@ public final class ConfirmationService {
         }
 
         return true;
+    }
+
+    public void cancelAll() {
+        for (UUID playerId : pending.keySet()) {
+            cancel(playerId, true);
+        }
     }
 
     private PendingConfirmation getValid(Player player, String token) {

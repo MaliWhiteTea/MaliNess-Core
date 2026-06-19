@@ -119,6 +119,10 @@ public final class HungerCommand implements CommandExecutor, TabCompleter {
         return suggest(sender, args);
     }
 
+    public boolean canSuggest(CommandSender sender) {
+        return system.isEnabled() && sender.hasPermission(HungerSystem.PERM_USE);
+    }
+
     private void handleSet(CommandSender sender, Player target, int amount) {
         if (amount < HungerSystem.MIN_SET || amount > HungerSystem.MAX_SET) {
             system.getLang().send(sender, "invalid-set-amount", "amount", amount);

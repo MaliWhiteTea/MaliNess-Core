@@ -22,11 +22,14 @@ public final class FeedBasicCommand implements BasicCommand {
 
     @Override
     public boolean canUse(CommandSender sender) {
-        return sender.hasPermission(FeedSystem.PERM_USE) || sender.hasPermission(FeedSystem.PERM_OTHERS);
+        return true;
     }
 
     @Override
     public Collection<String> suggest(CommandSourceStack source, String[] args) {
+        if (!feedCommand.canSuggest(source.getSender())) {
+            return List.of();
+        }
         return feedCommand.suggest(source.getSender(), args);
     }
 }

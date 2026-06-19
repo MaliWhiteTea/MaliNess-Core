@@ -119,6 +119,10 @@ public final class HealthCommand implements CommandExecutor, TabCompleter {
         return suggest(sender, args);
     }
 
+    public boolean canSuggest(CommandSender sender) {
+        return system.isEnabled() && sender.hasPermission(HealthSystem.PERM_USE);
+    }
+
     private void handleSet(CommandSender sender, Player target, int amount) {
         if (amount < HealthSystem.MIN_SET || amount > HealthSystem.MAX_SET) {
             system.getLang().send(sender, "invalid-set-amount", "amount", amount);

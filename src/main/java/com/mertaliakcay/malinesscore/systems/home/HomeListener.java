@@ -8,14 +8,26 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityToggleGlideEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.vehicle.VehicleEnterEvent;
+
+import java.util.UUID;
 
 public final class HomeListener implements Listener {
 
     private final HomeTeleportManager teleportManager;
+    private final HomeService homeService;
 
-    public HomeListener(HomeTeleportManager teleportManager) {
+    public HomeListener(HomeTeleportManager teleportManager, HomeService homeService) {
         this.teleportManager = teleportManager;
+        this.homeService = homeService;
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onQuit(PlayerQuitEvent event) {
+        UUID playerId = event.getPlayer().getUniqueId();
+        teleportManager.cancelWarmup(playerId);
+        homeService.cleanupPlayer(playerId);
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -55,7 +67,8 @@ public final class HomeListener implements Listener {
             return;
         }
 
-        if (teleportManager.hasWarmup(player.getUniqueId())) {
+        if (teleportManager.hasWarmup(player.getUniqueId())
+                && !HomeSystem.bypassesHomeRestrictions(player)) {
             teleportManager.markVehicle(player.getUniqueId());
         }
     }

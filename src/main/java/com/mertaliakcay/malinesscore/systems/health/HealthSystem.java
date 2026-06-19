@@ -1,7 +1,6 @@
 package com.mertaliakcay.malinesscore.systems.health;
 
 import com.mertaliakcay.malinesscore.systems.AbstractGameSystem;
-import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 
 import java.util.List;
 
@@ -26,33 +25,31 @@ public final class HealthSystem extends AbstractGameSystem {
     }
 
     @Override
-    protected void onEnable() {
-        if (!config.get().getBoolean("enabled", true)) {
-            return;
+    protected void onRegister() {
+        if (healthCommand == null) {
+            healthCommand = new HealthCommand(this);
         }
 
-        healthCommand = new HealthCommand(this);
-        HealthBasicCommand healthBasicCommand = new HealthBasicCommand(healthCommand);
-
-        plugin.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {
-            event.registrar().register(
-                    "health",
-                    "Oyuncu canını ayarlar.",
-                    List.of(ALIAS_TURKISH),
-                    healthBasicCommand
-            );
-        });
+        registerLifecycleCommandsOnce(registrar -> registrar.register(
+                "health",
+                "Oyuncu canını ayarlar.",
+                List.of(ALIAS_TURKISH),
+                new HealthBasicCommand(healthCommand)
+        ));
 
         plugin.getMalinessCommand().setHealth(this, healthCommand);
     }
 
     @Override
-    protected void onDisable() {
-        plugin.getMalinessCommand().clearHealth();
-        healthCommand = null;
+    protected void onEnable() {
     }
 
-    public boolean isEnabled() {
-        return config.get().getBoolean("enabled", true);
+    @Override
+    protected void onDisable() {
+    }
+
+    @Override
+    protected void onUnregister() {
+        plugin.getMalinessCommand().clearHealth();
     }
 }

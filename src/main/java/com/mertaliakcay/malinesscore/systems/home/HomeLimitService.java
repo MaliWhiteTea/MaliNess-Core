@@ -1,6 +1,7 @@
 package com.mertaliakcay.malinesscore.systems.home;
 
 import com.mertaliakcay.malinesscore.systems.home.model.PlayerHomes;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
 public final class HomeLimitService {
@@ -25,11 +26,28 @@ public final class HomeLimitService {
         return max;
     }
 
+    public int getMaxHomes(OfflinePlayer player) {
+        Player online = player.getPlayer();
+        if (online != null) {
+            return getMaxHomes(online);
+        }
+
+        return defaultMaxHomes;
+    }
+
     public boolean isOverLimit(Player player, PlayerHomes homes) {
         return homes.size() > getMaxHomes(player);
     }
 
+    public boolean isOverLimit(OfflinePlayer player, PlayerHomes homes) {
+        return homes.size() > getMaxHomes(player);
+    }
+
     public boolean canCreateHome(Player player, PlayerHomes homes) {
+        return homes.size() < getMaxHomes(player);
+    }
+
+    public boolean canCreateHome(OfflinePlayer player, PlayerHomes homes) {
         return homes.size() < getMaxHomes(player);
     }
 }

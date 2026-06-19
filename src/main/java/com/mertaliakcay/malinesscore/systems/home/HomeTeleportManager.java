@@ -16,6 +16,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class HomeTeleportManager {
 
+    private static final double MOVE_THRESHOLD_SQUARED = 0.01D;
+
     private final MaliNessCore plugin;
     private final Map<UUID, PendingWarmup> warmups = new ConcurrentHashMap<>();
 
@@ -44,13 +46,21 @@ public final class HomeTeleportManager {
         }
     }
 
+    public void cancelAllWarmups() {
+        for (UUID playerId : warmups.keySet().toArray(new UUID[0])) {
+            cancelWarmup(playerId);
+        }
+    }
+
     public void startWarmup(Player player, HomeLocation home, Runnable onComplete) {
         cancelWarmup(player.getUniqueId());
 
+        if (player.isInsideVehicle() && !HomeSystem.bypassesHomeRestrictions(player)) {
+            lang.send(player, "teleport-vehicle-blocked");
+            return;
+        }
+
         Location startLocation = player.getLocation().clone();
-        int startBlockX = startLocation.getBlockX();
-        int startBlockY = startLocation.getBlockY();
-        int startBlockZ = startLocation.getBlockZ();
 
         BukkitRunnable task = new BukkitRunnable() {
             int elapsedSeconds = 0;
@@ -68,27 +78,27 @@ public final class HomeTeleportManager {
                     return;
                 }
 
-                if (warmup.moved || warmup.damaged || warmup.attacked || warmup.vehicle || warmup.gliding) {
+                if (checkInterrupt(player, warmup)) {
                     return;
                 }
 
+                elapsedSeconds++;
                 int secondsLeft = warmupSeconds - elapsedSeconds;
+
                 if (secondsLeft > 0 && secondsLeft < warmupSeconds) {
                     lang.send(player, "teleport-countdown", "seconds", secondsLeft);
                 }
 
-                if (secondsLeft <= 0) {
+                if (elapsedSeconds >= warmupSeconds) {
                     lang.send(player, "teleport-starting");
                     executeTeleport(player, home, onComplete);
                     cancelWarmup(player.getUniqueId());
                     return;
                 }
-
-                elapsedSeconds++;
             }
         };
 
-        PendingWarmup pending = new PendingWarmup(task, startBlockX, startBlockY, startBlockZ);
+        PendingWarmup pending = new PendingWarmup(task, startLocation);
         warmups.put(player.getUniqueId(), pending);
         task.runTaskTimer(plugin, 0L, 20L);
     }
@@ -103,10 +113,7 @@ public final class HomeTeleportManager {
             return;
         }
 
-        Location location = player.getLocation();
-        if (location.getBlockX() != warmup.startBlockX
-                || location.getBlockY() != warmup.startBlockY
-                || location.getBlockZ() != warmup.startBlockZ) {
+        if (hasMoved(player.getLocation(), warmup.startLocation)) {
             warmup.moved = true;
             cancelWarmupWithMessage(player.getUniqueId());
         }
@@ -144,6 +151,38 @@ public final class HomeTeleportManager {
         }
     }
 
+    private boolean checkInterrupt(Player player, PendingWarmup warmup) {
+        if (warmup.moved || warmup.damaged || warmup.attacked || warmup.vehicle || warmup.gliding) {
+            return true;
+        }
+
+        if (player.isInsideVehicle() && !HomeSystem.bypassesHomeRestrictions(player)) {
+            warmup.vehicle = true;
+            cancelWarmupWithMessage(player.getUniqueId());
+            return true;
+        }
+
+        if (hasMoved(player.getLocation(), warmup.startLocation)) {
+            warmup.moved = true;
+            cancelWarmupWithMessage(player.getUniqueId());
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean hasMoved(Location current, Location start) {
+        if (current.getWorld() == null || start.getWorld() == null) {
+            return true;
+        }
+
+        if (!current.getWorld().equals(start.getWorld())) {
+            return true;
+        }
+
+        return current.distanceSquared(start) > MOVE_THRESHOLD_SQUARED;
+    }
+
     private void cancelWarmupWithMessage(UUID playerId) {
         PendingWarmup warmup = warmups.remove(playerId);
         if (warmup == null) {
@@ -170,7 +209,11 @@ public final class HomeTeleportManager {
                 return;
             }
 
-            player.teleportAsync(location).thenAccept(success -> {
+            player.teleportAsync(location).thenAccept(success -> plugin.getServer().getScheduler().runTask(plugin, () -> {
+                if (!player.isOnline()) {
+                    return;
+                }
+
                 if (success) {
                     player.addPotionEffect(new PotionEffect(
                             PotionEffectType.FIRE_RESISTANCE,
@@ -186,15 +229,13 @@ public final class HomeTeleportManager {
                 } else {
                     lang.send(player, "teleport-failed");
                 }
-            });
+            }));
         }));
     }
 
     private static final class PendingWarmup {
         private final BukkitRunnable task;
-        private final int startBlockX;
-        private final int startBlockY;
-        private final int startBlockZ;
+        private final Location startLocation;
         private boolean cancelled;
         private boolean moved;
         private boolean damaged;
@@ -202,11 +243,9 @@ public final class HomeTeleportManager {
         private boolean vehicle;
         private boolean gliding;
 
-        private PendingWarmup(BukkitRunnable task, int startBlockX, int startBlockY, int startBlockZ) {
+        private PendingWarmup(BukkitRunnable task, Location startLocation) {
             this.task = task;
-            this.startBlockX = startBlockX;
-            this.startBlockY = startBlockY;
-            this.startBlockZ = startBlockZ;
+            this.startLocation = startLocation;
         }
     }
 }

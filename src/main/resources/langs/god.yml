@@ -30,6 +30,10 @@ usage-set:
   type: warning
   text: "Kullanım: /god ayarla <oyuncu> <aktif|deaktif>"
 
+usage-others-required:
+  type: warning
+  text: "Kendi god modunu açamazsın. Kullanım: /god <oyuncu>"
+
 god-enabled-self:
   type: success
   text: "God modun açıldı!"

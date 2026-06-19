@@ -22,11 +22,14 @@ public final class SaturateBasicCommand implements BasicCommand {
 
     @Override
     public boolean canUse(CommandSender sender) {
-        return sender.hasPermission(SaturateSystem.PERM_USE) || sender.hasPermission(SaturateSystem.PERM_OTHERS);
+        return true;
     }
 
     @Override
     public Collection<String> suggest(CommandSourceStack source, String[] args) {
+        if (!saturateCommand.canSuggest(source.getSender())) {
+            return List.of();
+        }
         return saturateCommand.suggest(source.getSender(), args);
     }
 }

@@ -22,11 +22,14 @@ public final class HealthBasicCommand implements BasicCommand {
 
     @Override
     public boolean canUse(CommandSender sender) {
-        return sender.hasPermission(HealthSystem.PERM_USE);
+        return true;
     }
 
     @Override
     public Collection<String> suggest(CommandSourceStack source, String[] args) {
+        if (!healthCommand.canSuggest(source.getSender())) {
+            return List.of();
+        }
         return healthCommand.suggest(source.getSender(), args);
     }
 }

@@ -1,7 +1,7 @@
 package com.mertaliakcay.malinesscore.systems.god;
 
 import com.mertaliakcay.malinesscore.systems.AbstractGameSystem;
-import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 
@@ -19,7 +19,7 @@ public final class GodSystem extends AbstractGameSystem {
     private final Set<UUID> godPlayers = new HashSet<>();
 
     private GodCommand godCommand;
-    private GodListener godListener;
+    private GodStateStorage stateStorage;
 
     @Override
     protected String getSystemId() {
@@ -27,39 +27,52 @@ public final class GodSystem extends AbstractGameSystem {
     }
 
     @Override
-    protected void onEnable() {
-        if (!config.get().getBoolean("enabled", true)) {
-            return;
+    protected void onRegister() {
+        if (godCommand == null) {
+            godCommand = new GodCommand(this);
         }
 
-        godCommand = new GodCommand(this);
-        GodBasicCommand godBasicCommand = new GodBasicCommand(godCommand);
-        godListener = new GodListener(this);
-
-        plugin.getServer().getPluginManager().registerEvents(godListener, plugin);
-
-        plugin.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {
-            event.registrar().register(
-                    "god",
-                    "God modunu açar veya kapatır.",
-                    List.of(ALIAS_TURKISH),
-                    godBasicCommand
-            );
-        });
+        registerLifecycleCommandsOnce(registrar -> registrar.register(
+                "god",
+                "God modunu açar veya kapatır.",
+                List.of(ALIAS_TURKISH),
+                new GodBasicCommand(godCommand)
+        ));
 
         plugin.getMalinessCommand().setGod(this, godCommand);
     }
 
     @Override
-    protected void onDisable() {
-        plugin.getMalinessCommand().clearGod();
-        godPlayers.clear();
-        godListener = null;
-        godCommand = null;
+    protected void onEnable() {
+        if (stateStorage == null) {
+            stateStorage = new GodStateStorage(plugin);
+        }
+
+        registerListener(new GodListener(this));
+
+        if (plugin.isReloading()) {
+            restoreGodStateAfterReload();
+        }
     }
 
-    public boolean isEnabled() {
-        return config.get().getBoolean("enabled", true);
+    @Override
+    protected void onDisable() {
+        if (stateStorage == null) {
+            stateStorage = new GodStateStorage(plugin);
+        }
+
+        if (plugin.isReloading()) {
+            stateStorage.save(godPlayers);
+        } else {
+            stateStorage.delete();
+        }
+
+        godPlayers.clear();
+    }
+
+    @Override
+    protected void onUnregister() {
+        plugin.getMalinessCommand().clearGod();
     }
 
     public boolean isGod(Player player) {
@@ -105,5 +118,17 @@ public final class GodSystem extends AbstractGameSystem {
                 .map(Mob.class::cast)
                 .filter(mob -> player.equals(mob.getTarget()))
                 .forEach(mob -> mob.setTarget(null));
+    }
+
+    private void restoreGodStateAfterReload() {
+        godPlayers.addAll(stateStorage.load());
+        stateStorage.delete();
+
+        for (UUID playerId : godPlayers) {
+            Player online = Bukkit.getPlayer(playerId);
+            if (online != null && online.isOnline()) {
+                clearHostileTargets(online);
+            }
+        }
     }
 }

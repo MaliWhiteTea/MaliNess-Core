@@ -31,11 +31,102 @@ system-disable-failed:
 
 mn-root-usage:
   type: normal
-  text: "Kullanım: /mn <heal|feed|health|hunger|home|sethome|...> ..."
+  text: "Kullanım: /mn <reload|heal|feed|health|hunger|home|sethome|...> ..."
+
+mn-help-header:
+  type: normal
+  text: "Kullanabileceğin komutlar:"
+
+mn-help-empty:
+  type: warning
+  text: "Kullanabileceğin komut yok."
+
+mn-help-entry:
+  type: normal
+  text: "• {command}"
+
+mn-help-hover:
+  type: normal
+  text: "{description}\n\nMN: {mn}\nDirekt: {direct}"
+
+mn-help-desc-reload:
+  text: "Config ve lang dosyalarini yeniden yukler."
+
+mn-help-desc-heal:
+  text: "Canini veya baska oyuncunun canini yeniler."
+
+mn-help-desc-feed:
+  text: "Acligini veya baska oyuncunun acligini giderir."
+
+mn-help-desc-health:
+  text: "Oyuncu canini ayarlar, ekler veya azaltir."
+
+mn-help-desc-hunger:
+  text: "Oyuncu acligini ayarlar, ekler veya azaltir."
+
+mn-help-desc-saturate:
+  text: "Doygunlugunu doldurur ve acligini giderir."
+
+mn-help-desc-saturation:
+  text: "Oyuncu doygunlugunu ayarlar, ekler veya azaltir."
+
+mn-help-desc-god:
+  text: "God modunu acar veya kapatir."
+
+mn-help-desc-sethome:
+  text: "Bulundugun konumu ev olarak kaydeder."
+
+mn-help-desc-home:
+  text: "Kayitli evine veya baska oyuncunun evine isinlanir."
+
+mn-help-desc-delhome:
+  text: "Kayitli evini veya baska oyuncunun evini siler."
+
+mn-help-desc-homes:
+  text: "Evlerini veya baska oyuncunun evlerini listeler."
+
+mn-help-desc-renamehome:
+  text: "Ev adini degistirir."
+
+mn-help-nav-prev:
+  type: normal
+  text: "<"
+
+mn-help-nav-prev-hover:
+  type: normal
+  text: "Onceki sayfa"
+
+mn-help-nav-prev-disabled:
+  type: normal
+  text: "<"
+
+mn-help-nav-page:
+  type: normal
+  text: "Sayfa {current}/{total}"
+
+mn-help-nav-next:
+  type: normal
+  text: ">"
+
+mn-help-nav-next-hover:
+  type: normal
+  text: "Sonraki sayfa"
+
+mn-help-nav-next-disabled:
+  type: normal
+  text: ">"
 
 mn-unknown-subcommand:
   type: error
   text: "{subcommand} adlı alt komut bulunamadı."
+
+reload-success:
+  type: success
+  text: "MaliNess Core yeniden yüklendi."
+
+reload-no-permission:
+  type: error
+  text: "Eklentiyi yeniden yükleme yetkin yok!"
 
 confirm-button-yes:
   type: success
@@ -43,7 +134,7 @@ confirm-button-yes:
 
 confirm-button-yes-hover:
   type: normal
-  text: "Onaylamak için tıkla"
+  text: "Onaylamak icin tikla (/evet)"
 
 confirm-button-no:
   type: error
@@ -51,7 +142,7 @@ confirm-button-no:
 
 confirm-button-no-hover:
   type: normal
-  text: "Reddetmek için tıkla"
+  text: "Reddetmek icin tikla (/hayir)"
 
 confirm-button-cancel:
   type: warning
@@ -59,7 +150,7 @@ confirm-button-cancel:
 
 confirm-button-cancel-hover:
   type: normal
-  text: "İşlemi iptal etmek için tıkla"
+  text: "Islemi iptal etmek icin tikla (/iptal)"
 
 confirm-reference-code:
   type: normal

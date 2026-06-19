@@ -1,7 +1,6 @@
 package com.mertaliakcay.malinesscore.systems.heal;
 
 import com.mertaliakcay.malinesscore.systems.AbstractGameSystem;
-import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 
 import java.util.List;
 
@@ -19,33 +18,31 @@ public final class HealSystem extends AbstractGameSystem {
     }
 
     @Override
-    protected void onEnable() {
-        if (!config.get().getBoolean("enabled", true)) {
-            return;
+    protected void onRegister() {
+        if (healCommand == null) {
+            healCommand = new HealCommand(this);
         }
 
-        healCommand = new HealCommand(this);
-        HealBasicCommand healBasicCommand = new HealBasicCommand(healCommand);
-
-        plugin.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {
-            event.registrar().register(
-                    "heal",
-                    "Can yeniler.",
-                    List.of(ALIAS_TURKISH),
-                    healBasicCommand
-            );
-        });
+        registerLifecycleCommandsOnce(registrar -> registrar.register(
+                "heal",
+                "Can yeniler.",
+                List.of(ALIAS_TURKISH),
+                new HealBasicCommand(healCommand)
+        ));
 
         plugin.getMalinessCommand().setHeal(this, healCommand);
     }
 
     @Override
-    protected void onDisable() {
-        plugin.getMalinessCommand().clearHeal();
-        healCommand = null;
+    protected void onEnable() {
     }
 
-    public boolean isEnabled() {
-        return config.get().getBoolean("enabled", true);
+    @Override
+    protected void onDisable() {
+    }
+
+    @Override
+    protected void onUnregister() {
+        plugin.getMalinessCommand().clearHeal();
     }
 }

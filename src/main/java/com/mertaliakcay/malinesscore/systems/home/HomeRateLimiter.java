@@ -1,11 +1,8 @@
 package com.mertaliakcay.malinesscore.systems.home;
 
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -27,6 +24,11 @@ public final class HomeRateLimiter {
         }
 
         window.cleanup(windowMillis);
+        if (window.count <= 0) {
+            failures.remove(player.getUniqueId());
+            return false;
+        }
+
         return window.count >= maxFailures;
     }
 
@@ -46,7 +48,21 @@ public final class HomeRateLimiter {
     }
 
     public void reset(Player player) {
-        failures.remove(player.getUniqueId());
+        if (player != null) {
+            reset(player.getUniqueId());
+        }
+    }
+
+    public void reset(UUID playerId) {
+        failures.remove(playerId);
+    }
+
+    public void purgeExpiredEntries() {
+        failures.entrySet().removeIf(entry -> {
+            FailureWindow window = entry.getValue();
+            window.cleanup(windowMillis);
+            return window.count <= 0;
+        });
     }
 
     private static final class FailureWindow {

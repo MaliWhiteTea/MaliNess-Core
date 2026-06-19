@@ -1,7 +1,6 @@
 package com.mertaliakcay.malinesscore.systems.feed;
 
 import com.mertaliakcay.malinesscore.systems.AbstractGameSystem;
-import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 
 import java.util.List;
 
@@ -19,33 +18,31 @@ public final class FeedSystem extends AbstractGameSystem {
     }
 
     @Override
-    protected void onEnable() {
-        if (!config.get().getBoolean("enabled", true)) {
-            return;
+    protected void onRegister() {
+        if (feedCommand == null) {
+            feedCommand = new FeedCommand(this);
         }
 
-        feedCommand = new FeedCommand(this);
-        FeedBasicCommand feedBasicCommand = new FeedBasicCommand(feedCommand);
-
-        plugin.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {
-            event.registrar().register(
-                    "feed",
-                    "Açlığı giderir.",
-                    List.of(ALIAS_TURKISH),
-                    feedBasicCommand
-            );
-        });
+        registerLifecycleCommandsOnce(registrar -> registrar.register(
+                "feed",
+                "Açlığı giderir.",
+                List.of(ALIAS_TURKISH),
+                new FeedBasicCommand(feedCommand)
+        ));
 
         plugin.getMalinessCommand().setFeed(this, feedCommand);
     }
 
     @Override
-    protected void onDisable() {
-        plugin.getMalinessCommand().clearFeed();
-        feedCommand = null;
+    protected void onEnable() {
     }
 
-    public boolean isEnabled() {
-        return config.get().getBoolean("enabled", true);
+    @Override
+    protected void onDisable() {
+    }
+
+    @Override
+    protected void onUnregister() {
+        plugin.getMalinessCommand().clearFeed();
     }
 }

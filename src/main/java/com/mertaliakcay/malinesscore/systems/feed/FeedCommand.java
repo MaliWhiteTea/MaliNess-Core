@@ -1,5 +1,6 @@
 package com.mertaliakcay.malinesscore.systems.feed;
 
+import com.mertaliakcay.malinesscore.util.CommandSuggestGate;
 import com.mertaliakcay.malinesscore.util.CommandSuggestions;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -62,7 +63,7 @@ public final class FeedCommand implements CommandExecutor, TabCompleter {
     }
 
     public List<String> suggest(CommandSender sender, String[] args) {
-        if (!system.isEnabled()) {
+        if (!canSuggest(sender)) {
             return Collections.emptyList();
         }
 
@@ -87,6 +88,11 @@ public final class FeedCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         return suggest(sender, args);
+    }
+
+    public boolean canSuggest(CommandSender sender) {
+        return system.isEnabled()
+                && CommandSuggestGate.hasAny(sender, FeedSystem.PERM_USE, FeedSystem.PERM_OTHERS);
     }
 
     private void handleSelfFullFeed(CommandSender sender) {

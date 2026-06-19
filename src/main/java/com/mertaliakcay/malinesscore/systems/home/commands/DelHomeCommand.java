@@ -11,25 +11,31 @@ import java.util.List;
 
 public final class DelHomeCommand implements BasicCommand {
 
-    private final HomeService service;
+    private final HomeSystem system;
 
-    public DelHomeCommand(HomeService service) {
-        this.service = service;
+    public DelHomeCommand(HomeSystem system) {
+        this.system = system;
     }
 
     @Override
     public void execute(CommandSourceStack source, String[] args) {
-        service.handleDelHome(source.getSender(), args);
+        HomeService service = HomeCommandSupport.requireService(system, source.getSender());
+        if (service != null) {
+            service.handleDelHome(source.getSender(), args);
+        }
     }
 
     @Override
     public boolean canUse(CommandSender sender) {
-        return sender.hasPermission(HomeSystem.PERM_DELHOME)
-                || sender.hasPermission(HomeSystem.PERM_OTHERS_DELETE);
+        return true;
     }
 
     @Override
     public Collection<String> suggest(CommandSourceStack source, String[] args) {
-        return service.suggestDelHome(source.getSender(), args);
+        if (!system.isActive() || !HomeCommandSupport.canSuggestDelHome(source.getSender())) {
+            return List.of();
+        }
+        HomeService service = system.getHomeService();
+        return service == null ? List.of() : service.suggestDelHome(source.getSender(), args);
     }
 }

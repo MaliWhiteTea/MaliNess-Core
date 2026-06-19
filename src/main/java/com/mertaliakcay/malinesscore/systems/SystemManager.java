@@ -31,11 +31,14 @@ public final class SystemManager {
             try {
                 system.enable(plugin);
 
-                if (isSystemEnabled(system)) {
+                if (system instanceof AbstractGameSystem abstractSystem && abstractSystem.isActive()) {
                     enabled.add(system.getName());
                     activeSystems.add(system.getName());
-                } else {
+                } else if (system instanceof AbstractGameSystem abstractSystem && !abstractSystem.isConfigEnabled()) {
                     disabled.add(system.getName());
+                } else if (!(system instanceof AbstractGameSystem)) {
+                    enabled.add(system.getName());
+                    activeSystems.add(system.getName());
                 }
             } catch (Exception e) {
                 plugin.getPluginLang().logError(
@@ -82,11 +85,35 @@ public final class SystemManager {
         return Collections.unmodifiableList(systems);
     }
 
-    private boolean isSystemEnabled(GameSystem system) {
-        if (system instanceof AbstractGameSystem abstractSystem) {
-            return abstractSystem.getConfig().get().getBoolean("enabled", true);
+    public void reloadAll() {
+        List<String> enabled = new ArrayList<>();
+        List<String> disabled = new ArrayList<>();
+        activeSystems.clear();
+
+        for (GameSystem system : systems) {
+            try {
+                if (system instanceof AbstractGameSystem abstractSystem) {
+                    abstractSystem.reload();
+
+                    if (abstractSystem.isActive()) {
+                        enabled.add(system.getName());
+                        activeSystems.add(system.getName());
+                    } else if (!abstractSystem.isConfigEnabled()) {
+                        disabled.add(system.getName());
+                    }
+                }
+            } catch (Exception exception) {
+                plugin.getPluginLang().logError(
+                        "system-enable-failed",
+                        "system", system.getName(),
+                        "error", exception.getMessage()
+                );
+                exception.printStackTrace();
+            }
         }
-        return true;
+
+        plugin.getPluginLang().logInfo("systems-enabled-summary", "systems", formatSystemList(enabled));
+        plugin.getPluginLang().logInfo("systems-disabled-summary", "systems", formatSystemList(disabled));
     }
 
     private String formatSystemList(List<String> names) {

@@ -39,6 +39,11 @@ public final class GodCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
+        if (sender instanceof Player player && !hasAnyGodPermission(sender)) {
+            system.getLang().send(sender, "no-permission");
+            return;
+        }
+
         if (args.length == 0) {
             handleSelfToggle(sender);
             return;
@@ -58,7 +63,7 @@ public final class GodCommand implements CommandExecutor, TabCompleter {
     }
 
     public List<String> suggest(CommandSender sender, String[] args) {
-        if (!system.isEnabled()) {
+        if (!system.isEnabled() || !canSuggest(sender)) {
             return Collections.emptyList();
         }
 
@@ -99,7 +104,11 @@ public final class GodCommand implements CommandExecutor, TabCompleter {
         }
 
         if (!sender.hasPermission(GodSystem.PERM_USE)) {
-            system.getLang().send(sender, "no-permission");
+            if (sender.hasPermission(GodSystem.PERM_OTHERS)) {
+                system.getLang().send(sender, "usage-others-required");
+            } else {
+                system.getLang().send(sender, "no-permission");
+            }
             return;
         }
 
@@ -201,6 +210,14 @@ public final class GodCommand implements CommandExecutor, TabCompleter {
 
     private boolean isSetSubcommand(String arg) {
         return SET_SUBCOMMANDS.stream().anyMatch(option -> option.equalsIgnoreCase(arg));
+    }
+
+    private boolean hasAnyGodPermission(CommandSender sender) {
+        return sender.hasPermission(GodSystem.PERM_USE) || sender.hasPermission(GodSystem.PERM_OTHERS);
+    }
+
+    public boolean canSuggest(CommandSender sender) {
+        return system.isEnabled() && (!(sender instanceof Player) || hasAnyGodPermission(sender));
     }
 
     private Boolean parseState(String arg) {

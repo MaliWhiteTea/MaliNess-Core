@@ -36,4 +36,12 @@ public final class PlayerHomes {
     public boolean contains(String name) {
         return homes.containsKey(name);
     }
+
+    public static PlayerHomes copyOf(PlayerHomes source) {
+        PlayerHomes copy = new PlayerHomes();
+        for (var entry : source.getHomes().entrySet()) {
+            copy.put(entry.getKey(), entry.getValue());
+        }
+        return copy;
+    }
 }

@@ -67,25 +67,25 @@ public final class HomeMnCommand {
         return isSetHome(arg) || isHome(arg) || isDelHome(arg) || isHomes(arg) || isRenameHome(arg);
     }
 
-    private static boolean isSetHome(String arg) {
+    public static boolean isSetHome(String arg) {
         return arg.equalsIgnoreCase("sethome") || arg.equalsIgnoreCase(HomeSystem.ALIAS_SETHOME);
     }
 
-    private static boolean isHome(String arg) {
+    public static boolean isHome(String arg) {
         return arg.equalsIgnoreCase("home")
                 || arg.equalsIgnoreCase(HomeSystem.ALIAS_HOME_1)
                 || arg.equalsIgnoreCase(HomeSystem.ALIAS_HOME_2);
     }
 
-    private static boolean isDelHome(String arg) {
+    public static boolean isDelHome(String arg) {
         return arg.equalsIgnoreCase("delhome") || arg.equalsIgnoreCase("remhome");
     }
 
-    private static boolean isHomes(String arg) {
+    public static boolean isHomes(String arg) {
         return arg.equalsIgnoreCase("homes");
     }
 
-    private static boolean isRenameHome(String arg) {
+    public static boolean isRenameHome(String arg) {
         return arg.equalsIgnoreCase("renamehome")
                 || arg.equalsIgnoreCase(HomeSystem.ALIAS_RENAME_1)
                 || arg.equalsIgnoreCase(HomeSystem.ALIAS_RENAME_2);

@@ -11,25 +11,31 @@ import java.util.List;
 
 public final class HomesCommand implements BasicCommand {
 
-    private final HomeService service;
+    private final HomeSystem system;
 
-    public HomesCommand(HomeService service) {
-        this.service = service;
+    public HomesCommand(HomeSystem system) {
+        this.system = system;
     }
 
     @Override
     public void execute(CommandSourceStack source, String[] args) {
-        service.handleHomes(source.getSender(), args);
+        HomeService service = HomeCommandSupport.requireService(system, source.getSender());
+        if (service != null) {
+            service.handleHomes(source.getSender(), args);
+        }
     }
 
     @Override
     public boolean canUse(CommandSender sender) {
-        return sender.hasPermission(HomeSystem.PERM_HOMES)
-                || sender.hasPermission(HomeSystem.PERM_OTHERS_LIST);
+        return true;
     }
 
     @Override
     public Collection<String> suggest(CommandSourceStack source, String[] args) {
-        return service.suggestHomes(source.getSender(), args);
+        if (!system.isActive() || !HomeCommandSupport.canSuggestHomes(source.getSender())) {
+            return List.of();
+        }
+        HomeService service = system.getHomeService();
+        return service == null ? List.of() : service.suggestHomes(source.getSender(), args);
     }
 }

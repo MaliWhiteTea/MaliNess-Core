@@ -52,7 +52,19 @@ home-specify-name:
 
 console-delhome-usage:
   type: warning
-  text: "Konsol kullanımı: delhome <oyuncu> <ev>"
+  text: "Konsol kullanımı: delhome <oyuncu> <ev> --confirm"
+
+console-delhome-confirm-required:
+  type: warning
+  text: "Konsol ev silme işlemi onay gerektirir. Kullanım: delhome <oyuncu> <ev> --confirm"
+
+usage-admin-delhome:
+  type: warning
+  text: "Kullanım: /delhome <oyuncu> <ev>"
+
+usage-admin-home:
+  type: warning
+  text: "Kullanım: /home <oyuncu> <ev>"
 
 player-not-found:
   type: error
@@ -150,6 +162,10 @@ teleport-already-pending:
   type: warning
   text: "Zaten bekleyen bir eve ışınlanma işlemin var."
 
+teleport-vehicle-blocked:
+  type: error
+  text: "Binek hayvanları sürerken eve ışınlanamazsın. Önce in."
+
 admin-teleported:
   type: success
   text: "{player} oyuncusunun {home} adlı evine ışınlandın."
@@ -162,9 +178,17 @@ homes-empty:
   type: normal
   text: "Kayıtlı evin yok."
 
+homes-empty-other:
+  type: normal
+  text: "{player} adlı oyuncunun kayıtlı evi yok."
+
 homes-header:
   type: normal
   text: "Evlerin ({count}/{limit}):"
+
+homes-header-other:
+  type: normal
+  text: "{player} adlı oyuncunun evleri ({count}/{limit}):"
 
 homes-entry:
   type: normal
@@ -177,3 +201,15 @@ homes-entry-hover:
 homes-entry-admin-hover:
   type: normal
   text: "{player} oyuncusunun {home} evine ışınlanmak için tıkla"
+
+storage-invalid-home-skipped:
+  type: warning
+  text: "Gecersiz ev verisi atlandi ({player}, ev: {home}): {reason}"
+
+invalid-home-skipped-broadcast:
+  type: warning
+  text: "{player} oyuncusunun {home} adli evi gecersiz veri iceriyor ve atlandi: {reason}"
+
+storage-invalid-file-name:
+  type: warning
+  text: "Gecersiz ev dosyasi adi: {file}"

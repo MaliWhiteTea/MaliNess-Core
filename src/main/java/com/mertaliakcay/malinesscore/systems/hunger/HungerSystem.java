@@ -1,7 +1,6 @@
 package com.mertaliakcay.malinesscore.systems.hunger;
 
 import com.mertaliakcay.malinesscore.systems.AbstractGameSystem;
-import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 
 import java.util.List;
 
@@ -26,33 +25,31 @@ public final class HungerSystem extends AbstractGameSystem {
     }
 
     @Override
-    protected void onEnable() {
-        if (!config.get().getBoolean("enabled", true)) {
-            return;
+    protected void onRegister() {
+        if (hungerCommand == null) {
+            hungerCommand = new HungerCommand(this);
         }
 
-        hungerCommand = new HungerCommand(this);
-        HungerBasicCommand hungerBasicCommand = new HungerBasicCommand(hungerCommand);
-
-        plugin.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {
-            event.registrar().register(
-                    "hunger",
-                    "Oyuncu açlığını ayarlar.",
-                    List.of(ALIAS_TURKISH),
-                    hungerBasicCommand
-            );
-        });
+        registerLifecycleCommandsOnce(registrar -> registrar.register(
+                "hunger",
+                "Oyuncu açlığını ayarlar.",
+                List.of(ALIAS_TURKISH),
+                new HungerBasicCommand(hungerCommand)
+        ));
 
         plugin.getMalinessCommand().setHunger(this, hungerCommand);
     }
 
     @Override
-    protected void onDisable() {
-        plugin.getMalinessCommand().clearHunger();
-        hungerCommand = null;
+    protected void onEnable() {
     }
 
-    public boolean isEnabled() {
-        return config.get().getBoolean("enabled", true);
+    @Override
+    protected void onDisable() {
+    }
+
+    @Override
+    protected void onUnregister() {
+        plugin.getMalinessCommand().clearHunger();
     }
 }

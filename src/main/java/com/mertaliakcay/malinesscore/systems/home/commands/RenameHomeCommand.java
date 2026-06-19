@@ -11,24 +11,31 @@ import java.util.List;
 
 public final class RenameHomeCommand implements BasicCommand {
 
-    private final HomeService service;
+    private final HomeSystem system;
 
-    public RenameHomeCommand(HomeService service) {
-        this.service = service;
+    public RenameHomeCommand(HomeSystem system) {
+        this.system = system;
     }
 
     @Override
     public void execute(CommandSourceStack source, String[] args) {
-        service.handleRenameHome(source.getSender(), args);
+        HomeService service = HomeCommandSupport.requireService(system, source.getSender());
+        if (service != null) {
+            service.handleRenameHome(source.getSender(), args);
+        }
     }
 
     @Override
     public boolean canUse(CommandSender sender) {
-        return sender.hasPermission(HomeSystem.PERM_RENAME);
+        return true;
     }
 
     @Override
     public Collection<String> suggest(CommandSourceStack source, String[] args) {
-        return service.suggestRenameHome(source.getSender(), args);
+        if (!system.isActive() || !HomeCommandSupport.canSuggestRenameHome(source.getSender())) {
+            return List.of();
+        }
+        HomeService service = system.getHomeService();
+        return service == null ? List.of() : service.suggestRenameHome(source.getSender(), args);
     }
 }

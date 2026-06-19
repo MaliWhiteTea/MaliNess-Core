@@ -22,11 +22,14 @@ public final class GodBasicCommand implements BasicCommand {
 
     @Override
     public boolean canUse(CommandSender sender) {
-        return sender.hasPermission(GodSystem.PERM_USE) || sender.hasPermission(GodSystem.PERM_OTHERS);
+        return true;
     }
 
     @Override
     public Collection<String> suggest(CommandSourceStack source, String[] args) {
+        if (!godCommand.canSuggest(source.getSender())) {
+            return List.of();
+        }
         return godCommand.suggest(source.getSender(), args);
     }
 }

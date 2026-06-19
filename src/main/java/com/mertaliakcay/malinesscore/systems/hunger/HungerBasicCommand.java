@@ -22,11 +22,14 @@ public final class HungerBasicCommand implements BasicCommand {
 
     @Override
     public boolean canUse(CommandSender sender) {
-        return sender.hasPermission(HungerSystem.PERM_USE);
+        return true;
     }
 
     @Override
     public Collection<String> suggest(CommandSourceStack source, String[] args) {
+        if (!hungerCommand.canSuggest(source.getSender())) {
+            return List.of();
+        }
         return hungerCommand.suggest(source.getSender(), args);
     }
 }
