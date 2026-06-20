@@ -2,7 +2,7 @@
 
 MaliNess Network sunucuları için modüler bir Paper eklentisi. Her oyun sistemi kendi config ve lang dosyası ile yönetilir; sunucu açılışında aktif ve deaktif sistemler özet olarak konsola yazılır. Yetkililer `/systems` ve `/system` komutlarıyla sistemleri oyun içinden açıp kapatabilir.
 
-**Sürüm:** `0.1.3` · **API:** Paper / Purpur **1.21.4** · **Java** **21**
+**Sürüm:** `0.1.4` · **API:** Paper / Purpur **1.21.4** · **Java** **21**
 
 ## Gereksinimler
 
@@ -10,6 +10,7 @@ MaliNess Network sunucuları için modüler bir Paper eklentisi. Her oyun sistem
 |------------|-------|
 | Sunucu yazılımı | Paper veya Purpur **1.21.4** |
 | Java | **21** |
+| PlaceholderAPI | İsteğe bağlı — placeholder desteği için |
 
 ## Kurulum
 
@@ -32,7 +33,7 @@ IntelliJ kullanıyorsanız: **Maven → Lifecycle → package**
 
 ```
 plugins/MaliNess-Core/
-├── config.yml              # Genel ayarlar (prefix, renkler)
+├── config.yml              # Genel ayarlar (prefix, renkler, PlaceholderAPI)
 ├── pluginlang.yml          # Eklenti ana mesajları, /mn yardım, onay butonları, sistem yönetimi
 ├── configs/
 │   ├── heal.yml
@@ -102,6 +103,15 @@ Renkler `config.yml` → `messages.colors` altından özelleştirilebilir.
 
 Desteklenen renk kodları: `&a`, `&e` ve `&#RRGGBB` (hex).
 
+Dinamik veriler iki yolla kullanılabilir:
+
+| Yöntem | Örnek | Açıklama |
+|--------|-------|----------|
+| Dahili | `{player}`, `{home}` | Kod tarafından doldurulur |
+| PlaceholderAPI | `%malinesscore_god%`, `%player_name%` | Lang metninde; PAPI yüklüyse çözülür |
+
+Dahili placeholder'lar önce, PlaceholderAPI sonra işlenir. Konsol mesajlarında PAPI parse edilmez (oyuncu bağlamı yok).
+
 ### `pluginlang.yml` senkronizasyonu
 
 `pluginlang.yml` dosyasının başındaki `lang-version` değeri jar sürümünden yüksekse, `/mn reload` veya sunucu açılışında jar'daki varsayılan mesajlar sunucu dosyasına yazılır. Böylece güncelleme sonrası Türkçe karakter ve yeni mesaj anahtarları otomatik uygulanır. Özel düzenlediğin metinler üzerine yazılır; değişiklik yaptıysan yedek al.
@@ -117,6 +127,7 @@ MaliNessCore
 ├── MalinessCommand (/mn)      → tüm sistemlere delegasyon
 ├── ConfirmationService        → /evet /hayır /iptal
 ├── HomeTeleportManager          → warmup ve ışınlanma (plugin genelinde singleton)
+├── PlaceholderApiIntegration    → PlaceholderAPI expansion + lang parse
 └── MessageService               → prefix, renkler, Adventure Component formatı
 ```
 
@@ -134,6 +145,7 @@ MaliNessCore
 - `config.yml`, `pluginlang.yml` ve tüm sistem config/lang dosyalarını yeniden yükler
 - Bekleyen onayları ve ev warmup'larını iptal eder
 - God modu durumunu geçici cache dosyasına yazar, reload sonrası geri yükler
+- PlaceholderAPI ayarlarını ve expansion kaydını yeniler
 - Ev verilerini `flushAll()` ile diske yazar
 - Dinleyici birikmesini önlemek için sistemler önce unregister, sonra yeniden register edilir
 
@@ -287,6 +299,119 @@ Chat formatı:
 | `maliness-core.confirm.use` | Onay komutlarını kullanma | `true` |
 
 Mesajlar: `pluginlang.yml`
+
+---
+
+## PlaceholderAPI
+
+PlaceholderAPI **isteğe bağlıdır**. Yüklü değilse eklenti normal çalışır; placeholder desteği sessizce devre dışı kalır.
+
+### Yapılandırma
+
+`config.yml`:
+
+```yaml
+integrations:
+  placeholderapi:
+    enabled: true
+    parse-in-messages: true
+    labels:
+      on: "Açık"
+      off: "Kapalı"
+      yes: "Evet"
+      no: "Hayır"
+```
+
+| Ayar | Açıklama | Varsayılan |
+|------|----------|------------|
+| `enabled` | Expansion kaydı ve genel entegrasyon | `true` |
+| `parse-in-messages` | Lang mesajlarında `%...%` çözümü | `true` |
+| `labels.on` / `labels.off` | Açık/kapalı durum metinleri | `Açık` / `Kapalı` |
+| `labels.yes` / `labels.no` | Evet/hayır metinleri | `Evet` / `Hayır` |
+
+PAPI sunucuda yoksa `enabled: true` olsa bile entegrasyon otomatik kapanır.
+
+### Identifier
+
+Tüm placeholder'lar `%malinesscore_<anahtar>%` formatındadır.
+
+Belirli oyuncu için `_<oyuncu>` eki eklenir (ör. `%malinesscore_god_MertAli%`).
+
+### Placeholder listesi
+
+#### Genel
+
+| Placeholder | Açıklama | Örnek |
+|-------------|----------|--------|
+| `%malinesscore_version%` | Eklenti sürümü | `0.1.4` |
+
+#### Sistem durumu
+
+| Placeholder | Açıklama | Örnek |
+|-------------|----------|--------|
+| `%malinesscore_system_<id>%` | Sistem açık mı | `Açık` / `Kapalı` |
+| `%malinesscore_system_<id>_bool%` | Makine okunur | `true` / `false` |
+
+`<id>`: `core`, `heal`, `feed`, `health`, `hunger`, `saturate`, `saturation`, `god`, `home`
+
+#### God
+
+| Placeholder | Açıklama |
+|-------------|----------|
+| `%malinesscore_god%` | Görüntüleyen oyuncunun god durumu |
+| `%malinesscore_god_<oyuncu>%` | Belirli oyuncu |
+| `%malinesscore_god_bool%` | `true` / `false` (viewer) |
+| `%malinesscore_god_bool_<oyuncu>%` | `true` / `false` (hedef) |
+
+God durumu yalnızca oyuncu **online** iken `Açık` döner; offline veya quit sonrası `Kapalı`.
+
+#### Home
+
+| Placeholder | Açıklama |
+|-------------|----------|
+| `%malinesscore_homes_count%` | Ev sayısı |
+| `%malinesscore_homes_limit%` | Ev limiti |
+| `%malinesscore_homes_remaining%` | Kalan slot |
+| `%malinesscore_homes_list%` | Ev isimleri (virgülle) |
+| `%malinesscore_homes_overlimit%` | Limit aşımı (`Evet` / `Hayır`) |
+| `%malinesscore_home_warmup%` | Işınlanma beklemesi kalan saniye |
+| `%malinesscore_home_warmup_active%` | Warmup aktif mi |
+
+Her biri `_<oyuncu>` eki ile belirli oyuncu için de kullanılabilir. Ev verileri offline oyuncular için de okunabilir.
+
+#### Onay
+
+| Placeholder | Açıklama |
+|-------------|----------|
+| `%malinesscore_confirmation_pending%` | Bekleyen onay var mı |
+| `%malinesscore_confirmation_pending_<oyuncu>%` | Belirli oyuncu |
+
+### Lang dosyalarında kullanım
+
+```yaml
+örnek-mesaj:
+  type: success
+  text: "God: %malinesscore_god% | Evler: %malinesscore_homes_count%/%malinesscore_homes_limit%"
+```
+
+### Scoreboard örneği
+
+```
+God Mode: %malinesscore_god%
+Evler: %malinesscore_homes_count%/%malinesscore_homes_limit%
+```
+
+### Test (scoreboard eklentisi gerekmez)
+
+PlaceholderAPI yüklüyken:
+
+```
+/papi list
+/papi parse me %malinesscore_god%
+/papi parse me %malinesscore_system_home%
+```
+
+`/papi list` çıktısında `malinesscore` görünmelidir.
 
 ---
 
@@ -605,6 +730,8 @@ src/main/java/com/mertaliakcay/malinesscore/
 │   ├── MalinessCommand.java    # /mn delegasyon + tab
 │   └── MnCommandHelp.java      # sayfalı yardım
 ├── confirmation/               # /evet /hayır /iptal
+├── integrations/
+│   └── placeholderapi/         # Expansion, resolver, ayarlar
 ├── messages/                   # MessageService, MessageType
 ├── systems/
 │   ├── AbstractGameSystem.java

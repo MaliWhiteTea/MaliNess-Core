@@ -39,16 +39,24 @@ public abstract class AbstractLang {
         return plugin.getMessageService().format(getType(key), getText(key), placeholders);
     }
 
+    public Component get(String key, CommandSender audience, Object... placeholders) {
+        return plugin.getMessageService().format(getType(key), audience, getText(key), placeholders);
+    }
+
     public Component getPlain(String key, Object... placeholders) {
         return plugin.getMessageService().formatWithoutPrefix(getType(key), getText(key), placeholders);
     }
 
+    public Component getPlain(String key, CommandSender audience, Object... placeholders) {
+        return plugin.getMessageService().formatWithoutPrefix(getType(key), audience, getText(key), placeholders);
+    }
+
     public void send(CommandSender sender, String key, Object... placeholders) {
-        sender.sendMessage(get(key, placeholders));
+        sender.sendMessage(get(key, sender, placeholders));
     }
 
     public void sendActionBar(Player player, String key, Object... placeholders) {
-        player.sendActionBar(get(key, placeholders));
+        player.sendActionBar(get(key, player, placeholders));
     }
 
     public void logInfo(String key, Object... placeholders) {

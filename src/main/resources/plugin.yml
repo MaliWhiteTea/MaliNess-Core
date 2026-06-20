@@ -6,6 +6,9 @@ main: com.mertaliakcay.malinesscore.MaliNessCore
 api-version: '1.21.4'
 load: POSTWORLD
 
+softdepend:
+  - PlaceholderAPI
+
 authors: [ Mert Ali AKÇAY ]
 website: https://github.com/MaliWhiteTea/MaliNess-Core
 

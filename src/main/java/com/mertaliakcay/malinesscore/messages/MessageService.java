@@ -4,6 +4,7 @@ import com.mertaliakcay.malinesscore.MaliNessCore;
 import com.mertaliakcay.malinesscore.util.ColorUtil;
 import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import java.util.HashMap;
@@ -40,18 +41,26 @@ public final class MessageService {
     }
 
     public Component format(MessageType type, String template, Object... placeholders) {
-        return formatInternal(true, type, template, placeholders);
+        return formatInternal(null, true, type, template, placeholders);
+    }
+
+    public Component format(MessageType type, CommandSender audience, String template, Object... placeholders) {
+        return formatInternal(audience, true, type, template, placeholders);
     }
 
     public Component formatWithoutPrefix(MessageType type, String template, Object... placeholders) {
-        return formatInternal(false, type, template, placeholders);
+        return formatInternal(null, false, type, template, placeholders);
+    }
+
+    public Component formatWithoutPrefix(MessageType type, CommandSender audience, String template, Object... placeholders) {
+        return formatInternal(audience, false, type, template, placeholders);
     }
 
     public Component prefix() {
         return ColorUtil.colorize(prefix);
     }
 
-    private Component formatInternal(boolean includePrefix, MessageType type, String template, Object... placeholders) {
+    private Component formatInternal(CommandSender audience, boolean includePrefix, MessageType type, String template, Object... placeholders) {
         Map<String, String> values = toPlaceholderMap(placeholders);
         String typeColor = getTypeColor(type);
         StringBuilder builder = new StringBuilder(prefix.length() + template.length() + 32);
@@ -77,7 +86,12 @@ public final class MessageService {
             builder.append(typeColor).append(template.substring(lastIndex));
         }
 
-        return ColorUtil.colorize(builder.toString());
+        String formatted = builder.toString();
+        if (audience instanceof Player player) {
+            formatted = plugin.getPlaceholderApiIntegration().applyPlaceholders(player, formatted);
+        }
+
+        return ColorUtil.colorize(formatted);
     }
 
     public void send(CommandSender sender, MessageType type, String template, Object... placeholders) {

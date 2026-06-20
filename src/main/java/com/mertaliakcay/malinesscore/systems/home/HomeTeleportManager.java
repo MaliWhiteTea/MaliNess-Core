@@ -40,6 +40,16 @@ public final class HomeTeleportManager {
         return warmups.containsKey(playerId);
     }
 
+    public int getWarmupRemainingSeconds(UUID playerId) {
+        PendingWarmup warmup = warmups.get(playerId);
+        if (warmup == null) {
+            return 0;
+        }
+
+        long elapsedSeconds = (System.currentTimeMillis() - warmup.startedAtMillis) / 1000L;
+        return Math.max(0, warmupSeconds - (int) elapsedSeconds);
+    }
+
     public void cancelWarmup(UUID playerId) {
         PendingWarmup warmup = warmups.remove(playerId);
         if (warmup != null) {
@@ -249,6 +259,7 @@ public final class HomeTeleportManager {
     private static final class PendingWarmup {
         private final BukkitRunnable task;
         private final Location startLocation;
+        private final long startedAtMillis;
         private boolean cancelled;
         private boolean moved;
         private boolean damaged;
@@ -259,6 +270,7 @@ public final class HomeTeleportManager {
         private PendingWarmup(BukkitRunnable task, Location startLocation) {
             this.task = task;
             this.startLocation = startLocation;
+            this.startedAtMillis = System.currentTimeMillis();
         }
     }
 }

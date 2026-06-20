@@ -6,6 +6,7 @@ import com.mertaliakcay.malinesscore.confirmation.ConfirmNoCommand;
 import com.mertaliakcay.malinesscore.confirmation.ConfirmYesCommand;
 import com.mertaliakcay.malinesscore.confirmation.ConfirmationListener;
 import com.mertaliakcay.malinesscore.confirmation.ConfirmationService;
+import com.mertaliakcay.malinesscore.integrations.placeholderapi.PlaceholderApiIntegration;
 import com.mertaliakcay.malinesscore.messages.MessageService;
 import com.mertaliakcay.malinesscore.systems.SystemManager;
 import com.mertaliakcay.malinesscore.systems.control.NonClosableSystemRegistry;
@@ -36,6 +37,7 @@ import java.util.List;
 public final class MaliNessCore extends JavaPlugin {
 
     private MessageService messageService;
+    private PlaceholderApiIntegration placeholderApiIntegration;
     private PluginLang pluginLang;
     private MalinessCommand malinessCommand;
     private SystemManager systemManager;
@@ -54,6 +56,8 @@ public final class MaliNessCore extends JavaPlugin {
         messageService = new MessageService(this);
         messageService.reload();
 
+        placeholderApiIntegration = new PlaceholderApiIntegration(this);
+
         pluginLang = new PluginLang(this);
 
         confirmationService = new ConfirmationService(this);
@@ -69,12 +73,16 @@ public final class MaliNessCore extends JavaPlugin {
         registerSystems();
         systemManager.enableAll();
         registerSystemControlCommands();
+        placeholderApiIntegration.enable();
 
         pluginLang.logInfo("plugin-enabled");
     }
 
     @Override
     public void onDisable() {
+        if (placeholderApiIntegration != null) {
+            placeholderApiIntegration.disable();
+        }
         if (confirmationService != null) {
             confirmationService.cancelAll();
         }
@@ -92,6 +100,10 @@ public final class MaliNessCore extends JavaPlugin {
 
     public MessageService getMessageService() {
         return messageService;
+    }
+
+    public PlaceholderApiIntegration getPlaceholderApiIntegration() {
+        return placeholderApiIntegration;
     }
 
     public PluginLang getPluginLang() {
@@ -133,6 +145,9 @@ public final class MaliNessCore extends JavaPlugin {
             systemManager.reloadAll();
             if (systemControlService != null) {
                 systemControlService.refreshCatalog();
+            }
+            if (placeholderApiIntegration != null) {
+                placeholderApiIntegration.reload();
             }
 
             if (sender == null) {

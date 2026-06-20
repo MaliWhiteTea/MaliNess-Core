@@ -68,6 +68,14 @@ public final class HomeService {
         this.confirmationService = confirmationService;
     }
 
+    public HomeStorage getStorage() {
+        return storage;
+    }
+
+    public HomeLimitService getLimitService() {
+        return limitService;
+    }
+
     public void reloadFromConfig() {
         blockedWorlds = system.getConfig().get().getStringList("blocked-worlds").stream()
                 .map(world -> world.toLowerCase(Locale.ROOT))

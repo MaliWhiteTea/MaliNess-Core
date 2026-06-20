@@ -15,3 +15,13 @@ messages:
     normal: "&#f3e9e3"
     success: "&#87d498"
     token: "&#ffdb57"
+
+integrations:
+  placeholderapi:
+    enabled: true
+    parse-in-messages: true
+    labels:
+      on: "Açık"
+      off: "Kapalı"
+      yes: "Evet"
+      no: "Hayır"
