@@ -1,0 +1,18 @@
+enabled: true
+
+join-quit-messages-hidden: true
+block-private-messages: true
+prevent-damage: true
+prevent-dealing-damage: true
+prevent-item-pickup: true
+prevent-mob-targeting: true
+hide-death-messages: true
+hide-advancement-messages: true
+hide-sculk-sensor: true
+hide-pressure-plates: true
+
+protocol-lib:
+  enabled: true
+  hide-chest-animation: true
+  hide-chest-sound: true
+  hide-interaction-sound: true

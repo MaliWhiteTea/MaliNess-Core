@@ -25,6 +25,10 @@ import com.mertaliakcay.malinesscore.systems.home.HomeTeleportManager;
 import com.mertaliakcay.malinesscore.systems.hunger.HungerSystem;
 import com.mertaliakcay.malinesscore.systems.saturate.SaturateSystem;
 import com.mertaliakcay.malinesscore.systems.saturation.SaturationSystem;
+import com.mertaliakcay.malinesscore.systems.playtime.PlaytimeSystem;
+import com.mertaliakcay.malinesscore.systems.broadcast.BroadcastSystem;
+import com.mertaliakcay.malinesscore.systems.vanish.VanishService;
+import com.mertaliakcay.malinesscore.systems.vanish.VanishSystem;
 import com.mertaliakcay.malinesscore.util.PluginLang;
 import com.mertaliakcay.malinesscore.util.YamlMerger;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
@@ -45,6 +49,7 @@ public final class MaliNessCore extends JavaPlugin {
     private HomeTeleportManager homeTeleportManager;
     private SystemControlService systemControlService;
     private SystemMnCommand systemMnCommand;
+    private VanishService vanishService;
     private volatile boolean reloading;
     private boolean globalCommandsRegistered;
     private boolean systemCommandsRegistered;
@@ -134,6 +139,14 @@ public final class MaliNessCore extends JavaPlugin {
         return systemMnCommand;
     }
 
+    public VanishService getVanishService() {
+        return vanishService;
+    }
+
+    public void setVanishService(VanishService vanishService) {
+        this.vanishService = vanishService;
+    }
+
     public void reloadPlugin(CommandSender sender) {
         reloading = true;
         try {
@@ -202,6 +215,9 @@ public final class MaliNessCore extends JavaPlugin {
         systemManager.register(new SaturationSystem());
         systemManager.register(new GodSystem());
         systemManager.register(new HomeSystem());
+        systemManager.register(new PlaytimeSystem());
+        systemManager.register(new BroadcastSystem());
+        systemManager.register(new VanishSystem());
     }
 
     private void registerSystemControlCommands() {

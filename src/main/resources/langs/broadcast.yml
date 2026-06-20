@@ -1,0 +1,27 @@
+system-disabled:
+  type: error
+  text: "Duyuru sistemi şu anda kapalı."
+
+no-permission:
+  type: error
+  text: "Duyuru gönderme yetkin yok."
+
+usage:
+  type: warning
+  text: "Kullanım: /broadcast <hepsi|dünya> <mesaj>"
+
+world-not-found:
+  type: error
+  text: "{world} adlı dünya bulunamadı."
+
+cooldown:
+  type: warning
+  text: "Duyuru göndermek için {seconds} saniye beklemelisin."
+
+sent:
+  type: success
+  text: "Duyuru {count} oyuncuya iletildi."
+
+no-recipients:
+  type: warning
+  text: "Duyuru gönderilecek oyuncu bulunamadı."

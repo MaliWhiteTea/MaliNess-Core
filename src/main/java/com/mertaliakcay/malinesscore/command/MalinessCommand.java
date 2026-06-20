@@ -1,6 +1,12 @@
 package com.mertaliakcay.malinesscore.command;
 
 import com.mertaliakcay.malinesscore.MaliNessCore;
+import com.mertaliakcay.malinesscore.systems.broadcast.BroadcastMnCommand;
+import com.mertaliakcay.malinesscore.systems.broadcast.BroadcastSystem;
+import com.mertaliakcay.malinesscore.systems.playtime.PlaytimeMnCommand;
+import com.mertaliakcay.malinesscore.systems.playtime.PlaytimeSystem;
+import com.mertaliakcay.malinesscore.systems.vanish.VanishMnCommand;
+import com.mertaliakcay.malinesscore.systems.vanish.VanishSystem;
 import com.mertaliakcay.malinesscore.systems.feed.FeedCommand;
 import com.mertaliakcay.malinesscore.systems.feed.FeedSystem;
 import com.mertaliakcay.malinesscore.systems.heal.HealCommand;
@@ -52,6 +58,12 @@ public final class MalinessCommand implements CommandExecutor, TabCompleter {
     private GodCommand godCommand;
     private HomeSystem homeSystem;
     private HomeMnCommand homeMnCommand;
+    private PlaytimeSystem playtimeSystem;
+    private PlaytimeMnCommand playtimeMnCommand;
+    private BroadcastSystem broadcastSystem;
+    private BroadcastMnCommand broadcastMnCommand;
+    private VanishSystem vanishSystem;
+    private VanishMnCommand vanishMnCommand;
     private SystemMnCommand systemMnCommand;
     private SystemControlService systemControlService;
 
@@ -137,6 +149,36 @@ public final class MalinessCommand implements CommandExecutor, TabCompleter {
     public void clearHome() {
         this.homeSystem = null;
         this.homeMnCommand = null;
+    }
+
+    public void setPlaytime(PlaytimeSystem playtimeSystem, PlaytimeMnCommand playtimeMnCommand) {
+        this.playtimeSystem = playtimeSystem;
+        this.playtimeMnCommand = playtimeMnCommand;
+    }
+
+    public void clearPlaytime() {
+        this.playtimeSystem = null;
+        this.playtimeMnCommand = null;
+    }
+
+    public void setBroadcast(BroadcastSystem broadcastSystem, BroadcastMnCommand broadcastMnCommand) {
+        this.broadcastSystem = broadcastSystem;
+        this.broadcastMnCommand = broadcastMnCommand;
+    }
+
+    public void clearBroadcast() {
+        this.broadcastSystem = null;
+        this.broadcastMnCommand = null;
+    }
+
+    public void setVanish(VanishSystem vanishSystem, VanishMnCommand vanishMnCommand) {
+        this.vanishSystem = vanishSystem;
+        this.vanishMnCommand = vanishMnCommand;
+    }
+
+    public void clearVanish() {
+        this.vanishSystem = null;
+        this.vanishMnCommand = null;
     }
 
     public void setSystemControl(SystemMnCommand systemMnCommand, SystemControlService systemControlService) {
@@ -234,6 +276,30 @@ public final class MalinessCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
+        if (PlaytimeMnCommand.isPlaytimeSubcommand(args[0])) {
+            if (!dispatchSystem(sender, playtimeSystem, args[0])) {
+                return true;
+            }
+            playtimeMnCommand.handle(sender, Arrays.copyOfRange(args, 1, args.length));
+            return true;
+        }
+
+        if (BroadcastMnCommand.isBroadcastSubcommand(args[0])) {
+            if (!dispatchSystem(sender, broadcastSystem, args[0])) {
+                return true;
+            }
+            broadcastMnCommand.handle(sender, Arrays.copyOfRange(args, 1, args.length));
+            return true;
+        }
+
+        if (VanishMnCommand.isVanishSubcommand(args[0])) {
+            if (!dispatchSystem(sender, vanishSystem, args[0])) {
+                return true;
+            }
+            vanishMnCommand.handle(sender, Arrays.copyOfRange(args, 1, args.length));
+            return true;
+        }
+
         if (SystemMnCommand.isSystemsSubcommand(args[0])) {
             if (!isSystemsListAvailable(sender)) {
                 plugin.getPluginLang().send(sender, "systems-no-list-permission");
@@ -322,6 +388,20 @@ public final class MalinessCommand implements CommandExecutor, TabCompleter {
             subcommands.add(GodSystem.ALIAS_TURKISH);
         }
         addAvailableHomeSubcommands(sender, subcommands);
+        if (isPlaytimeAvailable(sender)) {
+            subcommands.add("playtime");
+            subcommands.add(PlaytimeSystem.ALIAS_TURKISH);
+        }
+        if (isBroadcastAvailable(sender)) {
+            subcommands.add("broadcast");
+            subcommands.add(BroadcastSystem.ALIAS_BC);
+            subcommands.add(BroadcastSystem.ALIAS_DUYUR);
+            subcommands.add(BroadcastSystem.ALIAS_DUYURUYAP);
+        }
+        if (isVanishAvailable(sender)) {
+            subcommands.add("vanish");
+            subcommands.add(VanishSystem.ALIAS_TURKISH);
+        }
         if (isSystemsListAvailable(sender)) {
             subcommands.add("systems");
             subcommands.add(SystemControlService.ALIAS_SYSTEMS_TR);
@@ -424,6 +504,27 @@ public final class MalinessCommand implements CommandExecutor, TabCompleter {
                 return Collections.emptyList();
             }
             return nullableList(homeMnCommand.onTabComplete(sender, subcommand, nestedArgs));
+        }
+
+        if (PlaytimeMnCommand.isPlaytimeSubcommand(subcommand)) {
+            if (!isPlaytimeAvailable(sender) || playtimeMnCommand == null) {
+                return Collections.emptyList();
+            }
+            return nullableList(playtimeMnCommand.suggest(sender, nestedArgs));
+        }
+
+        if (BroadcastMnCommand.isBroadcastSubcommand(subcommand)) {
+            if (!isBroadcastAvailable(sender) || broadcastMnCommand == null) {
+                return Collections.emptyList();
+            }
+            return nullableList(broadcastMnCommand.suggest(sender, nestedArgs));
+        }
+
+        if (VanishMnCommand.isVanishSubcommand(subcommand)) {
+            if (!isVanishAvailable(sender) || vanishMnCommand == null) {
+                return Collections.emptyList();
+            }
+            return nullableList(vanishMnCommand.suggest(sender, nestedArgs));
         }
 
         if (SystemMnCommand.isSystemsSubcommand(subcommand)) {
@@ -558,6 +659,23 @@ public final class MalinessCommand implements CommandExecutor, TabCompleter {
     boolean isHomeRenameAvailable(CommandSender sender) {
         return homeSystem != null && homeSystem.isEnabled()
                 && sender.hasPermission(HomeSystem.PERM_RENAME);
+    }
+
+    boolean isPlaytimeAvailable(CommandSender sender) {
+        return playtimeSystem != null && playtimeSystem.isEnabled()
+                && (sender.hasPermission(PlaytimeSystem.PERM_USE) || sender.hasPermission(PlaytimeSystem.PERM_OTHERS));
+    }
+
+    boolean isBroadcastAvailable(CommandSender sender) {
+        return broadcastSystem != null && broadcastSystem.isEnabled()
+                && sender.hasPermission(BroadcastSystem.PERM_USE);
+    }
+
+    boolean isVanishAvailable(CommandSender sender) {
+        return vanishSystem != null && vanishSystem.isEnabled()
+                && (sender.hasPermission(VanishSystem.PERM_USE)
+                || sender.hasPermission(VanishSystem.PERM_OTHERS)
+                || sender.hasPermission(VanishSystem.PERM_SEE));
     }
 
     boolean isSystemsListAvailable(CommandSender sender) {

@@ -1,0 +1,9 @@
+enabled: true
+
+cooldown-seconds: 1
+
+targets:
+  all-aliases:
+    - hepsi
+    - all
+    - everyone

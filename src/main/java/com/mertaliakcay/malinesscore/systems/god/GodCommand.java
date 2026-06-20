@@ -73,16 +73,16 @@ public final class GodCommand implements CommandExecutor, TabCompleter {
 
         if (args.length == 1) {
             if (CommandSuggestions.isExactMatch(args[0], SET_SUBCOMMANDS)) {
-                return CommandSuggestions.filter(onlinePlayerNames(), "");
+                return CommandSuggestions.filter(onlinePlayerNames(sender), "");
             }
             return CommandSuggestions.filter(firstArgSuggestions(sender), args[0]);
         }
 
         if (args.length == 2 && isSetSubcommand(args[0])) {
-            if (CommandSuggestions.isExactMatch(args[1], onlinePlayerNames())) {
+            if (CommandSuggestions.isExactMatch(args[1], onlinePlayerNames(sender))) {
                 return CommandSuggestions.filter(STATE_OPTIONS, "");
             }
-            return CommandSuggestions.filter(onlinePlayerNames(), args[1]);
+            return CommandSuggestions.filter(onlinePlayerNames(sender), args[1]);
         }
 
         if (args.length == 3 && isSetSubcommand(args[0])) {
@@ -196,16 +196,22 @@ public final class GodCommand implements CommandExecutor, TabCompleter {
         List<String> suggestions = new ArrayList<>(SET_SUBCOMMANDS);
 
         if (sender.hasPermission(GodSystem.PERM_OTHERS)) {
-            suggestions.addAll(onlinePlayerNames());
+            suggestions.addAll(onlinePlayerNames(sender));
         }
 
         return suggestions;
     }
 
-    private List<String> onlinePlayerNames() {
-        return Bukkit.getOnlinePlayers().stream()
+    private List<String> onlinePlayerNames(CommandSender sender) {
+        List<String> names = Bukkit.getOnlinePlayers().stream()
                 .map(Player::getName)
                 .collect(Collectors.toList());
+
+        if (system.getPlugin().getVanishService() != null) {
+            return system.getPlugin().getVanishService().filterPlayerNames(sender, names);
+        }
+
+        return names;
     }
 
     private boolean isSetSubcommand(String arg) {

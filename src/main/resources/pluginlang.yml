@@ -2,7 +2,7 @@
 # Renkler ve prefix config.yml dosyasından otomatik uygulanır.
 # lang-version yükselince jar varsayılanları mevcut dosyaya yazılır (/mn reload).
 
-lang-version: 3
+lang-version: 4
 
 plugin-enabled:
   type: success
@@ -459,6 +459,42 @@ systems-desc-home:
 
 systems-commands-home:
   text: "/sethome, /home, /delhome, /evsil, /homes, /renamehome"
+
+systems-display-playtime:
+  text: "Oynama Süresi"
+
+systems-desc-playtime:
+  text: "Oyuncu oynama süresi takibi."
+
+systems-commands-playtime:
+  text: "/playtime, /oynamasüresi"
+
+systems-display-broadcast:
+  text: "Duyuru"
+
+systems-desc-broadcast:
+  text: "Sunucu ve dünya duyuruları."
+
+systems-commands-broadcast:
+  text: "/broadcast, /bc, /duyur, /duyuruyap"
+
+systems-display-vanish:
+  text: "Vanish"
+
+systems-desc-vanish:
+  text: "Admin gizli mod sistemi."
+
+systems-commands-vanish:
+  text: "/vanish, /gizlen"
+
+mn-help-desc-playtime:
+  text: "Oynama süresini görüntüler."
+
+mn-help-desc-broadcast:
+  text: "Sunucu duyurusu gönderir."
+
+mn-help-desc-vanish:
+  text: "Gizli modu açar veya kapatır."
 
 mn-help-desc-systems:
   text: "Oyun sistemlerini listeler ve yönetir."

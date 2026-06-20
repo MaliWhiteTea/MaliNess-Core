@@ -2,7 +2,7 @@
 
 MaliNess Network sunucuları için modüler bir Paper eklentisi. Her oyun sistemi kendi config ve lang dosyası ile yönetilir; sunucu açılışında aktif ve deaktif sistemler özet olarak konsola yazılır. Yetkililer `/systems` ve `/system` komutlarıyla sistemleri oyun içinden açıp kapatabilir.
 
-**Sürüm:** `0.1.4` · **API:** Paper / Purpur **1.21.4** · **Java** **21**
+**Sürüm:** `0.1.5` · **API:** Paper / Purpur **1.21.4** · **Java** **21**
 
 ## Gereksinimler
 
@@ -11,6 +11,7 @@ MaliNess Network sunucuları için modüler bir Paper eklentisi. Her oyun sistem
 | Sunucu yazılımı | Paper veya Purpur **1.21.4** |
 | Java | **21** |
 | PlaceholderAPI | İsteğe bağlı — placeholder desteği için |
+| ProtocolLib | İsteğe bağlı — vanish gelişmiş gizleme (ses, animasyon) için |
 
 ## Kurulum
 
@@ -43,7 +44,10 @@ plugins/MaliNess-Core/
 │   ├── saturate.yml
 │   ├── saturation.yml
 │   ├── god.yml
-│   └── home.yml
+│   ├── home.yml
+│   ├── playtime.yml
+│   ├── broadcast.yml
+│   └── vanish.yml
 ├── langs/
 │   ├── heal.yml
 │   ├── feed.yml
@@ -52,9 +56,14 @@ plugins/MaliNess-Core/
 │   ├── saturate.yml
 │   ├── saturation.yml
 │   ├── god.yml
-│   └── home.yml
+│   ├── home.yml
+│   ├── playtime.yml
+│   ├── broadcast.yml
+│   └── vanish.yml
 ├── data/
 │   ├── homes/              # Oyuncu ev verileri (<uuid>.yml)
+│   ├── playtime/           # Oyuncu oynama süresi (<uuid>.yml)
+│   ├── vanish.yml          # Kalıcı vanish durumları
 │   └── god-reload-cache.yml  # /mn reload sırasında geçici god durumu (otomatik)
 └── logs/
     ├── home-player.log
@@ -122,12 +131,14 @@ Eklenti modüler **sistem** yapısı kullanır. Her oyun sistemi `AbstractGameSy
 
 ```
 MaliNessCore
-├── SystemManager              → heal, feed, health, hunger, saturate, saturation, god, home
+├── SystemManager              → heal, feed, health, hunger, saturate, saturation, god, home, playtime, broadcast, vanish
 ├── SystemControlService       → /systems, /system, audit log, sistem katalogu
 ├── MalinessCommand (/mn)      → tüm sistemlere delegasyon
 ├── ConfirmationService        → /evet /hayır /iptal
 ├── HomeTeleportManager          → warmup ve ışınlanma (plugin genelinde singleton)
+├── VanishService                → gizli mod durumu, görünürlük, PAPI sayım
 ├── PlaceholderApiIntegration    → PlaceholderAPI expansion + lang parse
+├── MaliNessColorUtil            → duyuru ve renkli mesaj kodları (&z*)
 └── MessageService               → prefix, renkler, Adventure Component formatı
 ```
 
@@ -227,7 +238,7 @@ Konsoldan yalnızca `/system on|off|info <sistem>` desteklenir. Onay akışı yo
 
 ## Sistem özeti
 
-Eklenti **sekiz** oyun sistemi içerir:
+Eklenti **on bir** oyun sistemi içerir:
 
 | Grup | Sistemler | Amaç |
 |------|-----------|------|
@@ -235,6 +246,8 @@ Eklenti **sekiz** oyun sistemi içerir:
 | Hassas ayar | health, hunger, saturation | `set` / `add` / `remove` ile değer yönetimi |
 | Oyuncu modu | god | Hasar almama ve saldırgan mob koruması |
 | Konum | home | Ev kaydetme, ışınlanma ve yönetim |
+| İstatistik | playtime | Toplam oynama süresi takibi ve sorgulama |
+| Yönetim | broadcast, vanish | Duyuru gönderme ve gizli mod |
 
 | Minecraft değeri | Hızlı komut | Hassas komut |
 |------------------|-------------|--------------|
@@ -343,7 +356,7 @@ Belirli oyuncu için `_<oyuncu>` eki eklenir (ör. `%malinesscore_god_MertAli%`)
 
 | Placeholder | Açıklama | Örnek |
 |-------------|----------|--------|
-| `%malinesscore_version%` | Eklenti sürümü | `0.1.4` |
+| `%malinesscore_version%` | Eklenti sürümü | `0.1.5` |
 
 #### Sistem durumu
 
@@ -352,7 +365,42 @@ Belirli oyuncu için `_<oyuncu>` eki eklenir (ör. `%malinesscore_god_MertAli%`)
 | `%malinesscore_system_<id>%` | Sistem açık mı | `Açık` / `Kapalı` |
 | `%malinesscore_system_<id>_bool%` | Makine okunur | `true` / `false` |
 
-`<id>`: `core`, `heal`, `feed`, `health`, `hunger`, `saturate`, `saturation`, `god`, `home`
+`<id>`: `core`, `heal`, `feed`, `health`, `hunger`, `saturate`, `saturation`, `god`, `home`, `playtime`, `broadcast`, `vanish`
+
+#### Online (vanish)
+
+| Placeholder | Açıklama |
+|-------------|----------|
+| `%malinesscore_online%` | Görüntüleyicinin görebildiği online sayısı (`online_visible` ile aynı) |
+| `%malinesscore_online_visible%` | Görüntüleyicinin görebildiği online sayısı |
+| `%malinesscore_online_vanished%` | Şu an online olan gizli oyuncu sayısı |
+| `%malinesscore_online_visible_list%` | Görüntüleyicinin görebildiği oyuncu isimleri (virgülle) |
+
+`vanish.see` izni olan yetkililer gizli oyuncuları da sayar; normal oyuncular sayılmaz. TAB/scoreboard için `%server_online%` yerine `%malinesscore_online_visible%` kullanılabilir.
+
+#### Playtime
+
+| Placeholder | Açıklama |
+|-------------|----------|
+| `%malinesscore_playtime%` | Görüntüleyen oyuncunun formatlı süresi |
+| `%malinesscore_playtime_<oyuncu>%` | Belirli oyuncu |
+| `%malinesscore_playtime_seconds%` | Ham saniye (viewer) |
+| `%malinesscore_playtime_seconds_<oyuncu>%` | Ham saniye (hedef) |
+
+#### Vanish
+
+| Placeholder | Açıklama |
+|-------------|----------|
+| `%malinesscore_vanish%` | Görüntüleyen oyuncunun vanish durumu |
+| `%malinesscore_vanish_<oyuncu>%` | Belirli oyuncu |
+| `%malinesscore_vanish_bool%` | `true` / `false` (viewer) |
+| `%malinesscore_vanish_bool_<oyuncu>%` | `true` / `false` (hedef) |
+| `%malinesscore_can_see%` | Görüntüleyen, hedef oyuncuyu görebiliyor mu (`Evet` / `Hayır`) |
+| `%malinesscore_can_see_<oyuncu>%` | Belirli hedef için |
+| `%malinesscore_can_see_bool%` | Makine okunur |
+| `%malinesscore_can_see_bool_<oyuncu>%` | Makine okunur (hedef) |
+
+Vanish durumu kalıcıdır (`data/vanish.yml`); reconnect sonrası hatırlanır.
 
 #### God
 
@@ -409,6 +457,8 @@ PlaceholderAPI yüklüyken:
 /papi list
 /papi parse me %malinesscore_god%
 /papi parse me %malinesscore_system_home%
+/papi parse me %malinesscore_online_visible%
+/papi parse me %malinesscore_playtime%
 ```
 
 `/papi list` çıktısında `malinesscore` görünmelidir.
@@ -683,6 +733,90 @@ Config: `configs/home.yml` — Lang: `langs/home.yml`
 
 ---
 
+### Playtime — Oynama süresi
+
+| Komut | Açıklama |
+|-------|----------|
+| `/playtime` | Kendi toplam oynama süreni gösterir |
+| `/playtime <oyuncu>` | Belirtilen oyuncunun süresini gösterir |
+| `/oynamasüresi ...` | `/playtime` ile aynı (Türkçe alternatif) |
+| `/mn playtime ...` / `/mn oynamasüresi ...` | Alternatif komut |
+
+Süre oturum bazında takip edilir; periyodik flush ile `data/playtime/<uuid>.yml` dosyalarına yazılır. Format birimleri ve sırası `configs/playtime.yml` → `format` bölümünden özelleştirilebilir (varsayılan: `1g 2s 30dk` tarzı).
+
+| İzin | Açıklama | Varsayılan |
+|------|----------|------------|
+| `maliness-core.playtime.use` | Kendi süresini görüntüleme | `true` |
+| `maliness-core.playtime.use.others` | Başkasının süresini görüntüleme | `op` |
+
+Config: `configs/playtime.yml` — Lang: `langs/playtime.yml`
+
+---
+
+### Broadcast — Duyuru
+
+| Komut | Açıklama |
+|-------|----------|
+| `/broadcast <hepsi\|dünya> <mesaj>` | Tüm sunucuya veya belirli dünyaya duyuru gönderir |
+| `/bc`, `/duyur`, `/duyuruyap` | Kısa alternatifler |
+| `/mn broadcast ...` / `/mn duyur ...` | Alternatif komut |
+
+Hedef `hepsi` (veya config'teki alias'lar: `all`, `everyone`) tüm online oyunculara; dünya adı yalnızca o dünyadaki oyunculara gönderir. Mesajlarda `&` renk kodları, `&#RRGGBB` hex ve MaliNess semantik kodları (`&zh`, `&zb`, `&zu`, `&zn`, `&zv`) kullanılabilir.
+
+| Kod | Anlam | Varsayılan renk |
+|-----|-------|-----------------|
+| `&zh` | Hata | `messages.colors.error` |
+| `&zb` | Başarı | `messages.colors.success` |
+| `&zu` | Uyarı | `messages.colors.warning` |
+| `&zn` | Normal | `messages.colors.normal` |
+| `&zv` | Vurgu / belirteç | `messages.colors.token` |
+
+Renk kullanımı `maliness-core.colors.use` izni gerektirir; izinsiz gönderenlerde renkler strip edilir. Konsol her zaman renk kullanabilir.
+
+| İzin | Açıklama | Varsayılan |
+|------|----------|------------|
+| `maliness-core.broadcast.use` | Duyuru gönderme | `op` |
+| `maliness-core.colors.use` | Renk kodlarını kullanma | `op` |
+
+Config: `configs/broadcast.yml` — Lang: `langs/broadcast.yml`
+
+---
+
+### Vanish — Gizli mod
+
+| Komut | Açıklama |
+|-------|----------|
+| `/vanish` | Kendi gizli modunu açar veya kapatır (toggle) |
+| `/vanish <oyuncu>` | Başka oyuncunun gizli modunu toggle eder |
+| `/vanish list` | Gizli moddaki online oyuncuları listeler |
+| `/gizlen ...` | `/vanish` ile aynı (Türkçe alternatif) |
+| `/mn vanish ...` / `/mn gizlen ...` | Alternatif komut |
+
+Gizli mod **kalıcıdır** — sunucudan çıkıp girince durum korunur; reconnect sonrası hatırlatma mesajı gösterilir. Gizli oyuncular `vanish.see` izni olmayanlardan saklanır; join/quit mesajları, ölüm ve advancement duyuruları gizlenebilir.
+
+ProtocolLib yüklüyse sandık animasyonu/sesi, lever/buton sesi, entity sesleri (yemek bitişi vb.) ve benzeri etkileşim ifşaları paket düzeyinde gizlenir. Sculk sensör ve basınç plakası etkileşimleri Bukkit/Paper event'leri ile engellenir.
+
+| İzin | Açıklama | Varsayılan |
+|------|----------|------------|
+| `maliness-core.vanish.use` | Kendi gizli modunu yönetme | `op` |
+| `maliness-core.vanish.use.others` | Başkasının gizli modunu yönetme | `op` |
+| `maliness-core.vanish.see` | Gizli oyuncuları görme ve listeleme | `op` |
+
+Config: `configs/vanish.yml` — Lang: `langs/vanish.yml`
+
+`configs/vanish.yml` önemli ayarlar:
+
+| Ayar | Açıklama | Varsayılan |
+|------|----------|------------|
+| `join-quit-messages-hidden` | Gizli oyuncu giriş/çıkış mesajını gizle | `true` |
+| `block-private-messages` | Gizli hedefe `/msg` vb. engelle | `true` |
+| `prevent-damage` / `prevent-dealing-damage` | Hasar alma/verme engeli | `true` |
+| `hide-death-messages` / `hide-advancement-messages` | Ölüm ve advancement duyurularını gizle | `true` |
+| `hide-sculk-sensor` / `hide-pressure-plates` | Sculk ve basınç plakası ifşasını engelle | `true` |
+| `protocol-lib.*` | ProtocolLib gelişmiş gizleme | `true` |
+
+---
+
 ## Türkçe komut özeti
 
 | İngilizce | Türkçe / alternatif |
@@ -700,6 +834,9 @@ Config: `configs/home.yml` — Lang: `langs/home.yml`
 | `/renamehome` | `/evadıdeğiştir`, `/evismideğiştir` |
 | `/systems` | `/sistemler` |
 | `/system` | `/sistem` |
+| `/playtime` | `/oynamasüresi` |
+| `/broadcast` | `/bc`, `/duyur`, `/duyuruyap` |
+| `/vanish` | `/gizlen` |
 | — | `/evet`, `/hayır`, `/iptal` |
 
 Hassas ayar sistemlerinde alt komutlar: `set`/`ayarla`, `add`/`ekle`, `remove`/`azalt`
@@ -744,8 +881,11 @@ src/main/java/com/mertaliakcay/malinesscore/
 │   ├── saturate/
 │   ├── saturation/
 │   ├── god/                    # GodStateStorage, GodListener
-│   └── home/                   # HomeService, HomeStorage, HomeTeleportManager, ...
-└── util/                       # Config, lang, renk, tab tamamlama
+│   ├── home/                   # HomeService, HomeStorage, HomeTeleportManager, ...
+│   ├── playtime/               # PlaytimeService, PlaytimeStorage, PlaytimeTracker
+│   ├── broadcast/              # BroadcastCommand
+│   └── vanish/                 # VanishService, ProtocolLibVanishEnhancer, VanishListener
+└── util/                       # Config, lang, renk, tab tamamlama, MaliNessColorUtil
 
 src/main/resources/
 ├── config.yml

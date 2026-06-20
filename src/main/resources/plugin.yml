@@ -8,6 +8,7 @@ load: POSTWORLD
 
 softdepend:
   - PlaceholderAPI
+  - ProtocolLib
 
 authors: [ Mert Ali AKÇAY ]
 website: https://github.com/MaliWhiteTea/MaliNess-Core
@@ -120,4 +121,34 @@ permissions:
     default: op
   maliness-core.systems.manage.home:
     description: Ev sistemini açıp kapatır.
+    default: op
+  maliness-core.playtime.use:
+    description: Kendi oynama süresini görüntüler.
+    default: true
+  maliness-core.playtime.use.others:
+    description: Başka oyuncuların oynama süresini görüntüler.
+    default: op
+  maliness-core.broadcast.use:
+    description: Sunucu duyurusu gönderir.
+    default: op
+  maliness-core.colors.use:
+    description: MaliNess renk kodlarını kullanır (&, &#, &z).
+    default: op
+  maliness-core.vanish.use:
+    description: Kendi gizli modunu yönetir.
+    default: op
+  maliness-core.vanish.use.others:
+    description: Başka oyuncuların gizli modunu yönetir.
+    default: op
+  maliness-core.vanish.see:
+    description: Gizli oyuncuları görür ve listeler.
+    default: op
+  maliness-core.systems.manage.playtime:
+    description: Oynama süresi sistemini açıp kapatır.
+    default: op
+  maliness-core.systems.manage.broadcast:
+    description: Duyuru sistemini açıp kapatır.
+    default: op
+  maliness-core.systems.manage.vanish:
+    description: Vanish sistemini açıp kapatır.
     default: op

@@ -1,0 +1,31 @@
+system-disabled:
+  type: error
+  text: "Oynama süresi sistemi şu anda kapalı."
+
+no-permission:
+  type: error
+  text: "Oynama süreni görüntüleme yetkin yok."
+
+no-permission-others:
+  type: error
+  text: "Başka oyuncuların oynama süresini görüntüleme yetkin yok."
+
+usage:
+  type: warning
+  text: "Kullanım: /playtime [oyuncu]"
+
+console-no-player:
+  type: error
+  text: "Konsoldan kullanım: /playtime <oyuncu>"
+
+player-not-found:
+  type: error
+  text: "{player} adlı oyuncu bulunamadı."
+
+self:
+  type: normal
+  text: "Oyun süren: {time}"
+
+other:
+  type: normal
+  text: "{player} oyun süresi: {time}"

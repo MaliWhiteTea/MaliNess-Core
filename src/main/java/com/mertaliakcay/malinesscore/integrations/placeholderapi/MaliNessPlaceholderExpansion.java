@@ -37,6 +37,41 @@ public final class MaliNessPlaceholderExpansion extends PlaceholderExpansion {
     }
 
     @Override
+    public @NotNull java.util.List<String> getPlaceholders() {
+        return java.util.List.of(
+                "version",
+                "online",
+                "online_visible",
+                "online_vanished",
+                "online_visible_list",
+                "can_see",
+                "can_see_<oyuncu>",
+                "can_see_bool",
+                "can_see_bool_<oyuncu>",
+                "vanish",
+                "vanish_<oyuncu>",
+                "vanish_bool",
+                "vanish_bool_<oyuncu>",
+                "system_<id>",
+                "system_<id>_bool",
+                "god",
+                "god_<oyuncu>",
+                "god_bool",
+                "god_bool_<oyuncu>",
+                "homes_count",
+                "homes_limit",
+                "homes_remaining",
+                "homes_list",
+                "homes_overlimit",
+                "home_warmup",
+                "home_warmup_active",
+                "confirmation_pending",
+                "playtime",
+                "playtime_seconds"
+        );
+    }
+
+    @Override
     public @Nullable String onPlaceholderRequest(Player player, @NotNull String params) {
         return resolver.resolve(player, params);
     }

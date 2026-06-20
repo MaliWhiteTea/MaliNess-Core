@@ -1,0 +1,71 @@
+system-disabled:
+  type: error
+  text: "Vanish sistemi şu anda kapalı."
+
+no-permission:
+  type: error
+  text: "Vanish kullanma yetkin yok."
+
+no-permission-others:
+  type: error
+  text: "Başka oyuncuların vanish durumunu yönetme yetkin yok."
+
+no-permission-list:
+  type: error
+  text: "Vanish listesini görüntüleme yetkin yok."
+
+usage:
+  type: warning
+  text: "Kullanım: /vanish [oyuncu|list]"
+
+console-no-player:
+  type: error
+  text: "Konsoldan kullanım: /vanish <oyuncu> veya /vanish list"
+
+player-not-found:
+  type: error
+  text: "{player} adlı oyuncu bulunamadı."
+
+enabled-self:
+  type: success
+  text: "Gizli mod açıldı."
+
+disabled-self:
+  type: success
+  text: "Gizli mod kapatıldı."
+
+enabled-other:
+  type: success
+  text: "{player} için gizli mod açıldı."
+
+disabled-other:
+  type: success
+  text: "{player} için gizli mod kapatıldı."
+
+enabled-target:
+  type: normal
+  text: "Gizli moda alındın."
+
+disabled-target:
+  type: normal
+  text: "Gizli moddan çıkarıldın."
+
+reconnect-reminder:
+  type: warning
+  text: "Gizli modun hâlâ açık. Kapatmak için /vanish kullan."
+
+list-header:
+  type: normal
+  text: "Gizli moddaki oyuncular ({count}):"
+
+list-entry:
+  type: normal
+  text: "• {player}"
+
+list-empty:
+  type: normal
+  text: "Gizli modda oyuncu yok."
+
+private-message-blocked:
+  type: error
+  text: "{player} adlı oyuncuya mesaj gönderilemiyor."

@@ -10,6 +10,9 @@ import com.mertaliakcay.malinesscore.systems.home.HomeService;
 import com.mertaliakcay.malinesscore.systems.home.HomeStorage;
 import com.mertaliakcay.malinesscore.systems.home.HomeSystem;
 import com.mertaliakcay.malinesscore.systems.home.HomeTeleportManager;
+import com.mertaliakcay.malinesscore.systems.playtime.PlaytimeService;
+import com.mertaliakcay.malinesscore.systems.playtime.PlaytimeSystem;
+import com.mertaliakcay.malinesscore.systems.vanish.VanishService;
 import com.mertaliakcay.malinesscore.systems.home.model.PlayerHomes;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -29,6 +32,12 @@ public final class MaliNessPlaceholderResolver {
             "homes_limit",
             "homes_list",
             "home_warmup",
+            "playtime_seconds",
+            "playtime",
+            "vanish_bool",
+            "vanish",
+            "can_see_bool",
+            "can_see",
             "god_bool",
             "god"
     };
@@ -52,6 +61,18 @@ public final class MaliNessPlaceholderResolver {
             return plugin.getPluginMeta().getVersion();
         }
 
+        if (normalized.equals("online_visible") || normalized.equals("online")) {
+            return String.valueOf(resolveOnlineVisible(viewer));
+        }
+
+        if (normalized.equals("online_vanished")) {
+            return String.valueOf(resolveOnlineVanished());
+        }
+
+        if (normalized.equals("online_visible_list")) {
+            return resolveOnlineVisibleList(viewer);
+        }
+
         if (normalized.startsWith("system_")) {
             return resolveSystem(normalized);
         }
@@ -72,6 +93,12 @@ public final class MaliNessPlaceholderResolver {
             case "home_warmup" -> String.valueOf(resolveHomeWarmup(viewer, targetKey.targetName()));
             case "home_warmup_active" -> yesNoLabel(resolveHomeWarmupActive(viewer, targetKey.targetName()));
             case "confirmation_pending" -> yesNoLabel(resolveConfirmationPending(viewer, targetKey.targetName()));
+            case "playtime" -> resolvePlaytimeFormatted(viewer, targetKey.targetName());
+            case "playtime_seconds" -> String.valueOf(resolvePlaytimeSeconds(viewer, targetKey.targetName()));
+            case "vanish" -> onOffLabel(resolveVanish(viewer, targetKey.targetName()));
+            case "vanish_bool" -> boolLabel(resolveVanish(viewer, targetKey.targetName()));
+            case "can_see" -> yesNoLabel(resolveCanSee(viewer, targetKey.targetName()));
+            case "can_see_bool" -> boolLabel(resolveCanSee(viewer, targetKey.targetName()));
             default -> null;
         };
     }
@@ -191,6 +218,113 @@ public final class MaliNessPlaceholderResolver {
 
         ConfirmationService confirmationService = plugin.getConfirmationService();
         return confirmationService != null && confirmationService.hasPending(playerId);
+    }
+
+    private String resolvePlaytimeFormatted(Player viewer, String targetName) {
+        PlaytimeService service = getPlaytimeService();
+        if (service == null) {
+            return "0sn";
+        }
+
+        OfflinePlayer target = resolveOfflinePlayer(viewer, targetName);
+        if (target == null) {
+            return "0sn";
+        }
+
+        return service.getFormatted(target);
+    }
+
+    private long resolvePlaytimeSeconds(Player viewer, String targetName) {
+        PlaytimeService service = getPlaytimeService();
+        if (service == null) {
+            return 0L;
+        }
+
+        OfflinePlayer target = resolveOfflinePlayer(viewer, targetName);
+        if (target == null) {
+            return 0L;
+        }
+
+        return service.getTotalSeconds(target);
+    }
+
+    private boolean resolveVanish(Player viewer, String targetName) {
+        VanishService vanishService = plugin.getVanishService();
+        if (vanishService == null) {
+            return false;
+        }
+
+        if (targetName == null || targetName.isBlank()) {
+            return viewer != null && vanishService.isVanished(viewer.getUniqueId());
+        }
+
+        Player online = Bukkit.getPlayerExact(targetName);
+        if (online != null) {
+            return vanishService.isVanished(online);
+        }
+
+        OfflinePlayer offline = Bukkit.getOfflinePlayer(targetName);
+        if (offline.hasPlayedBefore() || offline.isOnline()) {
+            return vanishService.isVanished(offline.getUniqueId());
+        }
+
+        return false;
+    }
+
+    private PlaytimeService getPlaytimeService() {
+        AbstractGameSystem system = plugin.getSystemManager().findAbstractSystem("playtime");
+        if (system instanceof PlaytimeSystem playtimeSystem) {
+            return playtimeSystem.getPlaytimeService();
+        }
+        return null;
+    }
+
+    private int resolveOnlineVisible(Player viewer) {
+        VanishService vanishService = plugin.getVanishService();
+        if (vanishService == null) {
+            return Bukkit.getOnlinePlayers().size();
+        }
+
+        return vanishService.countVisibleOnline(viewer);
+    }
+
+    private int resolveOnlineVanished() {
+        VanishService vanishService = plugin.getVanishService();
+        if (vanishService == null) {
+            return 0;
+        }
+
+        return vanishService.countOnlineVanished();
+    }
+
+    private String resolveOnlineVisibleList(Player viewer) {
+        VanishService vanishService = plugin.getVanishService();
+        if (vanishService == null) {
+            return Bukkit.getOnlinePlayers().stream()
+                    .map(Player::getName)
+                    .sorted(String.CASE_INSENSITIVE_ORDER)
+                    .collect(java.util.stream.Collectors.joining(", "));
+        }
+
+        return vanishService.formatVisibleOnlineNames(viewer);
+    }
+
+    private boolean resolveCanSee(Player viewer, String targetName) {
+        VanishService vanishService = plugin.getVanishService();
+        if (vanishService == null) {
+            return true;
+        }
+
+        Player target = resolveOnlinePlayer(viewer, targetName);
+        if (target == null) {
+            return true;
+        }
+
+        if (viewer == null) {
+            return !vanishService.isVanished(target);
+        }
+
+        return vanishService.canSee(viewer, target);
     }
 
     private PlayerHomes loadHomes(Player viewer, String targetName) {

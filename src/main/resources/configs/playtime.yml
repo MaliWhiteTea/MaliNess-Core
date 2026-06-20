@@ -1,0 +1,39 @@
+enabled: true
+
+tracking:
+  flush-interval-seconds: 300
+
+format:
+  separator: " "
+  empty-fallback: "0sn"
+  show-zero: false
+  order:
+    - year
+    - month
+    - week
+    - day
+    - hour
+    - minute
+    - second
+  units:
+    year:
+      code: "y"
+      seconds: 31536000
+    month:
+      code: "a"
+      seconds: 2592000
+    week:
+      code: "h"
+      seconds: 604800
+    day:
+      code: "g"
+      seconds: 86400
+    hour:
+      code: "s"
+      seconds: 3600
+    minute:
+      code: "dk"
+      seconds: 60
+    second:
+      code: "sn"
+      seconds: 1

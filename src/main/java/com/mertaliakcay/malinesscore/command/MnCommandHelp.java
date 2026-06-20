@@ -123,6 +123,15 @@ final class MnCommandHelp {
         if (commands.isHomeRenameAvailable(sender)) {
             entries.add(entry("renamehome", "/renamehome", "/mn renamehome", "/mn renamehome <eski> <yeni>", "/renamehome <eski> <yeni>"));
         }
+        if (commands.isPlaytimeAvailable(sender)) {
+            entries.add(entry("playtime", "/playtime", "/mn playtime", "/mn playtime [oyuncu]", "/playtime [oyuncu] | /oynamasüresi"));
+        }
+        if (commands.isBroadcastAvailable(sender)) {
+            entries.add(entry("broadcast", "/broadcast", "/mn broadcast", "/mn broadcast <hedef> <mesaj>", "/broadcast | /bc | /duyur"));
+        }
+        if (commands.isVanishAvailable(sender)) {
+            entries.add(entry("vanish", "/vanish", "/mn vanish", "/mn vanish [oyuncu|list]", "/vanish [oyuncu|list] | /gizlen"));
+        }
         if (commands.isSystemsListAvailable(sender)) {
             entries.add(entry("systems", "/systems", "/mn systems", "/mn systems [sayfa]", "/systems | /sistemler"));
         }
