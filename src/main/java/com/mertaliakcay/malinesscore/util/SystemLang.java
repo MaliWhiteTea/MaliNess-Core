@@ -37,7 +37,9 @@ public final class SystemLang extends AbstractLang {
         String resourcePath = "langs/" + systemId + ".yml";
 
         if (plugin.getResource(resourcePath) != null) {
-            lang = YamlMerger.loadAndMerge(plugin, langFile, resourcePath);
+            lang = hasLangVersionInResource(resourcePath)
+                    ? YamlMerger.loadAndMergeLang(plugin, langFile, resourcePath)
+                    : YamlMerger.loadAndMerge(plugin, langFile, resourcePath);
         } else {
             if (!langFile.exists()) {
                 try {
@@ -49,6 +51,20 @@ public final class SystemLang extends AbstractLang {
                 }
             }
             lang = YamlConfiguration.loadConfiguration(langFile);
+        }
+    }
+
+    private boolean hasLangVersionInResource(String resourcePath) {
+        try (var stream = plugin.getResource(resourcePath)) {
+            if (stream == null) {
+                return false;
+            }
+            return YamlConfiguration.loadConfiguration(
+                    new java.io.InputStreamReader(stream, java.nio.charset.StandardCharsets.UTF_8)
+            ).contains("lang-version");
+        } catch (Exception exception) {
+            plugin.getLogger().log(Level.WARNING, "Lang sürümü okunamadı: " + resourcePath, exception);
+            return false;
         }
     }
 }

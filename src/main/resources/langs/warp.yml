@@ -1,3 +1,6 @@
+# lang-version yükselince jar varsayılanları mevcut dosyaya yazılır (/mn reload).
+lang-version: 2
+
 system-disabled:
   type: error
   text: "Warp sistemi şu anda kapalı."
