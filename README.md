@@ -2,7 +2,7 @@
 
 MaliNess Network sunucuları için modüler bir Paper eklentisi. Her oyun sistemi kendi config ve lang dosyası ile yönetilir; sunucu açılışında aktif ve deaktif sistemler özet olarak konsola yazılır. Yetkililer `/systems` ve `/system` komutlarıyla sistemleri oyun içinden açıp kapatabilir.
 
-**Sürüm:** `0.1.6.1` · **API:** Paper / Purpur **1.21.4** · **Java** **21**
+**Sürüm:** `0.1.6.2` · **API:** Paper / Purpur **1.21.4** · **Java** **21**
 
 ## Gereksinimler
 
@@ -48,7 +48,8 @@ plugins/MaliNess-Core/
 │   ├── playtime.yml
 │   ├── broadcast.yml
 │   ├── vanish.yml
-│   └── warp.yml
+│   ├── warp.yml
+│   └── pwarp.yml
 ├── langs/
 │   ├── heal.yml
 │   ├── feed.yml
@@ -61,11 +62,13 @@ plugins/MaliNess-Core/
 │   ├── playtime.yml
 │   ├── broadcast.yml
 │   ├── vanish.yml
-│   └── warp.yml
+│   ├── warp.yml
+│   └── pwarp.yml
 ├── data/
 │   ├── homes/              # Oyuncu ev verileri (<uuid>.yml)
 │   ├── playtime/           # Oyuncu oynama süresi (<uuid>.yml)
 │   ├── warps.yml           # Global warp kayıtları
+│   ├── pwarps.yml          # Oyuncu warp kayıtları
 │   ├── vanish.yml          # Kalıcı vanish durumları
 │   └── god-reload-cache.yml  # /mn reload sırasında geçici god durumu (otomatik)
 └── logs/
@@ -73,6 +76,8 @@ plugins/MaliNess-Core/
     ├── home-admin.log
     ├── warp-player.log
     ├── warp-admin.log
+    ├── pwarp-player.log
+    ├── pwarp-admin.log
     └── systems-audit.log   # Sistem açma/kapama kayıtları
 ```
 
@@ -138,11 +143,11 @@ Eklenti modüler **sistem** yapısı kullanır. Her oyun sistemi `AbstractGameSy
 
 ```
 MaliNessCore
-├── SystemManager              → heal, feed, health, hunger, saturate, saturation, god, home, playtime, broadcast, vanish, warp
+├── SystemManager              → heal, feed, health, hunger, saturate, saturation, god, home, playtime, broadcast, vanish, warp, pwarp
 ├── SystemControlService       → /systems, /system, audit log, sistem katalogu
 ├── MalinessCommand (/mn)      → tüm sistemlere delegasyon
 ├── ConfirmationService        → /evet /hayır /iptal
-├── TeleportService              → ortak warmup ve ışınlanma (home, warp; plugin genelinde singleton)
+├── TeleportService              → ortak warmup ve ışınlanma (home, warp, pwarp; plugin genelinde singleton)
 ├── VanishService                → gizli mod durumu, görünürlük, PAPI sayım
 ├── PlaceholderApiIntegration    → PlaceholderAPI expansion + lang parse
 ├── MaliNessColorUtil            → duyuru ve renkli mesaj kodları (&z*)
@@ -161,7 +166,7 @@ MaliNessCore
 `/mn reload` (veya konsoldan eşdeğeri) şunları yapar:
 
 - `config.yml`, `pluginlang.yml` ve tüm sistem config/lang dosyalarını yeniden yükler
-- Bekleyen onayları ve aktif warmup'ları (home, warp vb.) iptal eder
+- Bekleyen onayları ve aktif warmup'ları (home, warp, pwarp vb.) iptal eder
 - God modu durumunu geçici cache dosyasına yazar, reload sonrası geri yükler
 - PlaceholderAPI ayarlarını ve expansion kaydını yeniler
 - Ev verilerini `flushAll()` ile diske yazar
@@ -245,14 +250,14 @@ Konsoldan yalnızca `/system on|off|info <sistem>` desteklenir. Onay akışı yo
 
 ## Sistem özeti
 
-Eklenti **on iki** oyun sistemi içerir:
+Eklenti **on üç** oyun sistemi içerir:
 
 | Grup | Sistemler | Amaç |
 |------|-----------|------|
 | Hızlı doldurma | heal, feed, saturate | Tek komutla tam veya kısmi doldurma |
 | Hassas ayar | health, hunger, saturation | `set` / `add` / `remove` ile değer yönetimi |
 | Oyuncu modu | god | Hasar almama ve saldırgan mob koruması |
-| Konum | home, warp | Ev kaydetme; admin tanımlı sabit noktalara ışınlanma |
+| Konum | home, warp, pwarp | Ev kaydetme; admin warp; oyuncu warp (herkese açık) |
 | İstatistik | playtime | Toplam oynama süresi takibi ve sorgulama |
 | Yönetim | broadcast, vanish | Duyuru gönderme ve gizli mod |
 
@@ -363,7 +368,7 @@ Belirli oyuncu için `_<oyuncu>` eki eklenir (ör. `%malinesscore_god_MertAli%`)
 
 | Placeholder | Açıklama | Örnek |
 |-------------|----------|--------|
-| `%malinesscore_version%` | Eklenti sürümü | `0.1.6.1` |
+| `%malinesscore_version%` | Eklenti sürümü | `0.1.6.2` |
 
 #### Sistem durumu
 
@@ -372,7 +377,7 @@ Belirli oyuncu için `_<oyuncu>` eki eklenir (ör. `%malinesscore_god_MertAli%`)
 | `%malinesscore_system_<id>%` | Sistem açık mı | `Açık` / `Kapalı` |
 | `%malinesscore_system_<id>_bool%` | Makine okunur | `true` / `false` |
 
-`<id>`: `core`, `heal`, `feed`, `health`, `hunger`, `saturate`, `saturation`, `god`, `home`, `playtime`, `broadcast`, `vanish`, `warp`
+`<id>`: `core`, `heal`, `feed`, `health`, `hunger`, `saturate`, `saturation`, `god`, `home`, `playtime`, `broadcast`, `vanish`, `warp`, `pwarp`
 
 #### Online (vanish)
 
@@ -446,6 +451,21 @@ Her biri `_<oyuncu>` eki ile belirli oyuncu için de kullanılabilir. Ev veriler
 
 İsim eşleştirmesi büyük/küçük harf duyarsızdır.
 
+#### Pwarp (oyuncu warp)
+
+| Placeholder | Açıklama |
+|-------------|----------|
+| `%malinesscore_pwarp_count%` | Görüntüleyen oyuncunun pwarp sayısı |
+| `%malinesscore_pwarp_count_<oyuncu>%` | Belirli oyuncunun pwarp sayısı |
+| `%malinesscore_pwarp_count_all%` | Sunucudaki toplam pwarp sayısı |
+| `%malinesscore_pwarp_list%` | Görüntüleyen oyuncunun pwarp isimleri (virgülle) |
+| `%malinesscore_pwarp_list_<oyuncu>%` | Belirli oyuncunun pwarp listesi |
+| `%malinesscore_pwarp_limit%` | Görüntüleyen oyuncunun pwarp limiti |
+| `%malinesscore_pwarp_limit_<oyuncu>%` | Belirli oyuncunun pwarp limiti |
+| `%malinesscore_pwarp_<isim>%` | Pwarp var mı (`Evet` / `Hayır`) |
+| `%malinesscore_pwarp_owner_<isim>%` | Pwarp sahibi adı (offline ad dahil) |
+| `%malinesscore_pwarp_desc_<isim>%` | Pwarp açıklaması (yoksa boş) |
+
 #### Onay
 
 | Placeholder | Açıklama |
@@ -480,6 +500,8 @@ PlaceholderAPI yüklüyken:
 /papi parse me %malinesscore_playtime%
 /papi parse me %malinesscore_warp_count%
 /papi parse me %malinesscore_warp_list%
+/papi parse me %malinesscore_pwarp_count%
+/papi parse me %malinesscore_pwarp_list%
 ```
 
 `/papi list` çıktısında `malinesscore` görünmelidir.
@@ -752,7 +774,7 @@ Ev verileri oyuncu başına `data/homes/<uuid>.yml` dosyasında tutulur; yazıml
 
 Config: `configs/home.yml` — Lang: `langs/home.yml`
 
-Home ve warp aynı `TeleportService` warmup altyapısını kullanır. Biri warmup'tayken diğer komut engellenir (iptal olmaz); her sistem kendi lang mesajını gösterir.
+Home, warp ve pwarp aynı `TeleportService` warmup altyapısını kullanır. Biri warmup'tayken diğer komutlar engellenir (iptal olmaz); her sistem kendi lang mesajını gösterir.
 
 ---
 
@@ -834,6 +856,76 @@ Warmup sırasında hareket, hasar, saldırı, elytra veya binek → iptal. `mali
 | `maliness-core.warp.invalid.broadcast` | Geçersiz warp uyarısı (oyun içi) | `op` |
 
 Config: `configs/warp.yml` — Lang: `langs/warp.yml` (`lang-version` destekli) — Veri: `data/warps.yml`
+
+Admin warp ile pwarp isim çakışması config ile yönetilir (`name-collision` bölümü).
+
+---
+
+### Pwarp — Oyuncu warp sistemi
+
+Oyuncuların kendi konumlarında herkese açık warp noktası oluşturduğu sistem. Admin warp'tan bağımsızdır; isimler sunucu genelinde benzersizdir.
+
+#### Komutlar (oyuncu)
+
+| Komut | Açıklama |
+|-------|----------|
+| `/pwarp` | Sayfalı pwarp listesi (tıklanabilir satırlar) |
+| `/pwarp <sayfa>` | Belirli sayfa (ör. `/pwarp 2`) |
+| `/pwarp <isim>` | Pwarp noktasına ışınlanır |
+| `/pwarps [sayfa]` | `/pwarp list` ile aynı liste |
+| `/pwarp ekle\|set <isim>` | Bulunduğun konuma pwarp kaydeder (açıklama istenmez) |
+| `/pwarp sil\|delete\|remove <isim>` | Onaylı silme |
+| `/pwarp düzenle\|edit <isim> <yeniisim\|konum\|açıklama>` | Yeniden adlandırma, konum veya açıklama |
+| `/mn pwarp ...` / `/mn pwarps` | Alternatif komut |
+
+Ana komut yalnızca **`/pwarp`** (Türkçe kök alias yok).
+
+#### Komutlar (admin)
+
+| Komut | Açıklama |
+|-------|----------|
+| `/pwarp sil <oyuncu> <isim>` | Başka oyuncunun pwarpını siler (onaylı) |
+| `/pwarp düzenle <oyuncu> <isim> konum\|açıklama\|YeniAd` | Başka oyuncunun pwarpını düzenler |
+| Konsol: `/pwarp sil <oyuncu> <isim> --confirm` | Onaysız admin silme |
+
+#### İsim kuralları
+
+- Admin warp ile aynı format (2–20 karakter, en az bir harf, case-insensitive)
+- Varsayılan limit: **1 pwarp** — `maliness-core.pwarp.count.N` ile artırılır
+- Config `names.blacklist` ile alt komut ve rezerve kelimeler engellenir
+- Admin warp ile isim çakışması config ile kontrol edilir (varsayılan: pwarp engellenir)
+
+#### Warmup, ziyaret ve liste
+
+- Home/warp ile aynı warmup koruması; çapraz engelleme (iptal yok)
+- Sahip kendi pwarpına giderse ziyaret sayacı artmaz
+- Liste hover: sahip, konum, oluşturulma, ziyaret sayısı; **son ziyaret** yalnızca `pwarp.manage` izinlisinde
+- İleride GUI menü planlanıyor (şu an chat listesi)
+
+#### Loglar
+
+| Dosya | İçerik |
+|-------|--------|
+| `logs/pwarp-player.log` | Oluşturma, silme, başarılı ışınlanma |
+| `logs/pwarp-admin.log` | Admin silme ve düzenleme |
+
+#### İzinler
+
+| İzin | Açıklama | Varsayılan |
+|------|----------|------------|
+| `maliness-core.pwarp.use` | Işınlanma | `true` |
+| `maliness-core.pwarp.set` | Pwarp oluşturma | `true` |
+| `maliness-core.pwarp.delete` | Kendi pwarpını silme | `true` |
+| `maliness-core.pwarp.list` | Liste görüntüleme | `true` |
+| `maliness-core.pwarp.edit` | Kendi pwarpını düzenleme | `true` |
+| `maliness-core.pwarp.manage` | Başkasının pwarpını silme/düzenleme | `op` |
+| `maliness-core.pwarp.bypasstime` | Warmup ve cooldown atlama | `op` |
+| `maliness-core.pwarp.count.N` | En fazla N pwarp | — |
+| `maliness-core.pwarp.invalid.broadcast` | Geçersiz pwarp uyarısı (oyun içi) | `op` |
+
+Config: `configs/pwarp.yml` — Lang: `langs/pwarp.yml` (`lang-version` destekli) — Veri: `data/pwarps.yml`
+
+Test listesi: `TEST_CHECKLISTS/0.1.6.2.md`
 
 ---
 
@@ -942,6 +1034,7 @@ Config: `configs/vanish.yml` — Lang: `langs/vanish.yml`
 | `/broadcast` | `/bc`, `/duyur`, `/duyuruyap` |
 | `/vanish` | `/gizlen` |
 | `/warp` | `/warps`, `/warplar` |
+| `/pwarp` | `/pwarps` |
 | — | `/evet`, `/hayır`, `/iptal` |
 
 Hassas ayar sistemlerinde alt komutlar: `set`/`ayarla`, `add`/`ekle`, `remove`/`azalt`
@@ -989,12 +1082,13 @@ src/main/java/com/mertaliakcay/malinesscore/
 │   ├── god/                    # GodStateStorage, GodListener
 │   ├── home/                   # HomeService, HomeStorage, ...
 │   ├── warp/                   # WarpService, WarpStorage, WarpListHelp, ...
+│   ├── pwarp/                  # PwarpService, PwarpStorage, PwarpListHelp, ...
 │   ├── playtime/               # PlaytimeService, PlaytimeStorage, PlaytimeTracker
 │   ├── broadcast/              # BroadcastCommand
 │   └── vanish/                 # VanishService, ProtocolLibVanishEnhancer, VanishListener
 └── util/                       # Config, lang, renk, tab tamamlama, MaliNessColorUtil
 
-TEST_CHECKLISTS/                # Sürüm bazlı test listeleri (ör. 0.1.6.md)
+TEST_CHECKLISTS/                # Sürüm bazlı test listeleri (ör. 0.1.6.md, 0.1.6.2.md)
 
 src/main/resources/
 ├── config.yml
