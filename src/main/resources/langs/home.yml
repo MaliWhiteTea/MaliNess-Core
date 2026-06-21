@@ -160,7 +160,11 @@ teleport-failed:
 
 teleport-already-pending:
   type: warning
-  text: "Zaten bekleyen bir eve ışınlanma işlemin var."
+  text: "Zaten eve ışınlanıyorsun."
+
+teleport-blocked-by-warp:
+  type: warning
+  text: "Bir warp ışınlanması bekleniyor."
 
 teleport-vehicle-blocked:
   type: error

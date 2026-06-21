@@ -6,6 +6,7 @@ import com.mertaliakcay.malinesscore.systems.warp.model.Warp;
 import com.mertaliakcay.malinesscore.teleport.SafeTeleport;
 import com.mertaliakcay.malinesscore.teleport.TeleportMessages;
 import com.mertaliakcay.malinesscore.teleport.TeleportService;
+import com.mertaliakcay.malinesscore.teleport.WarmupType;
 import com.mertaliakcay.malinesscore.util.CommandSuggestions;
 import com.mertaliakcay.malinesscore.util.MaliNessColorUtil;
 import com.mertaliakcay.malinesscore.util.SystemLang;
@@ -233,13 +234,29 @@ public final class WarpService {
         }
 
         if (!warp.isEnabled()) {
-            lang.send(sender, "warp-closed", "warp", warp.getName());
+            if (!canSeeClosed(sender)) {
+                lang.send(sender, "warp-not-found", "warp", rawName);
+                return;
+            }
+
+            confirmationService.request(
+                    player,
+                    lang.get("confirm-closed-teleport", "warp", warp.getName()),
+                    () -> teleportToWarp(player, warp),
+                    null
+            );
             return;
         }
 
+        teleportToWarp(player, warp);
+    }
+
+    private void teleportToWarp(Player player, Warp warp) {
+        SystemLang lang = system.getLang();
+
         Location location = warp.toLocation();
         if (location == null || location.getWorld() == null) {
-            lang.send(sender, "world-not-loaded");
+            lang.send(player, "world-not-loaded");
             storage.validateWorlds();
             return;
         }
@@ -282,13 +299,12 @@ public final class WarpService {
             return;
         }
 
-        if (bypassesTimers(player)) {
-            teleportService.teleportInstant(player, warp, messages, fireResistanceSeconds, onSuccess);
+        if (blockIfWarmupPending(player, lang)) {
             return;
         }
 
-        if (teleportService.hasWarmup(player.getUniqueId())) {
-            lang.send(player, "teleport-already-pending");
+        if (bypassesTimers(player)) {
+            teleportService.teleportInstant(player, warp, messages, fireResistanceSeconds, onSuccess);
             return;
         }
 
@@ -300,8 +316,23 @@ public final class WarpService {
                 warmupSeconds,
                 fireResistanceSeconds,
                 WarpSystem::bypassesWarpRestrictions,
+                WarmupType.WARP,
                 onSuccess
         );
+    }
+
+    private boolean blockIfWarmupPending(Player player, SystemLang lang) {
+        if (!teleportService.hasWarmup(player.getUniqueId())) {
+            return false;
+        }
+
+        WarmupType type = teleportService.getWarmupType(player.getUniqueId());
+        if (type == WarmupType.WARP) {
+            lang.send(player, "teleport-already-pending");
+        } else {
+            lang.send(player, "teleport-blocked-by-home");
+        }
+        return true;
     }
 
     private void handleAdmin(CommandSender sender, String[] args) {

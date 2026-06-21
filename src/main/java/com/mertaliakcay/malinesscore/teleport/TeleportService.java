@@ -29,6 +29,11 @@ public final class TeleportService {
         return warmups.containsKey(playerId);
     }
 
+    public WarmupType getWarmupType(UUID playerId) {
+        PendingWarmup warmup = warmups.get(playerId);
+        return warmup == null ? null : warmup.type;
+    }
+
     public int getWarmupRemainingSeconds(UUID playerId) {
         PendingWarmup warmup = warmups.get(playerId);
         if (warmup == null) {
@@ -59,6 +64,7 @@ public final class TeleportService {
             int warmupSeconds,
             int fireResistanceSeconds,
             Predicate<Player> bypassRestrictions,
+            WarmupType type,
             Runnable onComplete
     ) {
         cancelWarmup(player.getUniqueId());
@@ -112,7 +118,8 @@ public final class TeleportService {
                 messages,
                 warmupSeconds,
                 fireResistanceSeconds,
-                bypassRestrictions
+                bypassRestrictions,
+                type
         );
         warmups.put(player.getUniqueId(), pending);
         task.runTaskTimer(plugin, 0L, 20L);
@@ -280,6 +287,7 @@ public final class TeleportService {
         private final int warmupSeconds;
         private final int fireResistanceSeconds;
         private final Predicate<Player> bypassRestrictions;
+        private final WarmupType type;
         private final long startedAtMillis;
         private boolean cancelled;
         private boolean moved;
@@ -295,7 +303,8 @@ public final class TeleportService {
                 TeleportMessages messages,
                 int warmupSeconds,
                 int fireResistanceSeconds,
-                Predicate<Player> bypassRestrictions
+                Predicate<Player> bypassRestrictions,
+                WarmupType type
         ) {
             this.task = task;
             this.startLocation = startLocation;
@@ -304,6 +313,7 @@ public final class TeleportService {
             this.warmupSeconds = warmupSeconds;
             this.fireResistanceSeconds = fireResistanceSeconds;
             this.bypassRestrictions = bypassRestrictions;
+            this.type = type;
             this.startedAtMillis = System.currentTimeMillis();
         }
     }

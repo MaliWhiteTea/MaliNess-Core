@@ -6,6 +6,7 @@ import com.mertaliakcay.malinesscore.systems.home.model.HomeLocation;
 import com.mertaliakcay.malinesscore.systems.home.model.PlayerHomes;
 import com.mertaliakcay.malinesscore.teleport.TeleportMessages;
 import com.mertaliakcay.malinesscore.teleport.TeleportService;
+import com.mertaliakcay.malinesscore.teleport.WarmupType;
 import com.mertaliakcay.malinesscore.util.CommandSuggestions;
 import com.mertaliakcay.malinesscore.util.SystemLang;
 import net.kyori.adventure.text.Component;
@@ -780,13 +781,12 @@ public final class HomeService {
             return;
         }
 
-        if (bypassesTimers(player)) {
-            teleportService.teleportInstant(player, home, messages, fireResistanceSeconds, onSuccess);
+        if (blockIfWarmupPending(player, lang)) {
             return;
         }
 
-        if (teleportService.hasWarmup(player.getUniqueId())) {
-            lang.send(player, "teleport-already-pending");
+        if (bypassesTimers(player)) {
+            teleportService.teleportInstant(player, home, messages, fireResistanceSeconds, onSuccess);
             return;
         }
 
@@ -798,8 +798,23 @@ public final class HomeService {
                 warmupSeconds,
                 fireResistanceSeconds,
                 HomeSystem::bypassesHomeRestrictions,
+                WarmupType.HOME,
                 onSuccess
         );
+    }
+
+    private boolean blockIfWarmupPending(Player player, SystemLang lang) {
+        if (!teleportService.hasWarmup(player.getUniqueId())) {
+            return false;
+        }
+
+        WarmupType type = teleportService.getWarmupType(player.getUniqueId());
+        if (type == WarmupType.HOME) {
+            lang.send(player, "teleport-already-pending");
+        } else {
+            lang.send(player, "teleport-blocked-by-warp");
+        }
+        return true;
     }
 
     private void saveHome(Player player, PlayerHomes homes, String homeName, Location location) {

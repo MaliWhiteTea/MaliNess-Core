@@ -122,6 +122,10 @@ confirm-unsafe-teleport:
   type: warning
   text: "{warp} warpı güvensiz görünüyor. Yine de ışınlanmak istiyor musun?"
 
+confirm-closed-teleport:
+  type: warning
+  text: "{warp} warpı kapalı. Yine de ışınlanmak istiyor musun?"
+
 unsafe-warp-blocked:
   type: error
   text: "{warp} warpı güvensiz; ışınlanma iptal edildi."
@@ -148,7 +152,11 @@ teleport-cancelled:
 
 teleport-already-pending:
   type: warning
-  text: "Zaten bekleyen bir ışınlanman var."
+  text: "Zaten bir warp ışınlanması bekleniyor."
+
+teleport-blocked-by-home:
+  type: warning
+  text: "Eve ışınlanma bekleniyor."
 
 teleport-vehicle-blocked:
   type: error
