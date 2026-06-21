@@ -43,7 +43,7 @@ final class PwarpListHelp {
         int start = (page - 1) * PWARPS_PER_PAGE;
         int end = Math.min(start + PWARPS_PER_PAGE, entries.size());
         for (Pwarp pwarp : entries.subList(start, end)) {
-            sender.sendMessage(buildRow(plugin, lang, service, pwarp));
+            sender.sendMessage(buildRow(plugin, lang, service, sender, pwarp));
         }
 
         if (totalPages > 1) {
@@ -55,9 +55,10 @@ final class PwarpListHelp {
             MaliNessCore plugin,
             SystemLang lang,
             PwarpService service,
+            CommandSender sender,
             Pwarp pwarp
     ) {
-        Component hover = buildHover(lang, service, pwarp);
+        Component hover = buildHover(lang, service, sender, pwarp);
 
         return plugin.getMessageService().prefix()
                 .append(lang.getPlain("list-entry-prefix"))
@@ -66,19 +67,40 @@ final class PwarpListHelp {
                 .hoverEvent(HoverEvent.showText(hover));
     }
 
-    private static Component buildHover(SystemLang lang, PwarpService service, Pwarp pwarp) {
-        Component hover = lang.getPlain(
-                "list-hover",
-                "pwarp", pwarp.getName(),
-                "owner", pwarp.getOwnerName(),
-                "world", pwarp.getWorldName(),
-                "x", (int) pwarp.getX(),
-                "y", (int) pwarp.getY(),
-                "z", (int) pwarp.getZ(),
-                "created", service.formatCreatedAt(pwarp),
-                "visits", pwarp.getVisitCount(),
-                "last-visit", service.formatLastVisit(pwarp)
-        );
+    private static Component buildHover(
+            SystemLang lang,
+            PwarpService service,
+            CommandSender sender,
+            Pwarp pwarp
+    ) {
+        boolean adminView = sender.hasPermission(PwarpSystem.PERM_MANAGE);
+        Component hover;
+        if (adminView) {
+            hover = lang.getPlain(
+                    "list-hover-admin",
+                    "pwarp", pwarp.getName(),
+                    "owner", pwarp.getOwnerName(),
+                    "world", pwarp.getWorldName(),
+                    "x", (int) pwarp.getX(),
+                    "y", (int) pwarp.getY(),
+                    "z", (int) pwarp.getZ(),
+                    "created", service.formatCreatedAt(pwarp),
+                    "visits", pwarp.getVisitCount(),
+                    "last-visit", service.formatLastVisit(pwarp)
+            );
+        } else {
+            hover = lang.getPlain(
+                    "list-hover",
+                    "pwarp", pwarp.getName(),
+                    "owner", pwarp.getOwnerName(),
+                    "world", pwarp.getWorldName(),
+                    "x", (int) pwarp.getX(),
+                    "y", (int) pwarp.getY(),
+                    "z", (int) pwarp.getZ(),
+                    "created", service.formatCreatedAt(pwarp),
+                    "visits", pwarp.getVisitCount()
+            );
+        }
 
         String description = pwarp.getDescription();
         if (description != null && !description.isBlank()) {

@@ -12,6 +12,8 @@ import com.mertaliakcay.malinesscore.systems.home.HomeSystem;
 import com.mertaliakcay.malinesscore.systems.playtime.PlaytimeService;
 import com.mertaliakcay.malinesscore.systems.playtime.PlaytimeSystem;
 import com.mertaliakcay.malinesscore.systems.vanish.VanishService;
+import com.mertaliakcay.malinesscore.systems.pwarp.PwarpLimitService;
+import com.mertaliakcay.malinesscore.systems.pwarp.PwarpService;
 import com.mertaliakcay.malinesscore.systems.pwarp.PwarpSystem;
 import com.mertaliakcay.malinesscore.systems.pwarp.model.Pwarp;
 import com.mertaliakcay.malinesscore.systems.warp.WarpService;
@@ -39,6 +41,7 @@ public final class MaliNessPlaceholderResolver {
             "playtime_seconds",
             "playtime",
             "pwarp_count",
+            "pwarp_limit",
             "pwarp_list",
             "vanish_bool",
             "vanish",
@@ -103,6 +106,10 @@ public final class MaliNessPlaceholderResolver {
             return resolvePwarpList(viewer, null);
         }
 
+        if (normalized.equals("pwarp_limit")) {
+            return String.valueOf(resolvePwarpLimit(viewer, null));
+        }
+
         if (normalized.startsWith("pwarp_owner_")) {
             return resolvePwarpOwner(normalized.substring("pwarp_owner_".length()));
         }
@@ -147,6 +154,7 @@ public final class MaliNessPlaceholderResolver {
             case "playtime_seconds" -> String.valueOf(resolvePlaytimeSeconds(viewer, targetKey.targetName()));
             case "pwarp_count" -> String.valueOf(resolvePwarpCount(viewer, targetKey.targetName()));
             case "pwarp_list" -> resolvePwarpList(viewer, targetKey.targetName());
+            case "pwarp_limit" -> String.valueOf(resolvePwarpLimit(viewer, targetKey.targetName()));
             case "vanish" -> onOffLabel(resolveVanish(viewer, targetKey.targetName()));
             case "vanish_bool" -> boolLabel(resolveVanish(viewer, targetKey.targetName()));
             case "can_see" -> yesNoLabel(resolveCanSee(viewer, targetKey.targetName()));
@@ -502,6 +510,30 @@ public final class MaliNessPlaceholderResolver {
                 .map(Pwarp::getName)
                 .sorted(String.CASE_INSENSITIVE_ORDER)
                 .collect(java.util.stream.Collectors.joining(", "));
+    }
+
+    private int resolvePwarpLimit(Player viewer, String targetName) {
+        PwarpLimitService limitService = getPwarpLimitService();
+        if (limitService == null) {
+            return 0;
+        }
+
+        OfflinePlayer target = resolveOfflinePlayer(viewer, targetName);
+        if (target == null) {
+            return 0;
+        }
+
+        return limitService.getMaxPwarps(target);
+    }
+
+    private PwarpLimitService getPwarpLimitService() {
+        PwarpService service = getPwarpService();
+        return service == null ? null : service.getLimitService();
+    }
+
+    private PwarpService getPwarpService() {
+        PwarpSystem pwarpSystem = getPwarpSystem();
+        return pwarpSystem == null ? null : pwarpSystem.getPwarpService();
     }
 
     private String resolvePwarpOwner(String pwarpName) {

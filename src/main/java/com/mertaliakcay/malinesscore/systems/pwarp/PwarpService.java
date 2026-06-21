@@ -234,24 +234,66 @@ public final class PwarpService {
             return CommandSuggestions.filter(suggestOwnerPwarpNames(target.getUniqueId(), args[2]), args[2]);
         }
 
-        if (args.length == 2 && isEditKeyword(args[0]) && sender instanceof Player player) {
-            return CommandSuggestions.filter(suggestOwnPwarpNames(player, args[1]), args[1]);
+        if (args.length == 2 && isEditKeyword(args[0])) {
+            List<String> suggestions = new ArrayList<>();
+            if (sender instanceof Player player) {
+                suggestions.addAll(suggestOwnPwarpNames(player, args[1]));
+            }
+            if (sender.hasPermission(PwarpSystem.PERM_MANAGE)) {
+                suggestions.addAll(onlinePlayerNames());
+            }
+            return CommandSuggestions.filter(suggestions, args[1]);
         }
 
-        if (args.length == 3 && isEditKeyword(args[0]) && sender instanceof Player player) {
-            Pwarp pwarp = storage.find(args[1]);
-            if (pwarp == null || !pwarp.getOwnerId().equals(player.getUniqueId())) {
+        if (args.length == 3 && isEditKeyword(args[0])) {
+            if (sender instanceof Player player) {
+                Pwarp ownPwarp = storage.find(args[1]);
+                if (ownPwarp != null && ownPwarp.getOwnerId().equals(player.getUniqueId())) {
+                    return CommandSuggestions.filter(suggestEditThirdArg(args[2]), args[2]);
+                }
+            }
+            if (sender.hasPermission(PwarpSystem.PERM_MANAGE)) {
+                OfflinePlayer target = resolvePlayer(args[1]);
+                if (target != null) {
+                    return CommandSuggestions.filter(suggestOwnerPwarpNames(target.getUniqueId(), args[2]), args[2]);
+                }
+            }
+        }
+
+        if (args.length == 4 && isEditKeyword(args[0]) && sender.hasPermission(PwarpSystem.PERM_MANAGE)) {
+            OfflinePlayer target = resolvePlayer(args[1]);
+            if (target == null) {
                 return List.of();
             }
-
-            List<String> editOptions = new ArrayList<>(PwarpSystem.EDIT_ACTIONS);
-            if (!isEditAction(args[2])) {
-                editOptions.addAll(suggestPwarpNames(args[2]));
+            Pwarp pwarp = storage.find(args[2]);
+            if (pwarp == null || !pwarp.getOwnerId().equals(target.getUniqueId())) {
+                return List.of();
             }
-            return CommandSuggestions.filter(editOptions, args[2]);
+            return CommandSuggestions.filter(suggestEditThirdArg(args[3]), args[3]);
         }
 
         return List.of();
+    }
+
+    private List<String> suggestEditThirdArg(String partial) {
+        List<String> options = new ArrayList<>(PwarpSystem.EDIT_ACTIONS);
+        if (partial.isEmpty() || isEditActionPartial(partial)) {
+            options.add("<Yeniİsim>");
+            return options;
+        }
+        if (isEditAction(partial)) {
+            return options;
+        }
+        return List.of("<Yeniİsim>");
+    }
+
+    private boolean isEditActionPartial(String value) {
+        String lower = value.toLowerCase(Locale.ROOT);
+        return PwarpSystem.EDIT_ACTIONS.stream().anyMatch(action -> action.startsWith(lower));
+    }
+
+    public PwarpLimitService getLimitService() {
+        return limitService;
     }
 
     public Collection<Pwarp> getAllPwarps() {
@@ -574,43 +616,84 @@ public final class PwarpService {
         logger.logAdmin(resolveActorName(sender), "DELETE", pwarp);
         lang.send(sender, "admin-deleted", "player", resolveDisplayName(target, targetName), "pwarp", pwarp.getName());
 
+        notifyOwnerPwarpDeletedByStaff(target, pwarp, sender);
+    }
+
+    private void notifyOwnerPwarpDeletedByStaff(OfflinePlayer target, Pwarp pwarp, CommandSender actor) {
         Player online = target.getPlayer();
-        if (online != null && online.isOnline() && sender instanceof Player admin && !admin.equals(online)) {
-            lang.send(online, "pwarp-deleted-by-admin", "pwarp", pwarp.getName());
+        if (online == null || !online.isOnline()) {
+            return;
         }
+        if (actor instanceof Player admin && admin.equals(online)) {
+            return;
+        }
+        system.getLang().send(online, "pwarp-deleted-by-admin", "pwarp", pwarp.getName());
     }
 
     private void handleEdit(CommandSender sender, String[] args) {
         SystemLang lang = system.getLang();
+        if (args.length < 3) {
+            lang.send(sender, "usage-edit");
+            return;
+        }
+
+        EditTarget editTarget = resolveEditTarget(sender, args);
+        if (editTarget == null) {
+            return;
+        }
+
+        applyEdit(sender, editTarget, args);
+    }
+
+    private EditTarget resolveEditTarget(CommandSender sender, String[] args) {
+        SystemLang lang = system.getLang();
+
+        if (sender.hasPermission(PwarpSystem.PERM_MANAGE) && args.length >= 4) {
+            OfflinePlayer target = resolvePlayer(args[1]);
+            if (target != null) {
+                Pwarp pwarp = storage.find(args[2]);
+                if (pwarp != null && pwarp.getOwnerId().equals(target.getUniqueId())) {
+                    return new EditTarget(pwarp, 3, true);
+                }
+            }
+        }
+
         if (!(sender instanceof Player player)) {
             lang.send(sender, "console-not-supported");
-            return;
+            return null;
         }
 
         if (!sender.hasPermission(PwarpSystem.PERM_EDIT)) {
             lang.send(sender, "no-permission-edit");
-            return;
-        }
-
-        if (args.length < 3) {
-            lang.send(sender, "usage-edit");
-            return;
+            return null;
         }
 
         Pwarp pwarp = storage.find(args[1]);
         if (pwarp == null) {
             rateLimiter.recordFailure(player);
             lang.send(sender, "pwarp-not-found", "pwarp", args[1]);
-            return;
+            return null;
         }
 
         if (!pwarp.getOwnerId().equals(player.getUniqueId())) {
             rateLimiter.recordFailure(player);
             lang.send(sender, "not-owner", "pwarp", pwarp.getName());
+            return null;
+        }
+
+        return new EditTarget(pwarp, 2, false);
+    }
+
+    private void applyEdit(CommandSender sender, EditTarget editTarget, String[] args) {
+        SystemLang lang = system.getLang();
+        if (!(sender instanceof Player player)) {
+            lang.send(sender, "console-not-supported");
             return;
         }
 
-        String action = args[2].toLowerCase(Locale.ROOT);
+        Pwarp pwarp = editTarget.pwarp();
+        int actionIndex = editTarget.actionIndex();
+        String action = args[actionIndex].toLowerCase(Locale.ROOT);
 
         if (PwarpSystem.LOCATION_ACTIONS.contains(action)) {
             Location location = player.getLocation();
@@ -626,20 +709,20 @@ public final class PwarpService {
 
             pwarp.updateLocation(location);
             storage.put(pwarp);
-            logger.logPlayer(player.getName(), player.getUniqueId().toString(), "RELOCATE", pwarp);
+            logEdit(player, editTarget.managedByAdmin(), "RELOCATE", pwarp);
             lang.send(sender, "relocated", "pwarp", pwarp.getName());
             return;
         }
 
         if (PwarpSystem.DESCRIPTION_ACTIONS.contains(action)) {
-            String description = args.length <= 3
+            String description = args.length <= actionIndex + 1
                     ? ""
-                    : String.join(" ", java.util.Arrays.copyOfRange(args, 3, args.length));
+                    : String.join(" ", java.util.Arrays.copyOfRange(args, actionIndex + 1, args.length));
             description = MaliNessColorUtil.apply(description, player, plugin);
             pwarp.setDescription(description);
             pwarp.touchUpdated();
             storage.put(pwarp);
-            logger.logPlayer(player.getName(), player.getUniqueId().toString(), "DESCRIPTION", pwarp);
+            logEdit(player, editTarget.managedByAdmin(), "DESCRIPTION", pwarp);
             if (description.isBlank()) {
                 lang.send(sender, "description-cleared", "pwarp", pwarp.getName());
             } else {
@@ -648,15 +731,23 @@ public final class PwarpService {
             return;
         }
 
-        if (args.length == 3 && !isEditAction(action)) {
-            handleRename(sender, pwarp, args[2]);
+        if (args.length == actionIndex + 1 && !isEditAction(action)) {
+            handleRename(sender, pwarp, args[actionIndex], editTarget.managedByAdmin());
             return;
         }
 
         lang.send(sender, "usage-edit");
     }
 
-    private void handleRename(CommandSender sender, Pwarp pwarp, String newRawName) {
+    private void logEdit(Player player, boolean managedByAdmin, String action, Pwarp pwarp) {
+        if (managedByAdmin) {
+            logger.logAdmin(player.getName(), action, pwarp);
+        } else {
+            logger.logPlayer(player.getName(), player.getUniqueId().toString(), action, pwarp);
+        }
+    }
+
+    private void handleRename(CommandSender sender, Pwarp pwarp, String newRawName, boolean managedByAdmin) {
         SystemLang lang = system.getLang();
         if (!(sender instanceof Player player)) {
             return;
@@ -686,7 +777,7 @@ public final class PwarpService {
         pwarp.setName(newRawName.trim());
         pwarp.touchUpdated();
         storage.put(pwarp);
-        logger.logPlayer(player.getName(), player.getUniqueId().toString(), "RENAME", pwarp);
+        logEdit(player, managedByAdmin, "RENAME", pwarp);
         lang.send(sender, "renamed", "old", oldName, "new", pwarp.getName());
     }
 
@@ -851,4 +942,6 @@ public final class PwarpService {
     }
 
     private record ParsedArgs(String[] args, boolean confirmed) {}
+
+    private record EditTarget(Pwarp pwarp, int actionIndex, boolean managedByAdmin) {}
 }

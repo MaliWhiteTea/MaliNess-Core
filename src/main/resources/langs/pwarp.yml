@@ -1,5 +1,5 @@
 # lang-version yükselince jar varsayılanları mevcut dosyaya yazılır (/mn reload).
-lang-version: 1
+lang-version: 2
 
 system-disabled:
   type: error
@@ -43,7 +43,7 @@ usage-remove:
 
 usage-edit:
   type: warning
-  text: "Kullanım: /pwarp düzenle <isim> <yeniisim|konum|açıklama>"
+  text: "Kullanım: /pwarp düzenle <isim> <yeniisim|konum|açıklama> veya /pwarp düzenle <oyuncu> <isim> ..."
 
 console-set-not-supported:
   type: error
@@ -103,11 +103,11 @@ deleted:
 
 admin-deleted:
   type: success
-  text: "{player} oyuncusunun {pwarp} adlı oyuncu warpi silindi."
+  text: "{player} oyuncusunun {pwarp} adlı oyuncu warpını sildi."
 
 pwarp-deleted-by-admin:
   type: warning
-  text: "{pwarp} adlı oyuncu warpin bir yetkili tarafından silindi."
+  text: "{pwarp} adlı oyuncu warpının bir yetkili tarafından silindi."
 
 not-owner:
   type: error
@@ -119,11 +119,11 @@ player-not-found:
 
 confirm-delete:
   type: warning
-  text: "{pwarp} adlı oyuncu warpi silmek istediğine emin misin? Onaylamak için /evet yaz."
+  text: "{pwarp} adlı oyuncu warpını silmek istediğine emin misin? Onaylamak için /evet yaz."
 
 confirm-delete-other:
   type: warning
-  text: "{player} oyuncusunun {pwarp} adlı oyuncu warpi silinecek. Onaylamak için /evet yaz."
+  text: "{player} oyuncusunun {pwarp} adlı oyuncu warpını silmek istediğine emin misin? Onaylamak için /evet yaz."
 
 confirm-unsafe-teleport:
   type: warning
@@ -159,7 +159,15 @@ pwarp-cooldown:
 
 teleport-started:
   type: normal
-  text: "{pwarp} adlı oyuncu warpe ışınlanıyorsun ({seconds} sn)..."
+  text: "{pwarp} adlı oyuncu warpe ışınlanıyorsun... {seconds} saniye bekle."
+
+teleport-countdown:
+  type: normal
+  text: "{seconds}..."
+
+teleport-starting:
+  type: normal
+  text: "Işınlanıyorsun..."
 
 teleport-success:
   type: success
@@ -218,6 +226,15 @@ list-entry-name:
   text: "{pwarp}"
 
 list-hover:
+  type: normal
+  text: |
+    {pwarp}
+    Sahip: {owner}
+    Konum: {world} ({x}, {y}, {z})
+    Oluşturulma: {created}
+    Ziyaret: {visits}
+
+list-hover-admin:
   type: normal
   text: |
     {pwarp}
