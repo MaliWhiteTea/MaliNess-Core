@@ -9,10 +9,12 @@ import com.mertaliakcay.malinesscore.systems.home.HomeLimitService;
 import com.mertaliakcay.malinesscore.systems.home.HomeService;
 import com.mertaliakcay.malinesscore.systems.home.HomeStorage;
 import com.mertaliakcay.malinesscore.systems.home.HomeSystem;
-import com.mertaliakcay.malinesscore.systems.home.HomeTeleportManager;
 import com.mertaliakcay.malinesscore.systems.playtime.PlaytimeService;
 import com.mertaliakcay.malinesscore.systems.playtime.PlaytimeSystem;
 import com.mertaliakcay.malinesscore.systems.vanish.VanishService;
+import com.mertaliakcay.malinesscore.systems.warp.WarpService;
+import com.mertaliakcay.malinesscore.systems.warp.WarpSystem;
+import com.mertaliakcay.malinesscore.systems.warp.model.Warp;
 import com.mertaliakcay.malinesscore.systems.home.model.PlayerHomes;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -71,6 +73,26 @@ public final class MaliNessPlaceholderResolver {
 
         if (normalized.equals("online_visible_list")) {
             return resolveOnlineVisibleList(viewer);
+        }
+
+        if (normalized.equals("warp_count")) {
+            return String.valueOf(resolveWarpCount(viewer));
+        }
+
+        if (normalized.equals("warp_count_all")) {
+            return String.valueOf(resolveWarpCountAll(viewer));
+        }
+
+        if (normalized.equals("warp_list")) {
+            return resolveWarpList(viewer);
+        }
+
+        if (normalized.startsWith("warp_desc_")) {
+            return resolveWarpDescription(normalized.substring("warp_desc_".length()));
+        }
+
+        if (normalized.startsWith("warp_")) {
+            return resolveWarpStatus(normalized.substring("warp_".length()));
         }
 
         if (normalized.startsWith("system_")) {
@@ -198,7 +220,7 @@ public final class MaliNessPlaceholderResolver {
             return 0;
         }
 
-        return plugin.getHomeTeleportManager().getWarmupRemainingSeconds(playerId);
+        return plugin.getTeleportService().getWarmupRemainingSeconds(playerId);
     }
 
     private boolean resolveHomeWarmupActive(Player viewer, String targetName) {
@@ -207,7 +229,7 @@ public final class MaliNessPlaceholderResolver {
             return false;
         }
 
-        return plugin.getHomeTeleportManager().hasWarmup(playerId);
+        return plugin.getTeleportService().hasWarmup(playerId);
     }
 
     private boolean resolveConfirmationPending(Player viewer, String targetName) {
@@ -325,6 +347,91 @@ public final class MaliNessPlaceholderResolver {
         }
 
         return vanishService.canSee(viewer, target);
+    }
+
+    private int resolveWarpCount(Player viewer) {
+        WarpService service = getWarpService();
+        if (service == null) {
+            return 0;
+        }
+
+        int count = 0;
+        for (Warp warp : service.getVisibleWarps(viewer)) {
+            if (warp.isEnabled()) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private int resolveWarpCountAll(Player viewer) {
+        WarpSystem warpSystem = getWarpSystem();
+        if (warpSystem == null || warpSystem.getStorage() == null) {
+            return 0;
+        }
+
+        if (viewer != null && viewer.hasPermission(WarpSystem.PERM_SEE_CLOSED)) {
+            return warpSystem.getStorage().size();
+        }
+
+        int count = 0;
+        for (Warp warp : warpSystem.getStorage().getAll()) {
+            if (warp.isEnabled()) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private String resolveWarpList(Player viewer) {
+        WarpService service = getWarpService();
+        if (service == null) {
+            return "";
+        }
+
+        return service.getVisibleWarps(viewer).stream()
+                .filter(Warp::isEnabled)
+                .map(Warp::getName)
+                .sorted(String.CASE_INSENSITIVE_ORDER)
+                .collect(java.util.stream.Collectors.joining(", "));
+    }
+
+    private String resolveWarpDescription(String warpName) {
+        WarpSystem warpSystem = getWarpSystem();
+        if (warpSystem == null || warpSystem.getStorage() == null || warpName == null || warpName.isBlank()) {
+            return "";
+        }
+
+        Warp warp = warpSystem.getStorage().find(warpName);
+        if (warp == null || warp.getDescription() == null) {
+            return "";
+        }
+
+        return warp.getDescription();
+    }
+
+    private String resolveWarpStatus(String warpName) {
+        WarpSystem warpSystem = getWarpSystem();
+        if (warpSystem == null || warpSystem.getStorage() == null || warpName == null || warpName.isBlank()) {
+            return "Yok";
+        }
+
+        Warp warp = warpSystem.getStorage().find(warpName);
+        if (warp == null) {
+            return "Yok";
+        }
+
+        return warp.isEnabled() ? settings.onLabel() : settings.offLabel();
+    }
+
+    private WarpService getWarpService() {
+        WarpSystem warpSystem = getWarpSystem();
+        return warpSystem == null ? null : warpSystem.getWarpService();
+    }
+
+    private WarpSystem getWarpSystem() {
+        AbstractGameSystem system = plugin.getSystemManager().findAbstractSystem("warp");
+        return system instanceof WarpSystem warpSystem ? warpSystem : null;
     }
 
     private PlayerHomes loadHomes(Player viewer, String targetName) {

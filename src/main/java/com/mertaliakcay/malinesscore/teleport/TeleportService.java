@@ -1,8 +1,6 @@
-package com.mertaliakcay.malinesscore.systems.home;
+package com.mertaliakcay.malinesscore.teleport;
 
 import com.mertaliakcay.malinesscore.MaliNessCore;
-import com.mertaliakcay.malinesscore.systems.home.model.HomeLocation;
-import com.mertaliakcay.malinesscore.util.SystemLang;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -13,27 +11,18 @@ import org.bukkit.scheduler.BukkitRunnable;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 
-public final class HomeTeleportManager {
+public final class TeleportService {
 
     private static final double MOVE_THRESHOLD_SQUARED = 0.01D;
 
     private final MaliNessCore plugin;
     private final Map<UUID, PendingWarmup> warmups = new ConcurrentHashMap<>();
 
-    private int warmupSeconds = 5;
-    private int fireResistanceSeconds = 3;
-    private SystemLang lang;
-
-    public HomeTeleportManager(MaliNessCore plugin) {
+    public TeleportService(MaliNessCore plugin) {
         this.plugin = plugin;
-    }
-
-    public void configure(int warmupSeconds, int fireResistanceSeconds, SystemLang lang) {
-        this.warmupSeconds = warmupSeconds;
-        this.fireResistanceSeconds = fireResistanceSeconds;
-        this.lang = lang;
     }
 
     public boolean hasWarmup(UUID playerId) {
@@ -47,7 +36,7 @@ public final class HomeTeleportManager {
         }
 
         long elapsedSeconds = (System.currentTimeMillis() - warmup.startedAtMillis) / 1000L;
-        return Math.max(0, warmupSeconds - (int) elapsedSeconds);
+        return Math.max(0, warmup.warmupSeconds - (int) elapsedSeconds);
     }
 
     public void cancelWarmup(UUID playerId) {
@@ -63,11 +52,19 @@ public final class HomeTeleportManager {
         }
     }
 
-    public void startWarmup(Player player, HomeLocation home, Runnable onComplete) {
+    public void startWarmup(
+            Player player,
+            TeleportDestination destination,
+            TeleportMessages messages,
+            int warmupSeconds,
+            int fireResistanceSeconds,
+            Predicate<Player> bypassRestrictions,
+            Runnable onComplete
+    ) {
         cancelWarmup(player.getUniqueId());
 
-        if (player.isInsideVehicle() && !HomeSystem.bypassesHomeRestrictions(player)) {
-            lang.send(player, "teleport-vehicle-blocked");
+        if (player.isInsideVehicle() && !bypassRestrictions.test(player)) {
+            messages.sendVehicleBlocked(player);
             return;
         }
 
@@ -94,28 +91,41 @@ public final class HomeTeleportManager {
                 }
 
                 elapsedSeconds++;
-                int secondsLeft = warmupSeconds - elapsedSeconds;
+                int secondsLeft = warmup.warmupSeconds - elapsedSeconds;
 
-                if (secondsLeft > 0 && secondsLeft < warmupSeconds) {
-                    lang.send(player, "teleport-countdown", "seconds", secondsLeft);
+                if (secondsLeft > 0 && secondsLeft < warmup.warmupSeconds) {
+                    warmup.messages.sendCountdown(player, secondsLeft);
                 }
 
-                if (elapsedSeconds >= warmupSeconds) {
-                    lang.send(player, "teleport-starting");
-                    executeTeleport(player, home, onComplete);
+                if (elapsedSeconds >= warmup.warmupSeconds) {
+                    warmup.messages.sendStarting(player);
+                    executeTeleport(player, warmup.destination, warmup.fireResistanceSeconds, warmup.messages, onComplete);
                     cancelWarmup(player.getUniqueId());
-                    return;
                 }
             }
         };
 
-        PendingWarmup pending = new PendingWarmup(task, startLocation);
+        PendingWarmup pending = new PendingWarmup(
+                task,
+                startLocation,
+                destination,
+                messages,
+                warmupSeconds,
+                fireResistanceSeconds,
+                bypassRestrictions
+        );
         warmups.put(player.getUniqueId(), pending);
         task.runTaskTimer(plugin, 0L, 20L);
     }
 
-    public void teleportInstant(Player player, HomeLocation home, Runnable onComplete) {
-        executeTeleport(player, home, onComplete);
+    public void teleportInstant(
+            Player player,
+            TeleportDestination destination,
+            TeleportMessages messages,
+            int fireResistanceSeconds,
+            Runnable onComplete
+    ) {
+        executeTeleport(player, destination, fireResistanceSeconds, messages, onComplete);
     }
 
     public void markMoved(Player player) {
@@ -167,7 +177,7 @@ public final class HomeTeleportManager {
             return true;
         }
 
-        if (player.isInsideVehicle() && !HomeSystem.bypassesHomeRestrictions(player)) {
+        if (player.isInsideVehicle() && !warmup.bypassRestrictions.test(player)) {
             warmup.vehicle = true;
             cancelWarmupWithMessage(player.getUniqueId());
             return true;
@@ -203,14 +213,20 @@ public final class HomeTeleportManager {
         warmup.task.cancel();
         Player player = plugin.getServer().getPlayer(playerId);
         if (player != null && player.isOnline()) {
-            lang.send(player, "teleport-cancelled");
+            warmup.messages.sendCancelled(player);
         }
     }
 
-    private void executeTeleport(Player player, HomeLocation home, Runnable onComplete) {
-        Location location = home.toLocation();
+    private void executeTeleport(
+            Player player,
+            TeleportDestination destination,
+            int fireResistanceSeconds,
+            TeleportMessages messages,
+            Runnable onComplete
+    ) {
+        Location location = destination.toLocation();
         if (location == null || location.getWorld() == null) {
-            lang.send(player, "world-not-loaded");
+            messages.sendWorldNotLoaded(player);
             return;
         }
 
@@ -221,8 +237,8 @@ public final class HomeTeleportManager {
             }
 
             if (chunkError != null) {
-                plugin.getLogger().log(Level.SEVERE, "Ev chunk yüklenemedi: " + player.getName(), chunkError);
-                lang.send(player, "teleport-failed");
+                plugin.getLogger().log(Level.SEVERE, "Işınlanma chunk yüklenemedi: " + player.getName(), chunkError);
+                messages.sendFailed(player);
                 return;
             }
 
@@ -232,8 +248,8 @@ public final class HomeTeleportManager {
                 }
 
                 if (teleportError != null) {
-                    plugin.getLogger().log(Level.SEVERE, "Ev ışınlanması başarısız: " + player.getName(), teleportError);
-                    lang.send(player, "teleport-failed");
+                    plugin.getLogger().log(Level.SEVERE, "Işınlanma başarısız: " + player.getName(), teleportError);
+                    messages.sendFailed(player);
                     return;
                 }
 
@@ -250,7 +266,7 @@ public final class HomeTeleportManager {
                         onComplete.run();
                     }
                 } else {
-                    lang.send(player, "teleport-failed");
+                    messages.sendFailed(player);
                 }
             }));
         }));
@@ -259,6 +275,11 @@ public final class HomeTeleportManager {
     private static final class PendingWarmup {
         private final BukkitRunnable task;
         private final Location startLocation;
+        private final TeleportDestination destination;
+        private final TeleportMessages messages;
+        private final int warmupSeconds;
+        private final int fireResistanceSeconds;
+        private final Predicate<Player> bypassRestrictions;
         private final long startedAtMillis;
         private boolean cancelled;
         private boolean moved;
@@ -267,9 +288,22 @@ public final class HomeTeleportManager {
         private boolean vehicle;
         private boolean gliding;
 
-        private PendingWarmup(BukkitRunnable task, Location startLocation) {
+        private PendingWarmup(
+                BukkitRunnable task,
+                Location startLocation,
+                TeleportDestination destination,
+                TeleportMessages messages,
+                int warmupSeconds,
+                int fireResistanceSeconds,
+                Predicate<Player> bypassRestrictions
+        ) {
             this.task = task;
             this.startLocation = startLocation;
+            this.destination = destination;
+            this.messages = messages;
+            this.warmupSeconds = warmupSeconds;
+            this.fireResistanceSeconds = fireResistanceSeconds;
+            this.bypassRestrictions = bypassRestrictions;
             this.startedAtMillis = System.currentTimeMillis();
         }
     }

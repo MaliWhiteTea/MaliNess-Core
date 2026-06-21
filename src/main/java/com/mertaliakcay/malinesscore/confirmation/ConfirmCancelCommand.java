@@ -21,7 +21,7 @@ public final class ConfirmCancelCommand implements BasicCommand {
         }
 
         plugin.getConfirmationService().cancel(player);
-        plugin.getHomeTeleportManager().cancelWarmup(player.getUniqueId());
+        plugin.getTeleportService().cancelWarmup(player.getUniqueId());
     }
 
     @Override

@@ -1,10 +1,11 @@
 package com.mertaliakcay.malinesscore.systems.home.model;
 
+import com.mertaliakcay.malinesscore.teleport.TeleportDestination;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 
-public final class HomeLocation {
+public final class HomeLocation implements TeleportDestination {
 
     private final String worldName;
     private final double x;

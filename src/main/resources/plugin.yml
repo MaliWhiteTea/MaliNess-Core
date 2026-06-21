@@ -143,6 +143,21 @@ permissions:
   maliness-core.vanish.see:
     description: Gizli oyuncuları görür ve listeler.
     default: op
+  maliness-core.warp.use:
+    description: Warpları listeler ve ışınlanır.
+    default: true
+  maliness-core.warp.manage:
+    description: Warpları oluşturur, düzenler ve siler.
+    default: op
+  maliness-core.warp.see-closed:
+    description: Kapalı warpları listede görür.
+    default: op
+  maliness-core.warp.bypasstime:
+    description: Warp warmup ve cooldown atlama.
+    default: op
+  maliness-core.warp.invalid.broadcast:
+    description: Geçersiz warp uyarılarını oyun içinde alır.
+    default: op
   maliness-core.systems.manage.playtime:
     description: Oynama süresi sistemini açıp kapatır.
     default: op
@@ -151,4 +166,7 @@ permissions:
     default: op
   maliness-core.systems.manage.vanish:
     description: Vanish sistemini açıp kapatır.
+    default: op
+  maliness-core.systems.manage.warp:
+    description: Warp sistemini açıp kapatır.
     default: op

@@ -67,7 +67,12 @@ public final class MaliNessPlaceholderExpansion extends PlaceholderExpansion {
                 "home_warmup_active",
                 "confirmation_pending",
                 "playtime",
-                "playtime_seconds"
+                "playtime_seconds",
+                "warp_count",
+                "warp_count_all",
+                "warp_list",
+                "warp_<isim>",
+                "warp_desc_<isim>"
         );
     }
 

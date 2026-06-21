@@ -2,7 +2,7 @@
 # Renkler ve prefix config.yml dosyasından otomatik uygulanır.
 # lang-version yükselince jar varsayılanları mevcut dosyaya yazılır (/mn reload).
 
-lang-version: 4
+lang-version: 5
 
 plugin-enabled:
   type: success
@@ -487,6 +487,15 @@ systems-desc-vanish:
 systems-commands-vanish:
   text: "/vanish, /gizlen"
 
+systems-display-warp:
+  text: "Warp"
+
+systems-desc-warp:
+  text: "Sabit konum warp sistemi."
+
+systems-commands-warp:
+  text: "/warp, /warps, /warplar"
+
 mn-help-desc-playtime:
   text: "Oynama süresini görüntüler."
 
@@ -495,6 +504,12 @@ mn-help-desc-broadcast:
 
 mn-help-desc-vanish:
   text: "Gizli modu açar veya kapatır."
+
+mn-help-desc-warp:
+  text: "Warp noktalarını listeler veya ışınlanır."
+
+mn-help-desc-warps:
+  text: "Warp noktalarını listeler."
 
 mn-help-desc-systems:
   text: "Oyun sistemlerini listeler ve yönetir."

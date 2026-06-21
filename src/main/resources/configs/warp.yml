@@ -1,0 +1,43 @@
+enabled: true
+
+max-warps: -1
+
+teleport:
+  warmup-seconds: 5
+  cooldown-seconds: 5
+  fire-resistance-seconds: 3
+
+blocked-worlds: []
+
+safe-teleport:
+  enabled: true
+  ask-on-unsafe: true
+
+names:
+  reserved:
+    - ekle
+    - sil
+    - düzenle
+    - duzenle
+    - set
+    - remove
+    - edit
+    - açık
+    - acik
+    - kapalı
+    - kapali
+    - on
+    - off
+    - aktif
+    - deaktif
+    - active
+    - deactive
+    - warps
+    - warplar
+    - konum
+    - açıklama
+    - aciklama
+
+logging:
+  player-actions: true
+  admin-actions: true

@@ -4,6 +4,8 @@ import com.mertaliakcay.malinesscore.MaliNessCore;
 import com.mertaliakcay.malinesscore.confirmation.ConfirmationService;
 import com.mertaliakcay.malinesscore.systems.home.model.HomeLocation;
 import com.mertaliakcay.malinesscore.systems.home.model.PlayerHomes;
+import com.mertaliakcay.malinesscore.teleport.TeleportMessages;
+import com.mertaliakcay.malinesscore.teleport.TeleportService;
 import com.mertaliakcay.malinesscore.util.CommandSuggestions;
 import com.mertaliakcay.malinesscore.util.SystemLang;
 import net.kyori.adventure.text.Component;
@@ -33,7 +35,7 @@ public final class HomeService {
     private final HomeNameValidator nameValidator;
     private final HomeLogger logger;
     private final HomeRateLimiter rateLimiter;
-    private final HomeTeleportManager teleportManager;
+    private final TeleportService teleportService;
     private final ConfirmationService confirmationService;
 
     private final Map<UUID, Long> homeCooldowns = new ConcurrentHashMap<>();
@@ -43,6 +45,8 @@ public final class HomeService {
     private List<String> blockedWorlds = List.of();
     private int homeCooldownSeconds = 10;
     private int setHomeCooldownSeconds = 3;
+    private int warmupSeconds = 5;
+    private int fireResistanceSeconds = 3;
     private boolean safeTeleportEnabled = true;
     private boolean askOnUnsafe = true;
 
@@ -54,7 +58,7 @@ public final class HomeService {
             HomeNameValidator nameValidator,
             HomeLogger logger,
             HomeRateLimiter rateLimiter,
-            HomeTeleportManager teleportManager,
+            TeleportService teleportService,
             ConfirmationService confirmationService
     ) {
         this.plugin = plugin;
@@ -64,7 +68,7 @@ public final class HomeService {
         this.nameValidator = nameValidator;
         this.logger = logger;
         this.rateLimiter = rateLimiter;
-        this.teleportManager = teleportManager;
+        this.teleportService = teleportService;
         this.confirmationService = confirmationService;
     }
 
@@ -82,6 +86,8 @@ public final class HomeService {
                 .toList();
         homeCooldownSeconds = system.getConfig().get().getInt("teleport.cooldown-seconds", 10);
         setHomeCooldownSeconds = system.getConfig().get().getInt("teleport.sethome-cooldown-seconds", 3);
+        warmupSeconds = system.getConfig().get().getInt("teleport.warmup-seconds", 5);
+        fireResistanceSeconds = system.getConfig().get().getInt("teleport.fire-resistance-seconds", 3);
         safeTeleportEnabled = system.getConfig().get().getBoolean("safe-teleport.enabled", true);
         askOnUnsafe = system.getConfig().get().getBoolean("safe-teleport.ask-on-unsafe", true);
     }
@@ -631,7 +637,8 @@ public final class HomeService {
         }
 
         String displayName = resolveDisplayName(target, targetName);
-        teleportManager.teleportInstant(admin, home, () -> {
+        TeleportMessages messages = TeleportMessages.fromSystemLang(lang);
+        teleportService.teleportInstant(admin, home, messages, fireResistanceSeconds, () -> {
             logger.logAdmin(admin.getName(), displayName, target.getUniqueId().toString(), "TELEPORT", normalizedHome, home);
             lang.send(sender, "admin-teleported", "player", displayName, "home", normalizedHome);
         });
@@ -765,23 +772,34 @@ public final class HomeService {
     }
 
     private void startTeleport(Player player, HomeLocation home, Runnable onSuccess) {
+        SystemLang lang = system.getLang();
+        TeleportMessages messages = TeleportMessages.fromSystemLang(lang);
+
         if (player.isInsideVehicle() && !HomeSystem.bypassesHomeRestrictions(player)) {
-            system.getLang().send(player, "teleport-vehicle-blocked");
+            lang.send(player, "teleport-vehicle-blocked");
             return;
         }
 
         if (bypassesTimers(player)) {
-            teleportManager.teleportInstant(player, home, onSuccess);
+            teleportService.teleportInstant(player, home, messages, fireResistanceSeconds, onSuccess);
             return;
         }
 
-        if (teleportManager.hasWarmup(player.getUniqueId())) {
-            system.getLang().send(player, "teleport-already-pending");
+        if (teleportService.hasWarmup(player.getUniqueId())) {
+            lang.send(player, "teleport-already-pending");
             return;
         }
 
-        system.getLang().send(player, "teleport-started", "seconds", system.getConfig().get().getInt("teleport.warmup-seconds", 5));
-        teleportManager.startWarmup(player, home, onSuccess);
+        lang.send(player, "teleport-started", "seconds", warmupSeconds);
+        teleportService.startWarmup(
+                player,
+                home,
+                messages,
+                warmupSeconds,
+                fireResistanceSeconds,
+                HomeSystem::bypassesHomeRestrictions,
+                onSuccess
+        );
     }
 
     private void saveHome(Player player, PlayerHomes homes, String homeName, Location location) {

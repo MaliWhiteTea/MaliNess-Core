@@ -21,7 +21,9 @@ import com.mertaliakcay.malinesscore.systems.god.GodSystem;
 import com.mertaliakcay.malinesscore.systems.heal.HealSystem;
 import com.mertaliakcay.malinesscore.systems.health.HealthSystem;
 import com.mertaliakcay.malinesscore.systems.home.HomeSystem;
-import com.mertaliakcay.malinesscore.systems.home.HomeTeleportManager;
+import com.mertaliakcay.malinesscore.teleport.TeleportListener;
+import com.mertaliakcay.malinesscore.teleport.TeleportRestrictions;
+import com.mertaliakcay.malinesscore.teleport.TeleportService;
 import com.mertaliakcay.malinesscore.systems.hunger.HungerSystem;
 import com.mertaliakcay.malinesscore.systems.saturate.SaturateSystem;
 import com.mertaliakcay.malinesscore.systems.saturation.SaturationSystem;
@@ -29,6 +31,7 @@ import com.mertaliakcay.malinesscore.systems.playtime.PlaytimeSystem;
 import com.mertaliakcay.malinesscore.systems.broadcast.BroadcastSystem;
 import com.mertaliakcay.malinesscore.systems.vanish.VanishService;
 import com.mertaliakcay.malinesscore.systems.vanish.VanishSystem;
+import com.mertaliakcay.malinesscore.systems.warp.WarpSystem;
 import com.mertaliakcay.malinesscore.util.PluginLang;
 import com.mertaliakcay.malinesscore.util.YamlMerger;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
@@ -46,7 +49,7 @@ public final class MaliNessCore extends JavaPlugin {
     private MalinessCommand malinessCommand;
     private SystemManager systemManager;
     private ConfirmationService confirmationService;
-    private HomeTeleportManager homeTeleportManager;
+    private TeleportService teleportService;
     private SystemControlService systemControlService;
     private SystemMnCommand systemMnCommand;
     private VanishService vanishService;
@@ -66,10 +69,14 @@ public final class MaliNessCore extends JavaPlugin {
         pluginLang = new PluginLang(this);
 
         confirmationService = new ConfirmationService(this);
-        homeTeleportManager = new HomeTeleportManager(this);
+        teleportService = new TeleportService(this);
 
         registerGlobalCommands();
         getServer().getPluginManager().registerEvents(new ConfirmationListener(this), this);
+        getServer().getPluginManager().registerEvents(
+                new TeleportListener(teleportService, TeleportRestrictions::bypassesVehicleRestrictions),
+                this
+        );
 
         malinessCommand = new MalinessCommand(this);
         registerMalinessCommand();
@@ -91,8 +98,8 @@ public final class MaliNessCore extends JavaPlugin {
         if (confirmationService != null) {
             confirmationService.cancelAll();
         }
-        if (homeTeleportManager != null) {
-            homeTeleportManager.cancelAllWarmups();
+        if (teleportService != null) {
+            teleportService.cancelAllWarmups();
         }
         if (systemManager != null) {
             systemManager.disableAll();
@@ -127,8 +134,14 @@ public final class MaliNessCore extends JavaPlugin {
         return confirmationService;
     }
 
-    public HomeTeleportManager getHomeTeleportManager() {
-        return homeTeleportManager;
+    public TeleportService getTeleportService() {
+        return teleportService;
+    }
+
+    /** @deprecated use {@link #getTeleportService()} */
+    @Deprecated
+    public TeleportService getHomeTeleportManager() {
+        return teleportService;
     }
 
     public SystemControlService getSystemControlService() {
@@ -154,7 +167,7 @@ public final class MaliNessCore extends JavaPlugin {
             messageService.reload();
             pluginLang.reload();
             confirmationService.cancelAll();
-            homeTeleportManager.cancelAllWarmups();
+            teleportService.cancelAllWarmups();
             systemManager.reloadAll();
             if (systemControlService != null) {
                 systemControlService.refreshCatalog();
@@ -218,6 +231,7 @@ public final class MaliNessCore extends JavaPlugin {
         systemManager.register(new PlaytimeSystem());
         systemManager.register(new BroadcastSystem());
         systemManager.register(new VanishSystem());
+        systemManager.register(new WarpSystem());
     }
 
     private void registerSystemControlCommands() {

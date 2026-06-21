@@ -132,6 +132,10 @@ final class MnCommandHelp {
         if (commands.isVanishAvailable(sender)) {
             entries.add(entry("vanish", "/vanish", "/mn vanish", "/mn vanish [oyuncu|list]", "/vanish [oyuncu|list] | /gizlen"));
         }
+        if (commands.isWarpAvailable(sender)) {
+            entries.add(entry("warp", "/warp", "/mn warp", "/mn warp [warp|sayfa]", "/warp [warp|sayfa]"));
+            entries.add(entry("warps", "/warps", "/mn warps", "/mn warps [sayfa]", "/warps [sayfa] | /warplar"));
+        }
         if (commands.isSystemsListAvailable(sender)) {
             entries.add(entry("systems", "/systems", "/mn systems", "/mn systems [sayfa]", "/systems | /sistemler"));
         }

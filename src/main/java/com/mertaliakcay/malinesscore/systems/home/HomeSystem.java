@@ -88,13 +88,6 @@ public final class HomeSystem extends AbstractGameSystem {
                 configuration.getLong("rate-limit.window-seconds", 30) * 1000L
         );
 
-        HomeTeleportManager teleportManager = plugin.getHomeTeleportManager();
-        teleportManager.configure(
-                configuration.getInt("teleport.warmup-seconds", 5),
-                configuration.getInt("teleport.fire-resistance-seconds", 3),
-                lang
-        );
-
         if (homeService == null) {
             homeService = new HomeService(
                     plugin,
@@ -104,7 +97,7 @@ public final class HomeSystem extends AbstractGameSystem {
                     nameValidator,
                     homeLogger,
                     rateLimiter,
-                    teleportManager,
+                    plugin.getTeleportService(),
                     plugin.getConfirmationService()
             );
         } else {
@@ -116,7 +109,7 @@ public final class HomeSystem extends AbstractGameSystem {
                     nameValidator,
                     homeLogger,
                     rateLimiter,
-                    teleportManager,
+                    plugin.getTeleportService(),
                     plugin.getConfirmationService()
             );
         }
@@ -128,8 +121,7 @@ public final class HomeSystem extends AbstractGameSystem {
 
     @Override
     protected void onActivate() {
-        HomeTeleportManager teleportManager = plugin.getHomeTeleportManager();
-        homeListener = new HomeListener(teleportManager, homeService);
+        homeListener = new HomeListener(homeService);
         registerListener(homeListener);
 
         cacheCleanupTask = plugin.getServer().getScheduler().runTaskTimerAsynchronously(
@@ -150,7 +142,7 @@ public final class HomeSystem extends AbstractGameSystem {
             cacheCleanupTask = null;
         }
 
-        plugin.getHomeTeleportManager().cancelAllWarmups();
+        plugin.getTeleportService().cancelAllWarmups();
     }
 
     @Override

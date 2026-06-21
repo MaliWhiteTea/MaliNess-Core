@@ -1,0 +1,231 @@
+system-disabled:
+  type: error
+  text: "Warp sistemi şu anda kapalı."
+
+no-permission:
+  type: error
+  text: "Warp kullanma yetkin yok."
+
+no-permission-manage:
+  type: error
+  text: "Warp yönetme yetkin yok."
+
+usage:
+  type: warning
+  text: "Kullanım: /warp [warp|sayfa] veya /warp ekle|sil|düzenle ..."
+
+usage-list:
+  type: warning
+  text: "Kullanım: /warps [sayfa]"
+
+usage-set:
+  type: warning
+  text: "Kullanım: /warp ekle <isim>"
+
+usage-remove:
+  type: warning
+  text: "Kullanım: /warp sil <isim>"
+
+usage-edit:
+  type: warning
+  text: "Kullanım: /warp düzenle <isim> <yeniisim|konum|açıklama|açık|kapalı>"
+
+console-set-not-supported:
+  type: error
+  text: "Konsoldan warp eklenemez."
+
+console-location-not-supported:
+  type: error
+  text: "Konsoldan warp konumu güncellenemez."
+
+console-teleport-not-supported:
+  type: error
+  text: "Konsoldan warp ışınlanması desteklenmiyor."
+
+console-confirm-required:
+  type: error
+  text: "Konsoldan kullanım: /warp sil <isim> --confirm"
+
+invalid-warp-name:
+  type: error
+  text: "{warp} geçerli bir warp adı değil."
+
+warp-not-found:
+  type: error
+  text: "{warp} adlı warp bulunamadı."
+
+warp-already-exists:
+  type: error
+  text: "{warp} adlı warp zaten var."
+
+warp-closed:
+  type: error
+  text: "{warp} warpı şu anda kapalı."
+
+warp-limit-reached:
+  type: error
+  text: "Warp limitine ulaşıldı ({limit})."
+
+invalid-set-location:
+  type: error
+  text: "Bu konum warp olarak kaydedilemez."
+
+blocked-world:
+  type: error
+  text: "{world} dünyasında warp oluşturulamaz."
+
+created:
+  type: success
+  text: "{warp} warpı oluşturuldu."
+
+deleted:
+  type: success
+  text: "{warp} warpı silindi."
+
+renamed:
+  type: success
+  text: "Warp {old} → {new} olarak yeniden adlandırıldı."
+
+relocated:
+  type: success
+  text: "{warp} warpının konumu güncellendi."
+
+description-updated:
+  type: success
+  text: "{warp} warpının açıklaması güncellendi."
+
+description-cleared:
+  type: success
+  text: "{warp} warpının açıklaması silindi."
+
+enabled:
+  type: success
+  text: "{warp} warpı açıldı."
+
+disabled:
+  type: success
+  text: "{warp} warpı kapatıldı."
+
+already-open:
+  type: warning
+  text: "{warp} warpı zaten açık."
+
+already-closed:
+  type: warning
+  text: "{warp} warpı zaten kapalı."
+
+confirm-delete:
+  type: warning
+  text: "{warp} warpını silmek istediğine emin misin?"
+
+confirm-unsafe-teleport:
+  type: warning
+  text: "{warp} warpı güvensiz görünüyor. Yine de ışınlanmak istiyor musun?"
+
+unsafe-warp-blocked:
+  type: error
+  text: "{warp} warpı güvensiz; ışınlanma iptal edildi."
+
+warp-cooldown:
+  type: warning
+  text: "Warp kullanmak için {seconds} saniye beklemelisin."
+
+teleport-started:
+  type: normal
+  text: "{warp} warpına ışınlanıyorsun... {seconds} saniye bekle."
+
+teleport-countdown:
+  type: normal
+  text: "{seconds}..."
+
+teleport-starting:
+  type: normal
+  text: "Işınlanıyorsun..."
+
+teleport-cancelled:
+  type: warning
+  text: "Işınlanma iptal edildi."
+
+teleport-already-pending:
+  type: warning
+  text: "Zaten bekleyen bir ışınlanman var."
+
+teleport-vehicle-blocked:
+  type: error
+  text: "Binekteyken ışınlanamazsın."
+
+teleport-failed:
+  type: error
+  text: "Işınlanma başarısız oldu."
+
+teleport-success:
+  type: success
+  text: "{warp} warpına ışınlandın."
+
+world-not-loaded:
+  type: error
+  text: "Warp dünyası yüklenemedi."
+
+list-header:
+  type: normal
+  text: "Warplar ({count}):"
+
+list-empty:
+  type: normal
+  text: "Gösterilecek warp yok."
+
+list-entry-prefix:
+  type: normal
+  text: "• "
+
+list-entry-open:
+  type: normal
+  text: "{warp}"
+
+list-entry-closed:
+  type: normal
+  text: "✕ {warp}"
+
+list-hover-name-only:
+  type: normal
+  text: "{warp}"
+
+list-hover-closed:
+  type: warning
+  text: "{warp} (Kapalı)"
+
+list-nav-page:
+  type: normal
+  text: "Sayfa {current}/{total}"
+
+list-nav-prev:
+  type: normal
+  text: "<"
+
+list-nav-prev-hover:
+  type: normal
+  text: "Önceki sayfa"
+
+list-nav-prev-disabled:
+  type: normal
+  text: "<"
+
+list-nav-next:
+  type: normal
+  text: ">"
+
+list-nav-next-hover:
+  type: normal
+  text: "Sonraki sayfa"
+
+list-nav-next-disabled:
+  type: normal
+  text: ">"
+
+invalid-warp-broadcast:
+  type: warning
+  text: "Geçersiz warp: {warp} ({reason})"
+
+invalid-warp-skipped:
+  type: warning
+  text: "Geçersiz warp atlandı: {warp} ({reason})"

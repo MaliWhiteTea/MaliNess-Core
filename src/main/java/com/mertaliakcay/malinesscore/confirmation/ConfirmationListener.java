@@ -17,12 +17,12 @@ public final class ConfirmationListener implements Listener {
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         plugin.getConfirmationService().cancel(event.getPlayer().getUniqueId(), true);
-        plugin.getHomeTeleportManager().cancelWarmup(event.getPlayer().getUniqueId());
+        plugin.getTeleportService().cancelWarmup(event.getPlayer().getUniqueId());
     }
 
     @EventHandler
     public void onDeath(PlayerDeathEvent event) {
         plugin.getConfirmationService().cancel(event.getPlayer().getUniqueId(), true);
-        plugin.getHomeTeleportManager().cancelWarmup(event.getPlayer().getUniqueId());
+        plugin.getTeleportService().cancelWarmup(event.getPlayer().getUniqueId());
     }
 }
