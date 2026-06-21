@@ -18,14 +18,11 @@ names:
     - ekle
     - sil
     - düzenle
-    - duzenle
     - set
     - remove
     - edit
     - açık
-    - acik
     - kapalı
-    - kapali
     - on
     - off
     - aktif
@@ -36,7 +33,9 @@ names:
     - warplar
     - konum
     - açıklama
-    - aciklama
+
+name-collision:
+  block-admin-warp-if-pwarp-exists: false
 
 logging:
   player-actions: true

@@ -6,6 +6,7 @@ import com.mertaliakcay.malinesscore.systems.home.model.HomeLocation;
 import com.mertaliakcay.malinesscore.systems.home.model.PlayerHomes;
 import com.mertaliakcay.malinesscore.teleport.TeleportMessages;
 import com.mertaliakcay.malinesscore.teleport.TeleportService;
+import com.mertaliakcay.malinesscore.teleport.TeleportWarmupMessages;
 import com.mertaliakcay.malinesscore.teleport.WarmupType;
 import com.mertaliakcay.malinesscore.util.CommandSuggestions;
 import com.mertaliakcay.malinesscore.util.SystemLang;
@@ -809,11 +810,7 @@ public final class HomeService {
         }
 
         WarmupType type = teleportService.getWarmupType(player.getUniqueId());
-        if (type == WarmupType.HOME) {
-            lang.send(player, "teleport-already-pending");
-        } else {
-            lang.send(player, "teleport-blocked-by-warp");
-        }
+        TeleportWarmupMessages.sendBlocked(player, lang, type, WarmupType.HOME);
         return true;
     }
 

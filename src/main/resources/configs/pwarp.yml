@@ -1,0 +1,48 @@
+enabled: true
+
+limits:
+  default-max-pwarps: 1
+  max-count-permission-scan: 20
+
+teleport:
+  warmup-seconds: 5
+  cooldown-seconds: 5
+  set-cooldown-seconds: 3
+  fire-resistance-seconds: 3
+
+blocked-worlds: []
+
+safe-teleport:
+  enabled: true
+  ask-on-unsafe: true
+
+name-collision:
+  block-pwarp-if-admin-warp-exists: true
+
+names:
+  reserved: []
+  blacklist:
+    - ekle
+    - set
+    - sil
+    - delete
+    - remove
+    - düzenle
+    - edit
+    - list
+    - konum
+    - açıklama
+    - pwarps
+    - pwarp
+
+display:
+  datetime-format: "dd.MM.yyyy HH:mm"
+  never-visited: "Hiç ziyaret edilmedi"
+
+rate-limit:
+  max-failures: 5
+  window-seconds: 30
+
+logging:
+  player-actions: true
+  admin-actions: true

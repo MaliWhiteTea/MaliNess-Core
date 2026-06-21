@@ -158,6 +158,33 @@ permissions:
   maliness-core.warp.invalid.broadcast:
     description: Geçersiz warp uyarılarını oyun içinde alır.
     default: op
+  maliness-core.pwarp.use:
+    description: Oyuncu warpları listeler ve ışınlanır.
+    default: true
+  maliness-core.pwarp.set:
+    description: Oyuncu warp oluşturur.
+    default: true
+  maliness-core.pwarp.delete:
+    description: Kendi oyuncu warplarını siler.
+    default: true
+  maliness-core.pwarp.list:
+    description: Oyuncu warp listesini görüntüler.
+    default: true
+  maliness-core.pwarp.edit:
+    description: Kendi oyuncu warplarını düzenler.
+    default: true
+  maliness-core.pwarp.manage:
+    description: Başka oyuncuların oyuncu warplarını siler.
+    default: op
+  maliness-core.pwarp.bypasstime:
+    description: Oyuncu warp warmup ve cooldown atlama.
+    default: op
+  maliness-core.pwarp.invalid.broadcast:
+    description: Geçersiz oyuncu warp uyarılarını oyun içinde alır.
+    default: op
+  maliness-core.pwarp.count.*:
+    description: Oyuncu warp limiti (örn. maliness-core.pwarp.count.3 = en fazla 3 pwarp).
+    default: false
   maliness-core.systems.manage.playtime:
     description: Oynama süresi sistemini açıp kapatır.
     default: op
@@ -169,4 +196,7 @@ permissions:
     default: op
   maliness-core.systems.manage.warp:
     description: Warp sistemini açıp kapatır.
+    default: op
+  maliness-core.systems.manage.pwarp:
+    description: Oyuncu warp sistemini açıp kapatır.
     default: op

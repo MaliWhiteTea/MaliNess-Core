@@ -12,6 +12,8 @@ import com.mertaliakcay.malinesscore.systems.home.HomeSystem;
 import com.mertaliakcay.malinesscore.systems.playtime.PlaytimeService;
 import com.mertaliakcay.malinesscore.systems.playtime.PlaytimeSystem;
 import com.mertaliakcay.malinesscore.systems.vanish.VanishService;
+import com.mertaliakcay.malinesscore.systems.pwarp.PwarpSystem;
+import com.mertaliakcay.malinesscore.systems.pwarp.model.Pwarp;
 import com.mertaliakcay.malinesscore.systems.warp.WarpService;
 import com.mertaliakcay.malinesscore.systems.warp.WarpSystem;
 import com.mertaliakcay.malinesscore.systems.warp.model.Warp;
@@ -36,6 +38,8 @@ public final class MaliNessPlaceholderResolver {
             "home_warmup",
             "playtime_seconds",
             "playtime",
+            "pwarp_count",
+            "pwarp_list",
             "vanish_bool",
             "vanish",
             "can_see_bool",
@@ -87,6 +91,30 @@ public final class MaliNessPlaceholderResolver {
             return resolveWarpList(viewer);
         }
 
+        if (normalized.equals("pwarp_count")) {
+            return String.valueOf(resolvePwarpCount(viewer, null));
+        }
+
+        if (normalized.equals("pwarp_count_all")) {
+            return String.valueOf(resolvePwarpCountAll());
+        }
+
+        if (normalized.equals("pwarp_list")) {
+            return resolvePwarpList(viewer, null);
+        }
+
+        if (normalized.startsWith("pwarp_owner_")) {
+            return resolvePwarpOwner(normalized.substring("pwarp_owner_".length()));
+        }
+
+        if (normalized.startsWith("pwarp_desc_")) {
+            return resolvePwarpDescription(normalized.substring("pwarp_desc_".length()));
+        }
+
+        if (normalized.startsWith("pwarp_")) {
+            return resolvePwarpExists(normalized.substring("pwarp_".length()));
+        }
+
         if (normalized.startsWith("warp_desc_")) {
             return resolveWarpDescription(normalized.substring("warp_desc_".length()));
         }
@@ -117,6 +145,8 @@ public final class MaliNessPlaceholderResolver {
             case "confirmation_pending" -> yesNoLabel(resolveConfirmationPending(viewer, targetKey.targetName()));
             case "playtime" -> resolvePlaytimeFormatted(viewer, targetKey.targetName());
             case "playtime_seconds" -> String.valueOf(resolvePlaytimeSeconds(viewer, targetKey.targetName()));
+            case "pwarp_count" -> String.valueOf(resolvePwarpCount(viewer, targetKey.targetName()));
+            case "pwarp_list" -> resolvePwarpList(viewer, targetKey.targetName());
             case "vanish" -> onOffLabel(resolveVanish(viewer, targetKey.targetName()));
             case "vanish_bool" -> boolLabel(resolveVanish(viewer, targetKey.targetName()));
             case "can_see" -> yesNoLabel(resolveCanSee(viewer, targetKey.targetName()));
@@ -432,6 +462,89 @@ public final class MaliNessPlaceholderResolver {
     private WarpSystem getWarpSystem() {
         AbstractGameSystem system = plugin.getSystemManager().findAbstractSystem("warp");
         return system instanceof WarpSystem warpSystem ? warpSystem : null;
+    }
+
+    private int resolvePwarpCount(Player viewer, String targetName) {
+        PwarpSystem pwarpSystem = getPwarpSystem();
+        if (pwarpSystem == null || pwarpSystem.getStorage() == null) {
+            return 0;
+        }
+
+        OfflinePlayer target = resolveOfflinePlayer(viewer, targetName);
+        if (target == null) {
+            return 0;
+        }
+
+        return pwarpSystem.getStorage().countByOwner(target.getUniqueId());
+    }
+
+    private int resolvePwarpCountAll() {
+        PwarpSystem pwarpSystem = getPwarpSystem();
+        if (pwarpSystem == null || pwarpSystem.getStorage() == null) {
+            return 0;
+        }
+
+        return pwarpSystem.getStorage().size();
+    }
+
+    private String resolvePwarpList(Player viewer, String targetName) {
+        PwarpSystem pwarpSystem = getPwarpSystem();
+        if (pwarpSystem == null || pwarpSystem.getStorage() == null) {
+            return "";
+        }
+
+        OfflinePlayer target = resolveOfflinePlayer(viewer, targetName);
+        if (target == null) {
+            return "";
+        }
+
+        return pwarpSystem.getStorage().getByOwner(target.getUniqueId()).stream()
+                .map(Pwarp::getName)
+                .sorted(String.CASE_INSENSITIVE_ORDER)
+                .collect(java.util.stream.Collectors.joining(", "));
+    }
+
+    private String resolvePwarpOwner(String pwarpName) {
+        PwarpSystem pwarpSystem = getPwarpSystem();
+        if (pwarpSystem == null || pwarpSystem.getStorage() == null || pwarpName == null || pwarpName.isBlank()) {
+            return "";
+        }
+
+        Pwarp pwarp = pwarpSystem.getStorage().find(pwarpName);
+        if (pwarp == null) {
+            return "";
+        }
+
+        return pwarp.getOwnerName() == null ? "" : pwarp.getOwnerName();
+    }
+
+    private String resolvePwarpDescription(String pwarpName) {
+        PwarpSystem pwarpSystem = getPwarpSystem();
+        if (pwarpSystem == null || pwarpSystem.getStorage() == null || pwarpName == null || pwarpName.isBlank()) {
+            return "";
+        }
+
+        Pwarp pwarp = pwarpSystem.getStorage().find(pwarpName);
+        if (pwarp == null || pwarp.getDescription() == null) {
+            return "";
+        }
+
+        return pwarp.getDescription();
+    }
+
+    private String resolvePwarpExists(String pwarpName) {
+        PwarpSystem pwarpSystem = getPwarpSystem();
+        if (pwarpSystem == null || pwarpSystem.getStorage() == null || pwarpName == null || pwarpName.isBlank()) {
+            return settings.noLabel();
+        }
+
+        Pwarp pwarp = pwarpSystem.getStorage().find(pwarpName);
+        return pwarp == null ? settings.noLabel() : settings.yesLabel();
+    }
+
+    private PwarpSystem getPwarpSystem() {
+        AbstractGameSystem system = plugin.getSystemManager().findAbstractSystem("pwarp");
+        return system instanceof PwarpSystem pwarpSystem ? pwarpSystem : null;
     }
 
     private PlayerHomes loadHomes(Player viewer, String targetName) {

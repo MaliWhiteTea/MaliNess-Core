@@ -4,9 +4,12 @@ import com.mertaliakcay.malinesscore.MaliNessCore;
 import com.mertaliakcay.malinesscore.confirmation.ConfirmationService;
 import com.mertaliakcay.malinesscore.systems.warp.model.Warp;
 import com.mertaliakcay.malinesscore.teleport.SafeTeleport;
+import com.mertaliakcay.malinesscore.systems.pwarp.PwarpSystem;
 import com.mertaliakcay.malinesscore.teleport.TeleportMessages;
 import com.mertaliakcay.malinesscore.teleport.TeleportService;
+import com.mertaliakcay.malinesscore.teleport.TeleportWarmupMessages;
 import com.mertaliakcay.malinesscore.teleport.WarmupType;
+import com.mertaliakcay.malinesscore.systems.AbstractGameSystem;
 import com.mertaliakcay.malinesscore.util.CommandSuggestions;
 import com.mertaliakcay.malinesscore.util.MaliNessColorUtil;
 import com.mertaliakcay.malinesscore.util.SystemLang;
@@ -44,6 +47,7 @@ public final class WarpService {
     private int maxWarps = -1;
     private boolean safeTeleportEnabled = true;
     private boolean askOnUnsafe = true;
+    private boolean blockAdminWarpIfPwarpExists = false;
 
     public WarpService(
             MaliNessCore plugin,
@@ -78,6 +82,10 @@ public final class WarpService {
         maxWarps = configuration.getInt("max-warps", -1);
         safeTeleportEnabled = configuration.getBoolean("safe-teleport.enabled", true);
         askOnUnsafe = configuration.getBoolean("safe-teleport.ask-on-unsafe", true);
+        blockAdminWarpIfPwarpExists = configuration.getBoolean(
+                "name-collision.block-admin-warp-if-pwarp-exists",
+                false
+        );
     }
 
     public void handle(CommandSender sender, String[] args) {
@@ -327,12 +335,17 @@ public final class WarpService {
         }
 
         WarmupType type = teleportService.getWarmupType(player.getUniqueId());
-        if (type == WarmupType.WARP) {
-            lang.send(player, "teleport-already-pending");
-        } else {
-            lang.send(player, "teleport-blocked-by-home");
-        }
+        TeleportWarmupMessages.sendBlocked(player, lang, type, WarmupType.WARP);
         return true;
+    }
+
+    private boolean isPwarpNameTaken(String rawName) {
+        AbstractGameSystem abstractSystem = plugin.getSystemManager().findAbstractSystem("pwarp");
+        if (!(abstractSystem instanceof PwarpSystem pwarpSystem) || !pwarpSystem.isActive()) {
+            return false;
+        }
+
+        return pwarpSystem.getStorage() != null && pwarpSystem.getStorage().contains(rawName);
     }
 
     private void handleAdmin(CommandSender sender, String[] args) {
@@ -383,6 +396,11 @@ public final class WarpService {
 
         if (storage.contains(rawName)) {
             lang.send(sender, "warp-already-exists", "warp", rawName);
+            return;
+        }
+
+        if (blockAdminWarpIfPwarpExists && isPwarpNameTaken(rawName)) {
+            lang.send(sender, "pwarp-name-collision", "warp", rawName);
             return;
         }
 

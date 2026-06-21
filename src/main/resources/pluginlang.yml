@@ -496,6 +496,15 @@ systems-desc-warp:
 systems-commands-warp:
   text: "/warp, /warps, /warplar"
 
+systems-display-pwarp:
+  text: "Oyuncu Warp"
+
+systems-desc-pwarp:
+  text: "Oyuncuların oluşturduğu herkese açık warp noktaları."
+
+systems-commands-pwarp:
+  text: "/pwarp, /pwarps"
+
 mn-help-desc-playtime:
   text: "Oynama süresini görüntüler."
 
@@ -510,6 +519,12 @@ mn-help-desc-warp:
 
 mn-help-desc-warps:
   text: "Warp noktalarını listeler."
+
+mn-help-desc-pwarp:
+  text: "Oyuncu warplarını listeler, ışınlanır veya yönetir."
+
+mn-help-desc-pwarps:
+  text: "Oyuncu warplarını listeler."
 
 mn-help-desc-systems:
   text: "Oyun sistemlerini listeler ve yönetir."

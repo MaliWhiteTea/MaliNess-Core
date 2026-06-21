@@ -20,7 +20,7 @@ public final class SystemControlService {
     public static final String ALIAS_SYSTEM_TR = "sistem";
 
     private static final Set<String> ON_ACTIONS = Set.of(
-            "on", "enable", "ac", "aç", "aktif", "open"
+            "on", "enable", "aç", "aktif", "open"
     );
     private static final Set<String> OFF_ACTIONS = Set.of(
             "off", "disable", "kapa", "deaktif", "close"

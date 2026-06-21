@@ -136,6 +136,10 @@ final class MnCommandHelp {
             entries.add(entry("warp", "/warp", "/mn warp", "/mn warp [warp|sayfa]", "/warp [warp|sayfa]"));
             entries.add(entry("warps", "/warps", "/mn warps", "/mn warps [sayfa]", "/warps [sayfa] | /warplar"));
         }
+        if (commands.isPwarpAvailable(sender)) {
+            entries.add(entry("pwarp", "/pwarp", "/mn pwarp", "/mn pwarp [pwarp|sayfa]", "/pwarp [pwarp|sayfa]"));
+            entries.add(entry("pwarps", "/pwarps", "/mn pwarps", "/mn pwarps [sayfa]", "/pwarps [sayfa]"));
+        }
         if (commands.isSystemsListAvailable(sender)) {
             entries.add(entry("systems", "/systems", "/mn systems", "/mn systems [sayfa]", "/systems | /sistemler"));
         }

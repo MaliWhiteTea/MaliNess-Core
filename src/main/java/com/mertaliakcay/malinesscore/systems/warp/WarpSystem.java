@@ -20,11 +20,11 @@ public final class WarpSystem extends com.mertaliakcay.malinesscore.systems.Abst
     public static final List<String> REMOVE_ALIASES = List.of("sil", "remove");
     public static final List<String> EDIT_ALIASES = List.of("düzenle", "edit");
 
-    public static final Set<String> EDIT_ACTIONS = Set.of("konum", "açıklama", "aciklama");
+    public static final Set<String> EDIT_ACTIONS = Set.of("konum", "açıklama");
     public static final Set<String> LOCATION_ACTIONS = Set.of("konum");
-    public static final Set<String> DESCRIPTION_ACTIONS = Set.of("açıklama", "aciklama");
-    public static final Set<String> ENABLE_ACTIONS = Set.of("açık", "acik", "on", "aktif", "active");
-    public static final Set<String> DISABLE_ACTIONS = Set.of("kapalı", "kapali", "off", "deaktif", "deactive");
+    public static final Set<String> DESCRIPTION_ACTIONS = Set.of("açıklama");
+    public static final Set<String> ENABLE_ACTIONS = Set.of("açık", "on", "aktif", "active");
+    public static final Set<String> DISABLE_ACTIONS = Set.of("kapalı", "off", "deaktif", "deactive");
 
     public static boolean bypassesWarpRestrictions(Player player) {
         return player.isOp() || player.hasPermission(PERM_BYPASS_TIME);

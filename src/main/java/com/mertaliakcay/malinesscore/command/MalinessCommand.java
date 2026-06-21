@@ -7,6 +7,8 @@ import com.mertaliakcay.malinesscore.systems.playtime.PlaytimeMnCommand;
 import com.mertaliakcay.malinesscore.systems.playtime.PlaytimeSystem;
 import com.mertaliakcay.malinesscore.systems.vanish.VanishMnCommand;
 import com.mertaliakcay.malinesscore.systems.vanish.VanishSystem;
+import com.mertaliakcay.malinesscore.systems.pwarp.PwarpMnCommand;
+import com.mertaliakcay.malinesscore.systems.pwarp.PwarpSystem;
 import com.mertaliakcay.malinesscore.systems.warp.WarpMnCommand;
 import com.mertaliakcay.malinesscore.systems.warp.WarpSystem;
 import com.mertaliakcay.malinesscore.systems.feed.FeedCommand;
@@ -68,6 +70,8 @@ public final class MalinessCommand implements CommandExecutor, TabCompleter {
     private VanishMnCommand vanishMnCommand;
     private WarpSystem warpSystem;
     private WarpMnCommand warpMnCommand;
+    private PwarpSystem pwarpSystem;
+    private PwarpMnCommand pwarpMnCommand;
     private SystemMnCommand systemMnCommand;
     private SystemControlService systemControlService;
 
@@ -193,6 +197,16 @@ public final class MalinessCommand implements CommandExecutor, TabCompleter {
     public void clearWarp() {
         this.warpSystem = null;
         this.warpMnCommand = null;
+    }
+
+    public void setPwarp(PwarpSystem pwarpSystem, PwarpMnCommand pwarpMnCommand) {
+        this.pwarpSystem = pwarpSystem;
+        this.pwarpMnCommand = pwarpMnCommand;
+    }
+
+    public void clearPwarp() {
+        this.pwarpSystem = null;
+        this.pwarpMnCommand = null;
     }
 
     public void setSystemControl(SystemMnCommand systemMnCommand, SystemControlService systemControlService) {
@@ -330,6 +344,22 @@ public final class MalinessCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
+        if (PwarpMnCommand.isPwarpSubcommand(args[0])) {
+            if (!dispatchSystem(sender, pwarpSystem, args[0])) {
+                return true;
+            }
+            pwarpMnCommand.handle(sender, Arrays.copyOfRange(args, 1, args.length));
+            return true;
+        }
+
+        if (PwarpMnCommand.isPwarpsListSubcommand(args[0])) {
+            if (!dispatchSystem(sender, pwarpSystem, args[0])) {
+                return true;
+            }
+            pwarpMnCommand.handleList(sender, Arrays.copyOfRange(args, 1, args.length));
+            return true;
+        }
+
         if (SystemMnCommand.isSystemsSubcommand(args[0])) {
             if (!isSystemsListAvailable(sender)) {
                 plugin.getPluginLang().send(sender, "systems-no-list-permission");
@@ -436,6 +466,10 @@ public final class MalinessCommand implements CommandExecutor, TabCompleter {
             subcommands.add("warp");
             subcommands.add("warps");
             subcommands.add(WarpSystem.ALIAS_WARPLAR);
+        }
+        if (isPwarpAvailable(sender)) {
+            subcommands.add("pwarp");
+            subcommands.add("pwarps");
         }
         if (isSystemsListAvailable(sender)) {
             subcommands.add("systems");
@@ -574,6 +608,20 @@ public final class MalinessCommand implements CommandExecutor, TabCompleter {
                 return Collections.emptyList();
             }
             return nullableList(warpMnCommand.suggestList(sender, nestedArgs));
+        }
+
+        if (PwarpMnCommand.isPwarpSubcommand(subcommand)) {
+            if (!isPwarpAvailable(sender) || pwarpMnCommand == null) {
+                return Collections.emptyList();
+            }
+            return nullableList(pwarpMnCommand.suggest(sender, nestedArgs));
+        }
+
+        if (PwarpMnCommand.isPwarpsListSubcommand(subcommand)) {
+            if (!isPwarpAvailable(sender) || pwarpMnCommand == null) {
+                return Collections.emptyList();
+            }
+            return nullableList(pwarpMnCommand.suggestList(sender, nestedArgs));
         }
 
         if (SystemMnCommand.isSystemsSubcommand(subcommand)) {
@@ -731,6 +779,16 @@ public final class MalinessCommand implements CommandExecutor, TabCompleter {
         return warpSystem != null && warpSystem.isEnabled()
                 && (sender.hasPermission(WarpSystem.PERM_USE)
                 || sender.hasPermission(WarpSystem.PERM_MANAGE));
+    }
+
+    boolean isPwarpAvailable(CommandSender sender) {
+        return pwarpSystem != null && pwarpSystem.isEnabled()
+                && (sender.hasPermission(PwarpSystem.PERM_USE)
+                || sender.hasPermission(PwarpSystem.PERM_SET)
+                || sender.hasPermission(PwarpSystem.PERM_DELETE)
+                || sender.hasPermission(PwarpSystem.PERM_LIST)
+                || sender.hasPermission(PwarpSystem.PERM_EDIT)
+                || sender.hasPermission(PwarpSystem.PERM_MANAGE));
     }
 
     boolean isSystemsListAvailable(CommandSender sender) {

@@ -31,6 +31,7 @@ import com.mertaliakcay.malinesscore.systems.playtime.PlaytimeSystem;
 import com.mertaliakcay.malinesscore.systems.broadcast.BroadcastSystem;
 import com.mertaliakcay.malinesscore.systems.vanish.VanishService;
 import com.mertaliakcay.malinesscore.systems.vanish.VanishSystem;
+import com.mertaliakcay.malinesscore.systems.pwarp.PwarpSystem;
 import com.mertaliakcay.malinesscore.systems.warp.WarpSystem;
 import com.mertaliakcay.malinesscore.util.PluginLang;
 import com.mertaliakcay.malinesscore.util.YamlMerger;
@@ -232,6 +233,7 @@ public final class MaliNessCore extends JavaPlugin {
         systemManager.register(new BroadcastSystem());
         systemManager.register(new VanishSystem());
         systemManager.register(new WarpSystem());
+        systemManager.register(new PwarpSystem());
     }
 
     private void registerSystemControlCommands() {

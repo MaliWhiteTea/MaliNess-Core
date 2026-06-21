@@ -1,0 +1,264 @@
+# lang-version yükselince jar varsayılanları mevcut dosyaya yazılır (/mn reload).
+lang-version: 1
+
+system-disabled:
+  type: error
+  text: "Oyuncu warp sistemi şu anda kapalı."
+
+no-permission:
+  type: error
+  text: "Oyuncu warp kullanma yetkin yok."
+
+no-permission-set:
+  type: error
+  text: "Oyuncu warp oluşturma yetkin yok."
+
+no-permission-delete:
+  type: error
+  text: "Oyuncu warp silme yetkin yok."
+
+no-permission-edit:
+  type: error
+  text: "Oyuncu warp düzenleme yetkin yok."
+
+no-permission-manage:
+  type: error
+  text: "Oyuncu warp yönetme yetkin yok."
+
+usage:
+  type: warning
+  text: "Kullanım: /pwarp [pwarp|sayfa] veya /pwarp ekle|sil|düzenle ..."
+
+usage-list:
+  type: warning
+  text: "Kullanım: /pwarps [sayfa]"
+
+usage-set:
+  type: warning
+  text: "Kullanım: /pwarp ekle <isim>"
+
+usage-remove:
+  type: warning
+  text: "Kullanım: /pwarp sil <isim> veya /pwarp sil <oyuncu> <isim>"
+
+usage-edit:
+  type: warning
+  text: "Kullanım: /pwarp düzenle <isim> <yeniisim|konum|açıklama>"
+
+console-set-not-supported:
+  type: error
+  text: "Konsoldan oyuncu warp oluşturulamaz."
+
+console-delete-not-supported:
+  type: error
+  text: "Konsoldan kendi oyuncu warp silme desteklenmiyor."
+
+console-not-supported:
+  type: error
+  text: "Bu işlem konsoldan desteklenmiyor."
+
+console-teleport-not-supported:
+  type: error
+  text: "Konsoldan oyuncu warp ışınlanması desteklenmiyor."
+
+console-confirm-required:
+  type: error
+  text: "Konsoldan kullanım: /pwarp sil <oyuncu> <isim> --confirm"
+
+invalid-pwarp-name:
+  type: error
+  text: "{pwarp} geçerli bir oyuncu warp adı değil."
+
+pwarp-not-found:
+  type: error
+  text: "{pwarp} adlı oyuncu warp bulunamadı."
+
+pwarp-already-exists:
+  type: error
+  text: "{pwarp} adlı oyuncu warp zaten var."
+
+pwarp-limit-reached:
+  type: error
+  text: "Oyuncu warp limitine ulaşıldı ({limit})."
+
+admin-warp-name-collision:
+  type: error
+  text: "{pwarp} adı bir admin warp ile çakışıyor."
+
+invalid-set-location:
+  type: error
+  text: "Bu konum oyuncu warp olarak kaydedilemez."
+
+blocked-world:
+  type: error
+  text: "{world} dünyasında oyuncu warp oluşturulamaz."
+
+created:
+  type: success
+  text: "{pwarp} adlı oyuncu warp oluşturuldu."
+
+deleted:
+  type: success
+  text: "{pwarp} adlı oyuncu warp silindi."
+
+admin-deleted:
+  type: success
+  text: "{player} oyuncusunun {pwarp} adlı oyuncu warpi silindi."
+
+pwarp-deleted-by-admin:
+  type: warning
+  text: "{pwarp} adlı oyuncu warpin bir yetkili tarafından silindi."
+
+not-owner:
+  type: error
+  text: "{pwarp} adlı oyuncu warp sana ait değil."
+
+player-not-found:
+  type: error
+  text: "{player} adlı oyuncu bulunamadı."
+
+confirm-delete:
+  type: warning
+  text: "{pwarp} adlı oyuncu warpi silmek istediğine emin misin? Onaylamak için /evet yaz."
+
+confirm-delete-other:
+  type: warning
+  text: "{player} oyuncusunun {pwarp} adlı oyuncu warpi silinecek. Onaylamak için /evet yaz."
+
+confirm-unsafe-teleport:
+  type: warning
+  text: "{pwarp} adlı oyuncu warp güvenli görünmüyor. Yine de ışınlanmak için /evet yaz."
+
+relocated:
+  type: success
+  text: "{pwarp} adlı oyuncu warp konumu güncellendi."
+
+description-updated:
+  type: success
+  text: "{pwarp} adlı oyuncu warp açıklaması güncellendi."
+
+description-cleared:
+  type: success
+  text: "{pwarp} adlı oyuncu warp açıklaması silindi."
+
+renamed:
+  type: success
+  text: "Oyuncu warp adı {old} → {new} olarak değiştirildi."
+
+rate-limited:
+  type: error
+  text: "Çok fazla hatalı deneme. Bir süre bekleyip tekrar dene."
+
+set-cooldown:
+  type: warning
+  text: "Yeni oyuncu warp oluşturmak için {seconds} saniye beklemelisin."
+
+pwarp-cooldown:
+  type: warning
+  text: "Oyuncu warp ışınlanması için {seconds} saniye beklemelisin."
+
+teleport-started:
+  type: normal
+  text: "{pwarp} adlı oyuncu warpe ışınlanıyorsun ({seconds} sn)..."
+
+teleport-success:
+  type: success
+  text: "{pwarp} adlı oyuncu warpe ışınlandın."
+
+teleport-cancelled:
+  type: warning
+  text: "Oyuncu warp ışınlanması iptal edildi."
+
+teleport-failed:
+  type: error
+  text: "Işınlanma başarısız oldu."
+
+teleport-already-pending:
+  type: warning
+  text: "Zaten bir oyuncu warp ışınlanması bekleniyor."
+
+teleport-blocked-by-home:
+  type: warning
+  text: "Eve ışınlanma bekleniyor."
+
+teleport-blocked-by-warp:
+  type: warning
+  text: "Bir warp ışınlanması bekleniyor."
+
+teleport-blocked-by-pwarp:
+  type: warning
+  text: "Bir oyuncu warp ışınlanması bekleniyor."
+
+teleport-vehicle-blocked:
+  type: error
+  text: "Binekteyken ışınlanamazsın."
+
+unsafe-pwarp-blocked:
+  type: error
+  text: "{pwarp} adlı oyuncu warp güvenli değil."
+
+world-not-loaded:
+  type: error
+  text: "Oyuncu warp dünyası yüklenemedi."
+
+list-header:
+  type: normal
+  text: "Oyuncu warplar ({count}):"
+
+list-empty:
+  type: normal
+  text: "Gösterilecek oyuncu warp yok."
+
+list-entry-prefix:
+  type: normal
+  text: "• "
+
+list-entry-name:
+  type: normal
+  text: "{pwarp}"
+
+list-hover:
+  type: normal
+  text: |
+    {pwarp}
+    Sahip: {owner}
+    Konum: {world} ({x}, {y}, {z})
+    Oluşturulma: {created}
+    Ziyaret: {visits}
+    Son ziyaret: {last-visit}
+
+list-nav-page:
+  type: normal
+  text: "Sayfa {current}/{total}"
+
+list-nav-prev:
+  type: normal
+  text: "<"
+
+list-nav-prev-hover:
+  type: normal
+  text: "Önceki sayfa"
+
+list-nav-prev-disabled:
+  type: normal
+  text: "<"
+
+list-nav-next:
+  type: normal
+  text: ">"
+
+list-nav-next-hover:
+  type: normal
+  text: "Sonraki sayfa"
+
+list-nav-next-disabled:
+  type: normal
+  text: ">"
+
+invalid-pwarp-broadcast:
+  type: warning
+  text: "Geçersiz oyuncu warp: {pwarp} ({reason})"
+
+invalid-pwarp-skipped:
+  type: warning
+  text: "Geçersiz oyuncu warp atlandı: {pwarp} ({reason})"

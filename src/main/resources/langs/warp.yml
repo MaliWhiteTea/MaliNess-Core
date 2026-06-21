@@ -1,5 +1,5 @@
 # lang-version yükselince jar varsayılanları mevcut dosyaya yazılır (/mn reload).
-lang-version: 2
+lang-version: 3
 
 system-disabled:
   type: error
@@ -160,6 +160,14 @@ teleport-already-pending:
 teleport-blocked-by-home:
   type: warning
   text: "Eve ışınlanma bekleniyor."
+
+teleport-blocked-by-pwarp:
+  type: warning
+  text: "Bir oyuncu warp ışınlanması bekleniyor."
+
+pwarp-name-collision:
+  type: error
+  text: "{warp} adı bir oyuncu warp ile çakışıyor."
 
 teleport-vehicle-blocked:
   type: error

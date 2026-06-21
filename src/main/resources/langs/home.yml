@@ -166,6 +166,10 @@ teleport-blocked-by-warp:
   type: warning
   text: "Bir warp ışınlanması bekleniyor."
 
+teleport-blocked-by-pwarp:
+  type: warning
+  text: "Bir oyuncu warp ışınlanması bekleniyor."
+
 teleport-vehicle-blocked:
   type: error
   text: "Binek hayvanları sürerken eve ışınlanamazsın. Önce in."
