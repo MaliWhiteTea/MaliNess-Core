@@ -8,7 +8,7 @@ Kaynak: pwarp eklenti araştırması (PlayerWarps, Player Warps, Olzie, iWarp, B
 
 ## Pwarp / oyuncu warp
 
-- [ ] **GUI menü** — `/pwarp` ileride GUI açacak (0.1.6.2’de chat listesi)
+- [ ] **GUI listesi entegrasyonu** — `/pwarp` listesini MenuService ile açma (altyapı 0.1.6.3’te)
 - [ ] **Ekonomi maliyeti** — oluşturma, taşıma, rename, ışınlanma (Vault entegrasyonu)
 - [ ] **Item tabanlı maliyet** — ekonomi olmadan oluşturma/taşıma bedeli
 - [ ] **Kategori sistemi** — shop, farm, base vb.; liste/GUI filtresi
@@ -28,4 +28,12 @@ Kaynak: pwarp eklenti araştırması (PlayerWarps, Player Warps, Olzie, iWarp, B
 
 ## Genel / diğer sistemler
 
+- [ ] **Sistem bazlı list-mode** — `chat | gui` config (warp, pwarp, home, …)
+- [ ] **Varsayılan list-mode** — global veya sistem bazlı varsayılan seçim
+- [ ] **Warp listesi GUI entegrasyonu**
+- [ ] **Home listesi GUI entegrasyonu**
+- [ ] **Onay GUI’si (huni)** — chat `/evet`/`/hayır` yerine veya yanında; ConfirmationService ile entegrasyon
+- [ ] **Menü ses / partikül** — açılış, kapanış, tıklama, sayfa değişimi
+- [ ] **ItemsAdder softdepend** — GUI item + filler; `itemsadder: true` iken `material` / `custom_model_data` yok sayılır; plugin.yml softdepend
+- [ ] **GUI PlaceholderAPI** — menü title / item name / lore satırlarında `%placeholder%` (pwarp listesi vb.)
 - [ ] _(Buraya diğer sistemlerden sürümü belirsiz maddeler eklenecek)_
