@@ -2,7 +2,7 @@
 
 MaliNess Network sunucuları için modüler bir Paper eklentisi. Her oyun sistemi kendi config ve lang dosyası ile yönetilir; sunucu açılışında aktif ve deaktif sistemler özet olarak konsola yazılır. Yetkililer `/systems` ve `/system` komutlarıyla sistemleri oyun içinden açıp kapatabilir.
 
-**Sürüm:** `0.1.5` · **API:** Paper / Purpur **1.21.4** · **Java** **21**
+**Sürüm:** `0.1.6.1` · **API:** Paper / Purpur **1.21.4** · **Java** **21**
 
 ## Gereksinimler
 
@@ -47,7 +47,8 @@ plugins/MaliNess-Core/
 │   ├── home.yml
 │   ├── playtime.yml
 │   ├── broadcast.yml
-│   └── vanish.yml
+│   ├── vanish.yml
+│   └── warp.yml
 ├── langs/
 │   ├── heal.yml
 │   ├── feed.yml
@@ -59,15 +60,19 @@ plugins/MaliNess-Core/
 │   ├── home.yml
 │   ├── playtime.yml
 │   ├── broadcast.yml
-│   └── vanish.yml
+│   ├── vanish.yml
+│   └── warp.yml
 ├── data/
 │   ├── homes/              # Oyuncu ev verileri (<uuid>.yml)
 │   ├── playtime/           # Oyuncu oynama süresi (<uuid>.yml)
+│   ├── warps.yml           # Global warp kayıtları
 │   ├── vanish.yml          # Kalıcı vanish durumları
 │   └── god-reload-cache.yml  # /mn reload sırasında geçici god durumu (otomatik)
 └── logs/
     ├── home-player.log
     ├── home-admin.log
+    ├── warp-player.log
+    ├── warp-admin.log
     └── systems-audit.log   # Sistem açma/kapama kayıtları
 ```
 
@@ -121,9 +126,11 @@ Dinamik veriler iki yolla kullanılabilir:
 
 Dahili placeholder'lar önce, PlaceholderAPI sonra işlenir. Konsol mesajlarında PAPI parse edilmez (oyuncu bağlamı yok).
 
-### `pluginlang.yml` senkronizasyonu
+### Lang senkronizasyonu (`lang-version`)
 
-`pluginlang.yml` dosyasının başındaki `lang-version` değeri jar sürümünden yüksekse, `/mn reload` veya sunucu açılışında jar'daki varsayılan mesajlar sunucu dosyasına yazılır. Böylece güncelleme sonrası Türkçe karakter ve yeni mesaj anahtarları otomatik uygulanır. Özel düzenlediğin metinler üzerine yazılır; değişiklik yaptıysan yedek al.
+`pluginlang.yml` ve `lang-version` anahtarı içeren `langs/*.yml` dosyalarında sürüm numarası jar'dakinden düşükse, `/mn reload` veya sunucu açılışında jar'daki varsayılan mesajlar sunucu dosyasına yazılır. Böylece güncelleme sonrası yeni veya düzeltilmiş mesaj anahtarları otomatik uygulanır. Özel düzenlediğin metinler üzerine yazılır; değişiklik yaptıysan yedek al.
+
+`lang-version` olmayan sistem lang dosyalarında yalnızca **eksik** anahtarlar eklenir; mevcut metinler korunur.
 
 ## Mimari
 
@@ -131,11 +138,11 @@ Eklenti modüler **sistem** yapısı kullanır. Her oyun sistemi `AbstractGameSy
 
 ```
 MaliNessCore
-├── SystemManager              → heal, feed, health, hunger, saturate, saturation, god, home, playtime, broadcast, vanish
+├── SystemManager              → heal, feed, health, hunger, saturate, saturation, god, home, playtime, broadcast, vanish, warp
 ├── SystemControlService       → /systems, /system, audit log, sistem katalogu
 ├── MalinessCommand (/mn)      → tüm sistemlere delegasyon
 ├── ConfirmationService        → /evet /hayır /iptal
-├── HomeTeleportManager          → warmup ve ışınlanma (plugin genelinde singleton)
+├── TeleportService              → ortak warmup ve ışınlanma (home, warp; plugin genelinde singleton)
 ├── VanishService                → gizli mod durumu, görünürlük, PAPI sayım
 ├── PlaceholderApiIntegration    → PlaceholderAPI expansion + lang parse
 ├── MaliNessColorUtil            → duyuru ve renkli mesaj kodları (&z*)
@@ -154,7 +161,7 @@ MaliNessCore
 `/mn reload` (veya konsoldan eşdeğeri) şunları yapar:
 
 - `config.yml`, `pluginlang.yml` ve tüm sistem config/lang dosyalarını yeniden yükler
-- Bekleyen onayları ve ev warmup'larını iptal eder
+- Bekleyen onayları ve aktif warmup'ları (home, warp vb.) iptal eder
 - God modu durumunu geçici cache dosyasına yazar, reload sonrası geri yükler
 - PlaceholderAPI ayarlarını ve expansion kaydını yeniler
 - Ev verilerini `flushAll()` ile diske yazar
@@ -238,14 +245,14 @@ Konsoldan yalnızca `/system on|off|info <sistem>` desteklenir. Onay akışı yo
 
 ## Sistem özeti
 
-Eklenti **on bir** oyun sistemi içerir:
+Eklenti **on iki** oyun sistemi içerir:
 
 | Grup | Sistemler | Amaç |
 |------|-----------|------|
 | Hızlı doldurma | heal, feed, saturate | Tek komutla tam veya kısmi doldurma |
 | Hassas ayar | health, hunger, saturation | `set` / `add` / `remove` ile değer yönetimi |
 | Oyuncu modu | god | Hasar almama ve saldırgan mob koruması |
-| Konum | home | Ev kaydetme, ışınlanma ve yönetim |
+| Konum | home, warp | Ev kaydetme; admin tanımlı sabit noktalara ışınlanma |
 | İstatistik | playtime | Toplam oynama süresi takibi ve sorgulama |
 | Yönetim | broadcast, vanish | Duyuru gönderme ve gizli mod |
 
@@ -356,7 +363,7 @@ Belirli oyuncu için `_<oyuncu>` eki eklenir (ör. `%malinesscore_god_MertAli%`)
 
 | Placeholder | Açıklama | Örnek |
 |-------------|----------|--------|
-| `%malinesscore_version%` | Eklenti sürümü | `0.1.5` |
+| `%malinesscore_version%` | Eklenti sürümü | `0.1.6.1` |
 
 #### Sistem durumu
 
@@ -365,7 +372,7 @@ Belirli oyuncu için `_<oyuncu>` eki eklenir (ör. `%malinesscore_god_MertAli%`)
 | `%malinesscore_system_<id>%` | Sistem açık mı | `Açık` / `Kapalı` |
 | `%malinesscore_system_<id>_bool%` | Makine okunur | `true` / `false` |
 
-`<id>`: `core`, `heal`, `feed`, `health`, `hunger`, `saturate`, `saturation`, `god`, `home`, `playtime`, `broadcast`, `vanish`
+`<id>`: `core`, `heal`, `feed`, `health`, `hunger`, `saturate`, `saturation`, `god`, `home`, `playtime`, `broadcast`, `vanish`, `warp`
 
 #### Online (vanish)
 
@@ -427,6 +434,18 @@ God durumu yalnızca oyuncu **online** iken `Açık` döner; offline veya quit s
 
 Her biri `_<oyuncu>` eki ile belirli oyuncu için de kullanılabilir. Ev verileri offline oyuncular için de okunabilir.
 
+#### Warp
+
+| Placeholder | Açıklama |
+|-------------|----------|
+| `%malinesscore_warp_count%` | Görüntüleyicinin görebildiği açık warp sayısı |
+| `%malinesscore_warp_count_all%` | Toplam warp sayısı (`see-closed` yoksa açık sayısı) |
+| `%malinesscore_warp_list%` | Görünür warp isimleri (virgülle) |
+| `%malinesscore_warp_<isim>%` | Warp durumu (`Açık` / `Kapalı` / `Yok`) |
+| `%malinesscore_warp_desc_<isim>%` | Warp açıklaması (yoksa boş) |
+
+İsim eşleştirmesi büyük/küçük harf duyarsızdır.
+
 #### Onay
 
 | Placeholder | Açıklama |
@@ -459,6 +478,8 @@ PlaceholderAPI yüklüyken:
 /papi parse me %malinesscore_system_home%
 /papi parse me %malinesscore_online_visible%
 /papi parse me %malinesscore_playtime%
+/papi parse me %malinesscore_warp_count%
+/papi parse me %malinesscore_warp_list%
 ```
 
 `/papi list` çıktısında `malinesscore` görünmelidir.
@@ -731,6 +752,89 @@ Ev verileri oyuncu başına `data/homes/<uuid>.yml` dosyasında tutulur; yazıml
 
 Config: `configs/home.yml` — Lang: `langs/home.yml`
 
+Home ve warp aynı `TeleportService` warmup altyapısını kullanır. Biri warmup'tayken diğer komut engellenir (iptal olmaz); her sistem kendi lang mesajını gösterir.
+
+---
+
+### Warp — Sabit nokta ışınlanma
+
+Adminlerin belirlediği konumlara ışınlanma. Ev sistemiyle aynı warmup, güvenlik ve onay kalıplarını paylaşır.
+
+#### Komutlar (oyuncu)
+
+| Komut | Açıklama |
+|-------|----------|
+| `/warp` | Sayfalı warp listesi (tıklanabilir satırlar) |
+| `/warp <sayfa>` | Belirli sayfa (ör. `/warp 2`) |
+| `/warp <isim>` | Warp noktasına ışınlanır |
+| `/warps [sayfa]` | `/warp` ile aynı liste |
+| `/warplar [sayfa]` | `/warps` ile aynı |
+| `/mn warp ...` / `/mn warps` | Alternatif komut |
+
+#### Komutlar (admin)
+
+| Komut | Açıklama |
+|-------|----------|
+| `/warp ekle\|set <isim>` | Bulunduğun konuma warp kaydeder |
+| `/warp sil\|remove <isim>` | Onaylı silme |
+| `/warp düzenle\|edit <isim> <yeniisim>` | Yeniden adlandırma |
+| `/warp düzenle <isim> konum` | Admin konumuna taşıma |
+| `/warp düzenle <isim> açıklama <metin>` | Açıklama (renk kodları destekli; boş = sil) |
+| `/warp düzenle <isim> açık\|kapalı\|on\|off\|...` | Warp aç/kapa |
+
+Konsol: silme (`--confirm`), yeniden adlandırma, açık/kapalı, açıklama. `ekle` ve `konum` konsoldan desteklenmez.
+
+#### İsim kuralları
+
+- En az **2** karakter; en az bir harf (Türkçe dahil); sadece rakamdan oluşamaz
+- Max **20** karakter; boşluk yok; `_` ve `-` dışında özel karakter yok
+- Büyük/küçük harf ve Türkçe karakter serbest; arama case-insensitive (`market` → `Market`)
+- Rezerve kelimeler: `ekle`, `sil`, `düzenle`, `set`, `remove`, `edit`, `açık`, `kapalı`, `warps`, `warplar` vb.
+
+#### Warmup ve cooldown
+
+Varsayılan (`configs/warp.yml`):
+
+| Ayar | Varsayılan |
+|------|------------|
+| Warmup | 5 saniye |
+| Warp cooldown | 5 saniye |
+| Fire resistance | 3 saniye |
+
+Warmup mesajı: `{warp} warpına ışınlanıyorsun... {seconds} saniye bekle.`
+
+Warmup sırasında hareket, hasar, saldırı, elytra veya binek → iptal. `maliness-core.warp.bypasstime` warmup ve cooldown'u atlar.
+
+#### Liste ve görünürlük
+
+- Kapalı warplar normal oyuncuya görünmez
+- `maliness-core.warp.see-closed` yetkisi olanlar listede `✕` ile görür; hover'da kapalı bilgisi
+- Açıklamalı warplarda hover'da renkli açıklama; açıklama yoksa yalnızca isim
+
+#### Güvenlik
+
+- Güvensiz konumda onay sorusu (home ile aynı mantık)
+- Geçersiz dünya: ışınlanma engeli + `maliness-core.warp.invalid.broadcast` ile yetkili uyarısı
+
+#### Loglar
+
+| Dosya | İçerik |
+|-------|--------|
+| `logs/warp-admin.log` | Ekleme, silme, düzenleme |
+| `logs/warp-player.log` | Yalnızca başarılı oyuncu ışınlanmaları |
+
+#### İzinler
+
+| İzin | Açıklama | Varsayılan |
+|------|----------|------------|
+| `maliness-core.warp.use` | Liste ve ışınlanma | `true` |
+| `maliness-core.warp.manage` | Warp CRUD | `op` |
+| `maliness-core.warp.see-closed` | Kapalı warpları görme | `op` |
+| `maliness-core.warp.bypasstime` | Warmup ve cooldown atlama | `op` |
+| `maliness-core.warp.invalid.broadcast` | Geçersiz warp uyarısı (oyun içi) | `op` |
+
+Config: `configs/warp.yml` — Lang: `langs/warp.yml` (`lang-version` destekli) — Veri: `data/warps.yml`
+
 ---
 
 ### Playtime — Oynama süresi
@@ -837,6 +941,7 @@ Config: `configs/vanish.yml` — Lang: `langs/vanish.yml`
 | `/playtime` | `/oynamasüresi` |
 | `/broadcast` | `/bc`, `/duyur`, `/duyuruyap` |
 | `/vanish` | `/gizlen` |
+| `/warp` | `/warps`, `/warplar` |
 | — | `/evet`, `/hayır`, `/iptal` |
 
 Hassas ayar sistemlerinde alt komutlar: `set`/`ayarla`, `add`/`ekle`, `remove`/`azalt`
@@ -867,6 +972,7 @@ src/main/java/com/mertaliakcay/malinesscore/
 │   ├── MalinessCommand.java    # /mn delegasyon + tab
 │   └── MnCommandHelp.java      # sayfalı yardım
 ├── confirmation/               # /evet /hayır /iptal
+├── teleport/                   # TeleportService, TeleportListener, SafeTeleport
 ├── integrations/
 │   └── placeholderapi/         # Expansion, resolver, ayarlar
 ├── messages/                   # MessageService, MessageType
@@ -881,11 +987,14 @@ src/main/java/com/mertaliakcay/malinesscore/
 │   ├── saturate/
 │   ├── saturation/
 │   ├── god/                    # GodStateStorage, GodListener
-│   ├── home/                   # HomeService, HomeStorage, HomeTeleportManager, ...
+│   ├── home/                   # HomeService, HomeStorage, ...
+│   ├── warp/                   # WarpService, WarpStorage, WarpListHelp, ...
 │   ├── playtime/               # PlaytimeService, PlaytimeStorage, PlaytimeTracker
 │   ├── broadcast/              # BroadcastCommand
 │   └── vanish/                 # VanishService, ProtocolLibVanishEnhancer, VanishListener
 └── util/                       # Config, lang, renk, tab tamamlama, MaliNessColorUtil
+
+TEST_CHECKLISTS/                # Sürüm bazlı test listeleri (ör. 0.1.6.md)
 
 src/main/resources/
 ├── config.yml
