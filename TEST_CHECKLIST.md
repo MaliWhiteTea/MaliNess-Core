@@ -11,10 +11,10 @@ Durum sütunu: `[ ]` yapılmadı · `[x]` geçti · `[!]` hata
 
 | # | Test | Beklenen | Durum |
 |---|------|----------|-------|
-| 1.1 | İlk açılış / reload sonrası `plugins/MaliNess-Core/configs/warp.yml` var | Dosya oluşur, `enabled: true` | |
-| 1.2 | `data/warps.yml` yokken reload | Boş `warps: []` ile oluşur | |
-| 1.3 | `configs/warp.yml` → `enabled: false` + reload | `/warp` → sistem kapalı mesajı | |
-| 1.4 | `/system off warp` + tekrar `on` | Sistem kapanır/açılır, veri korunur | |
+| 1.1 | İlk açılış / reload sonrası `plugins/MaliNess-Core/configs/warp.yml` var | Dosya oluşur, `enabled: true` |[x]|
+| 1.2 | `data/warps.yml` yokken reload | Boş `warps: []` ile oluşur |[x]|
+| 1.3 | `configs/warp.yml` → `enabled: false` + reload | `/warp` → sistem kapalı mesajı |[x]|
+| 1.4 | `/system off warp` + tekrar `on` | Sistem kapanır/açılır, veri korunur |[x]|
 
 ---
 
@@ -22,8 +22,8 @@ Durum sütunu: `[ ]` yapılmadı · `[x]` geçti · `[!]` hata
 
 | # | Test | Beklenen | Durum |
 |---|------|----------|-------|
-| 2.1 | `/warp ekle Market` (admin konumunda) | Başarı mesajı, `data/warps.yml` kaydı | |
-| 2.2 | `/warp set Spawn` (İngilizce alias) | Aynı davranış | |
+| 2.1 | `/warp ekle Market` (admin konumunda) | Başarı mesajı, `data/warps.yml` kaydı |[x]|
+| 2.2 | `/warp set Spawn` (İngilizce alias) | Aynı davranış |[x]|
 | 2.3 | İzinsiz oyuncu `/warp ekle Test` | Yetki hatası | |
 | 2.4 | Konsol `/warp ekle Test` | Konsol desteklenmiyor mesajı | |
 | 2.5 | Aynı isimle tekrar ekleme | Zaten var hatası | |
