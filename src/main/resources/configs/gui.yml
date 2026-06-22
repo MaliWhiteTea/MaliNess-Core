@@ -1,0 +1,19 @@
+enabled: true
+
+close-on-other-inventory: true
+pickup-while-menu-open: true
+
+logging:
+  mandatory-release: true
+
+defaults:
+  player-inventory: locked
+  close-policy: normal
+  close-on-command: false
+  escape-on-death: false
+  escape-on-quit: true
+  block-movement: true
+  allow-damage: true
+  allow-chat: false
+  filler:
+    enabled: false

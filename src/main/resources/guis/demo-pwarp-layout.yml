@@ -1,0 +1,120 @@
+id: demo-pwarp-layout
+type: CHEST
+rows: 6
+title: "&6Demo Pwarp &7({page}/{max_page})"
+permission: maliness-core.gui.demo-pwarp
+content-provider: demo-pwarp
+
+player-inventory: locked
+close-policy: normal
+close-on-command: false
+
+layout:
+  content-slots:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    - 9
+    - 10
+    - 11
+    - 12
+    - 13
+    - 14
+    - 15
+    - 16
+    - 17
+    - 18
+    - 19
+    - 20
+    - 21
+    - 22
+    - 23
+    - 24
+    - 25
+    - 26
+    - 27
+
+filler:
+  enabled: false
+
+items:
+  refresh_page:
+    slot: 49
+    material: EMERALD
+    name: "&aYenile"
+    lore:
+      - "&7Mevcut sayfayı yeniler"
+    clicks:
+      left: refresh
+
+  prev_page:
+    slot: 45
+    material: ARROW
+    dynamic-count: prev-remaining
+    name: "&eÖnceki sayfa"
+    lore:
+      - "&7Sayfa {target_page}'a git"
+    visibility: min-page:2
+    clicks:
+      left: page-prev
+
+  next_page:
+    slot: 53
+    material: ARROW
+    dynamic-count: next-remaining
+    name: "&eSonraki sayfa"
+    lore:
+      - "&7Sayfa {target_page}'a git"
+    visibility: has-next-page
+    clicks:
+      left: page-next
+
+  sort_toggle:
+    slot: 48
+    material: HOPPER
+    name: "&bSıralama"
+    lore:
+      - "&7Sıralamayı değiştir"
+    clicks:
+      left: sort-cycle
+
+  favorites:
+    slot: 50
+    material: GOLDEN_APPLE
+    name: "&6Favoriler"
+    clicks:
+      left: filter-favorites
+
+  my_pwarps:
+    slot: 51
+    material: PLAYER_HEAD
+    name: "&dPwarplarım"
+    clicks:
+      left: filter-mine
+
+  filter_all:
+    slot: 47
+    material: BOOK
+    name: "&fTümü"
+    clicks:
+      left: filter-all
+
+  open_hopper:
+    slot: 52
+    material: HOPPER
+    name: "&7Huni demo"
+    clicks:
+      left: open-menu:demo-hopper
+
+  close:
+    slot: 40
+    material: BARRIER
+    name: "&cKapat"
+    clicks:
+      left: close

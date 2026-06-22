@@ -1,0 +1,27 @@
+id: demo-mandatory-afk
+type: HOPPER
+title: "&cAFK Doğrulama"
+permission: maliness-core.gui.demo-mandatory
+content-provider: demo-mandatory-afk
+
+player-inventory: locked
+close-policy: mandatory
+close-on-command: false
+escape-on-death: false
+escape-on-quit: false
+block-movement: true
+allow-damage: true
+allow-chat: false
+
+layout:
+  content-slots:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+
+filler:
+  enabled: false
+
+items: {}

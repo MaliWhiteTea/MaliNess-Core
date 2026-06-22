@@ -1,0 +1,17 @@
+id: demo-dropper
+type: DROPPER
+title: "&7Dropper demo"
+permission: maliness-core.gui.demo-types
+
+items:
+  close:
+    slot: 8
+    material: BARRIER
+    name: "&cKapat"
+    clicks:
+      left: close
+
+filler:
+  enabled: true
+  material: GRAY_STAINED_GLASS_PANE
+  name: " "

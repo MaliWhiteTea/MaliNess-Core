@@ -1,0 +1,65 @@
+lang-version: 3
+
+no-permission:
+  type: error
+  text: "Bu menüyü veya komutu kullanma yetkin yok!"
+
+menu-not-found:
+  type: error
+  text: "Menü bulunamadı: {id}"
+
+menu-disabled:
+  type: error
+  text: "GUI sistemi şu anda kapalı."
+
+mandatory-chat-blocked:
+  type: error
+  text: "Zorunlu menü açıkken sohbet yazamazsın."
+
+mandatory-command-blocked:
+  type: error
+  text: "Zorunlu menü açıkken komut kullanamazsın."
+
+open-menu-failed:
+  type: error
+  text: "Menü açılamadı: {id}"
+
+player-only:
+  type: error
+  text: "Bu komut yalnızca oyuncular içindir."
+
+usage:
+  type: warning
+  text: "Kullanım: /mngui <list|open|pwarp|pwarp-empty|mandatory|release [oyuncu]|locked|allowed|hopper|dropper|click-test|reload-test>"
+
+usage-release:
+  type: warning
+  text: "Konsoldan kullanım: /mngui release <oyuncu>"
+
+player-not-found:
+  type: error
+  text: "Oyuncu bulunamadı: {player}"
+
+reload-test-hint:
+  type: normal
+  text: "Zorunlu menü açıldı. /mn reload sonrası menünün geri gelmesini test et."
+
+demo-click:
+  type: success
+  text: "Tıklama algılandı: {click}"
+
+mandatory-released:
+  type: success
+  text: "Zorunlu menü kapatıldı."
+
+mandatory-not-active:
+  type: warning
+  text: "Açık zorunlu menün yok. Önce /mngui mandatory ile menüyü aç."
+
+mandatory-released-other:
+  type: success
+  text: "{player} için zorunlu menü kapatıldı."
+
+mandatory-not-active-other:
+  type: warning
+  text: "{player} için açık zorunlu menü yok."

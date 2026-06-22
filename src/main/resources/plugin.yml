@@ -200,3 +200,24 @@ permissions:
   maliness-core.systems.manage.pwarp:
     description: Oyuncu warp sistemini açıp kapatır.
     default: op
+  maliness-core.systems.manage.gui:
+    description: GUI sistemini açıp kapatır.
+    default: op
+  maliness-core.mngui:
+    description: GUI demo komutlarını kullanır.
+    default: op
+  maliness-core.gui.demo-pwarp:
+    description: Demo pwarp GUI menülerini açar.
+    default: op
+  maliness-core.gui.demo-mandatory:
+    description: Zorunlu AFK demo menüsünü açar.
+    default: op
+  maliness-core.gui.demo-overlay:
+    description: Overlay demo menülerini açar.
+    default: op
+  maliness-core.gui.demo-types:
+    description: Huni/dropper demo menülerini açar.
+    default: op
+  maliness-core.gui.demo-click-test:
+    description: Tıklama test menüsünü açar.
+    default: op

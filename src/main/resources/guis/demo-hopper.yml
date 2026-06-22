@@ -1,0 +1,24 @@
+id: demo-hopper
+type: HOPPER
+title: "&7Huni demo"
+permission: maliness-core.gui.demo-types
+
+items:
+  back:
+    slot: 0
+    material: ARROW
+    name: "&ePwarp demo"
+    clicks:
+      left: open-menu:demo-pwarp-layout
+
+  close:
+    slot: 4
+    material: BARRIER
+    name: "&cKapat"
+    clicks:
+      left: close
+
+filler:
+  enabled: true
+  material: GRAY_STAINED_GLASS_PANE
+  name: " "

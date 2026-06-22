@@ -31,7 +31,9 @@ import com.mertaliakcay.malinesscore.systems.playtime.PlaytimeSystem;
 import com.mertaliakcay.malinesscore.systems.broadcast.BroadcastSystem;
 import com.mertaliakcay.malinesscore.systems.vanish.VanishService;
 import com.mertaliakcay.malinesscore.systems.vanish.VanishSystem;
+import com.mertaliakcay.malinesscore.gui.MenuService;
 import com.mertaliakcay.malinesscore.systems.pwarp.PwarpSystem;
+import com.mertaliakcay.malinesscore.systems.gui.GuiSystem;
 import com.mertaliakcay.malinesscore.systems.warp.WarpSystem;
 import com.mertaliakcay.malinesscore.util.PluginLang;
 import com.mertaliakcay.malinesscore.util.YamlMerger;
@@ -54,6 +56,7 @@ public final class MaliNessCore extends JavaPlugin {
     private SystemControlService systemControlService;
     private SystemMnCommand systemMnCommand;
     private VanishService vanishService;
+    private GuiSystem guiSystem;
     private volatile boolean reloading;
     private boolean globalCommandsRegistered;
     private boolean systemCommandsRegistered;
@@ -157,6 +160,14 @@ public final class MaliNessCore extends JavaPlugin {
         return vanishService;
     }
 
+    public GuiSystem getGuiSystem() {
+        return guiSystem;
+    }
+
+    public MenuService getMenuService() {
+        return guiSystem != null ? guiSystem.getMenuService() : null;
+    }
+
     public void setVanishService(VanishService vanishService) {
         this.vanishService = vanishService;
     }
@@ -234,6 +245,8 @@ public final class MaliNessCore extends JavaPlugin {
         systemManager.register(new VanishSystem());
         systemManager.register(new WarpSystem());
         systemManager.register(new PwarpSystem());
+        guiSystem = new GuiSystem();
+        systemManager.register(guiSystem);
     }
 
     private void registerSystemControlCommands() {

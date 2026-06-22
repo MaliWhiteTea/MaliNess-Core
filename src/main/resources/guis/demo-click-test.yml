@@ -1,0 +1,44 @@
+id: demo-click-test
+type: CHEST
+rows: 3
+title: "&dTıklama testi"
+permission: maliness-core.gui.demo-click-test
+
+player-inventory: locked
+close-policy: normal
+
+filler:
+  enabled: false
+
+items:
+  test_item:
+    slot: 13
+    material: NETHER_STAR
+    name: "&eTüm tıklamaları dene"
+    lore:
+      - "&7Sol, sağ, shift, Q, F, 1-9"
+    clicks:
+      left: demo-click
+      right: demo-click
+      shift-left: demo-click
+      shift-right: demo-click
+      middle: demo-click
+      drop: demo-click
+      control-drop: demo-click
+      swap-offhand: demo-click
+      number-key-1: demo-click
+      number-key-2: demo-click
+      number-key-3: demo-click
+      number-key-4: demo-click
+      number-key-5: demo-click
+      number-key-6: demo-click
+      number-key-7: demo-click
+      number-key-8: demo-click
+      number-key-9: demo-click
+
+  close:
+    slot: 22
+    material: BARRIER
+    name: "&cKapat"
+    clicks:
+      left: close
