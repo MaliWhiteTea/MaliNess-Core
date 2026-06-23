@@ -10,7 +10,7 @@ MaliNess Network sunucuları için modüler bir Paper eklentisi. Her oyun sistem
 |------------|-------|
 | Sunucu yazılımı | Paper veya Purpur **1.21.4** |
 | Java | **21** |
-| Vault | Ekonomi sistemi için **zorunlu** — MaliNess `MaliNess Economy` adıyla Economy provider kaydı yapar |
+| Vault | İsteğe bağlı ancak ekonomi sistemi için **zorunlu** — MaliNess `MaliNess Economy` adıyla Economy provider kaydı yapar |
 | PlaceholderAPI | İsteğe bağlı — placeholder desteği için |
 | ProtocolLib | İsteğe bağlı — vanish gelişmiş gizleme (ses, animasyon) için |
 
