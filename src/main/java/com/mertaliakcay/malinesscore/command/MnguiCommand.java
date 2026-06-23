@@ -61,6 +61,7 @@ public final class MnguiCommand {
             case "hopper" -> menuService.open(player, "demo-hopper");
             case "dropper" -> menuService.open(player, "demo-dropper");
             case "click-test" -> menuService.open(player, "demo-click-test");
+            case "economy" -> menuService.open(player, "demo-economy-shop");
             case "reload-test" -> {
                 menuService.open(player, "demo-mandatory-afk");
                 lang.send(player, "reload-test-hint");
@@ -117,7 +118,7 @@ public final class MnguiCommand {
         if (args.length == 1) {
             List<String> options = new ArrayList<>(List.of(
                     "list", "open", "pwarp", "pwarp-empty", "mandatory", "release",
-                    "locked", "allowed", "hopper", "dropper", "click-test", "reload-test"
+                    "locked", "allowed", "hopper", "dropper", "click-test", "economy", "reload-test"
             ));
             String prefix = args[0].toLowerCase(Locale.ROOT);
             List<String> result = new ArrayList<>();

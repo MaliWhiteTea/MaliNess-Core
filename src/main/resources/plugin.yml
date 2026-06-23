@@ -9,6 +9,7 @@ load: POSTWORLD
 softdepend:
   - PlaceholderAPI
   - ProtocolLib
+  - Vault
 
 authors: [ Mert Ali AKÇAY ]
 website: https://github.com/MaliWhiteTea/MaliNess-Core
@@ -220,4 +221,22 @@ permissions:
     default: op
   maliness-core.gui.demo-click-test:
     description: Tıklama test menüsünü açar.
+    default: op
+  maliness-core.economy.pay:
+    description: Oyuncuya para gönderir.
+    default: true
+  maliness-core.economy.balance:
+    description: Kendi bakiyesini görür.
+    default: true
+  maliness-core.economy.balance.others:
+    description: Başka oyuncunun bakiyesini görür.
+    default: op
+  maliness-core.economy.admin:
+    description: /eco ve /mn eco admin komutları.
+    default: op
+  maliness-core.systems.manage.economy:
+    description: Ekonomi sistemini açıp kapatır.
+    default: op
+  maliness-core.gui.demo-economy:
+    description: Ekonomi demo menülerini açar.
     default: op

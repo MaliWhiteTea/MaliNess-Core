@@ -33,6 +33,8 @@ import com.mertaliakcay.malinesscore.systems.vanish.VanishService;
 import com.mertaliakcay.malinesscore.systems.vanish.VanishSystem;
 import com.mertaliakcay.malinesscore.gui.MenuService;
 import com.mertaliakcay.malinesscore.systems.pwarp.PwarpSystem;
+import com.mertaliakcay.malinesscore.systems.economy.EconomyService;
+import com.mertaliakcay.malinesscore.systems.economy.EconomySystem;
 import com.mertaliakcay.malinesscore.systems.gui.GuiSystem;
 import com.mertaliakcay.malinesscore.systems.warp.WarpSystem;
 import com.mertaliakcay.malinesscore.util.PluginLang;
@@ -57,6 +59,7 @@ public final class MaliNessCore extends JavaPlugin {
     private SystemMnCommand systemMnCommand;
     private VanishService vanishService;
     private GuiSystem guiSystem;
+    private EconomySystem economySystem;
     private volatile boolean reloading;
     private boolean globalCommandsRegistered;
     private boolean systemCommandsRegistered;
@@ -168,6 +171,16 @@ public final class MaliNessCore extends JavaPlugin {
         return guiSystem != null ? guiSystem.getMenuService() : null;
     }
 
+    public EconomyService getEconomyService() {
+        return economySystem != null && economySystem.isActive()
+                ? economySystem.getEconomyService()
+                : null;
+    }
+
+    public EconomySystem getEconomySystem() {
+        return economySystem;
+    }
+
     public void setVanishService(VanishService vanishService) {
         this.vanishService = vanishService;
     }
@@ -245,6 +258,8 @@ public final class MaliNessCore extends JavaPlugin {
         systemManager.register(new VanishSystem());
         systemManager.register(new WarpSystem());
         systemManager.register(new PwarpSystem());
+        economySystem = new EconomySystem();
+        systemManager.register(economySystem);
         guiSystem = new GuiSystem();
         systemManager.register(guiSystem);
     }

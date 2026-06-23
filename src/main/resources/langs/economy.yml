@@ -1,0 +1,117 @@
+lang-version: 3
+
+no-permission:
+  type: error
+  text: "Bu komutu kullanma yetkin yok."
+
+economy-unavailable:
+  type: error
+  text: "Ekonomi sistemi şu anda kullanılamıyor!"
+
+player-only:
+  type: error
+  text: "Bu komut yalnızca oyuncular içindir."
+
+player-not-found:
+  type: error
+  text: "Oyuncu bulunamadı: {player}"
+
+currency-not-found:
+  type: error
+  text: "Para birimi bulunamadı: {currency}"
+
+currency-disabled:
+  type: error
+  text: "Bu para birimi ile transfer yapılamaz."
+
+invalid-amount:
+  type: error
+  text: "Geçersiz miktar."
+
+insufficient-funds:
+  type: error
+  text: "Yetersiz bakiye! Bunun için {shortfall} daha ihtiyacın var. Şu anki bakiyen: {balance}."
+
+pay-usage:
+  type: warning
+  text: "Kullanım: /pay <oyuncu> <miktar>"
+
+pay-self:
+  type: error
+  text: "Kendine para gönderemezsin."
+
+pay-invalid-amount:
+  type: error
+  text: "Geçersiz miktar. Min: {min} · Max: {max}"
+
+pay-confirm:
+  type: warning
+  text: "{target} oyuncusuna {amount} göndermek istiyor musun? (Vergi: {tax})"
+
+pay-confirm-large:
+  type: warning
+  text: "Büyük transfer: {target} oyuncusuna {amount} göndermek istiyor musun? (Vergi: {tax})"
+
+pay-confirm-offline:
+  type: warning
+  text: "{target} şu anda çevrimdışı. Yine de {amount} göndermek istiyor musun? (Vergi: {tax})"
+
+pay-sent:
+  type: success
+  text: "{target} oyuncusuna {amount} gönderildi."
+
+pay-received:
+  type: success
+  text: "{sender} sana {amount} gönderdi."
+
+pay-failed:
+  type: error
+  text: "Transfer başarısız: {reason}"
+
+balance-self:
+  type: normal
+  text: "Bakiyen: {balance}"
+
+balance-other:
+  type: normal
+  text: "{player} bakiyesi: {balance}"
+
+eco-usage:
+  type: warning
+  text: "Kullanım: /eco <give|take|set|reset|info|server> ..."
+
+eco-info:
+  type: normal
+  text: "{player} · {currency}: {balance}"
+
+eco-server-info:
+  type: normal
+  text: "Sunucu cüzdanı: {balance}"
+
+eco-success:
+  type: success
+  text: "{player} güncellendi. Yeni bakiye: {balance}"
+
+eco-reset-success:
+  type: success
+  text: "{player} bakiyesi sıfırlandı. Yeni bakiye: {balance}"
+
+eco-failed:
+  type: error
+  text: "İşlem başarısız: {reason}"
+
+gui-invalid-amount:
+  type: error
+  text: "Geçersiz menü ücreti."
+
+gui-withdraw-success:
+  type: success
+  text: "Ödeme alındı: {amount}"
+
+gui-deposit-success:
+  type: success
+  text: "Para eklendi: {amount}"
+
+gui-transaction-failed:
+  type: error
+  text: "Menü işlemi başarısız: {reason}"

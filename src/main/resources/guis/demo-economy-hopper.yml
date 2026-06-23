@@ -1,0 +1,24 @@
+id: demo-economy-hopper
+type: HOPPER
+title: "&7Ekonomi huni demo"
+permission: maliness-core.gui.demo-economy
+
+items:
+  back:
+    slot: 0
+    material: ARROW
+    name: "&eEkonomi demo"
+    clicks:
+      left: open-menu:demo-economy-shop
+
+  close:
+    slot: 4
+    material: BARRIER
+    name: "&cKapat"
+    clicks:
+      left: close
+
+filler:
+  enabled: true
+  material: GRAY_STAINED_GLASS_PANE
+  name: " "

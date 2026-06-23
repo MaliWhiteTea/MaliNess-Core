@@ -25,3 +25,5 @@ integrations:
       off: "Kapalı"
       yes: "Evet"
       no: "Hayır"
+  vault:
+    enabled: true

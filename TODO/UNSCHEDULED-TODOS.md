@@ -6,10 +6,23 @@ Kaynak: pwarp eklenti araştırması (PlayerWarps, Player Warps, Olzie, iWarp, B
 
 ---
 
+## Ekonomi (MaliNess Core provider)
+
+- [ ] **MySQL economy storage** — `EconomyStorage` MySQL implementasyonu; migration aracı
+- [ ] **Kozmetik / premium para birimi** — ödül, görev, gerçek para satın alma; IAP hook yok şimdilik
+- [ ] **Pwarp oluşturma ücreti** — `TransactionParty.SERVER` (sunucu cüzdanına)
+- [ ] **Pwarp ışınlanma ücreti** — pwarp sahibine transfer
+- [ ] **`/rtp` ücreti** — sunucu cüzdanına (rtp sistemi ile)
+- [ ] **Economy onay GUI'si** — büyük işlemlerde huni/onay menüsü (`economy:confirm-withdraw` vb.)
+- [ ] **İşlem sesleri** — başarı/hata (köylü ticaret sesi vb.); GUI + economy hook
+- [ ] **Ekonomi vergisi** — `/pay` veya market komisyonu
+- [ ] **Market / açık artırma** entegrasyonu — Vault üzerinden MaliNess provider
+
+---
+
 ## Pwarp / oyuncu warp
 
 - [ ] **GUI listesi entegrasyonu** — `/pwarp` listesini MenuService ile açma (altyapı 0.1.6.3’te)
-- [ ] **Ekonomi maliyeti** — oluşturma, taşıma, rename, ışınlanma (Vault entegrasyonu)
 - [ ] **Item tabanlı maliyet** — ekonomi olmadan oluşturma/taşıma bedeli
 - [ ] **Kategori sistemi** — shop, farm, base vb.; liste/GUI filtresi
 - [ ] **Oyuncu puanlama (rate)** — warp değerlendirme
@@ -32,8 +45,8 @@ Kaynak: pwarp eklenti araştırması (PlayerWarps, Player Warps, Olzie, iWarp, B
 - [ ] **Varsayılan list-mode** — global veya sistem bazlı varsayılan seçim
 - [ ] **Warp listesi GUI entegrasyonu**
 - [ ] **Home listesi GUI entegrasyonu**
-- [ ] **Onay GUI’si (huni)** — chat `/evet`/`/hayır` yerine veya yanında; ConfirmationService ile entegrasyon
-- [ ] **Menü ses / partikül** — açılış, kapanış, tıklama, sayfa değişimi
+- [ ] **Onay GUI’si (huni)** — chat `/evet`/`/hayır` yerine veya yanında; ConfirmationService + **büyük economy işlemleri**
+- [ ] **Menü ses / partikül** — açılış, kapanış, tıklama, sayfa değişimi; **economy işlem sonucu sesleri**
 - [ ] **ItemsAdder softdepend** — GUI item + filler; `itemsadder: true` iken `material` / `custom_model_data` yok sayılır; plugin.yml softdepend
-- [ ] **GUI PlaceholderAPI** — menü title / item name / lore satırlarında `%placeholder%` (pwarp listesi vb.)
+- [x] **GUI PlaceholderAPI** — 0.1.6.4’te planlandı (`TODO/0.1.6.4.md`)
 - [ ] _(Buraya diğer sistemlerden sürümü belirsiz maddeler eklenecek)_

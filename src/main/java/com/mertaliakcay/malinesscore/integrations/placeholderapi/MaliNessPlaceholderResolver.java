@@ -20,6 +20,8 @@ import com.mertaliakcay.malinesscore.systems.warp.WarpService;
 import com.mertaliakcay.malinesscore.systems.warp.WarpSystem;
 import com.mertaliakcay.malinesscore.systems.warp.model.Warp;
 import com.mertaliakcay.malinesscore.systems.home.model.PlayerHomes;
+import com.mertaliakcay.malinesscore.systems.economy.EconomyConstants;
+import com.mertaliakcay.malinesscore.systems.economy.EconomyService;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -68,6 +70,37 @@ public final class MaliNessPlaceholderResolver {
 
         if (normalized.equals("version")) {
             return plugin.getPluginMeta().getVersion();
+        }
+
+        if (normalized.equals("balance") || normalized.equals("balance_tl")) {
+            return resolveBalance(viewer, EconomyConstants.PRIMARY_CURRENCY, false);
+        }
+
+        if (normalized.equals("balance_formatted") || normalized.equals("balance_tl_formatted")) {
+            return resolveBalance(viewer, EconomyConstants.PRIMARY_CURRENCY, true);
+        }
+
+        if (normalized.equals("balance_cosmetic") || normalized.equals("balance_jeton")) {
+            return resolveBalance(viewer, EconomyConstants.COSMETIC_CURRENCY, false);
+        }
+
+        if (normalized.startsWith("balance_") && normalized.endsWith("_formatted")) {
+            String currencyId = normalized.substring("balance_".length(), normalized.length() - "_formatted".length());
+            return resolveBalance(viewer, currencyId, true);
+        }
+
+        if (normalized.startsWith("balance_")) {
+            return resolveBalance(viewer, normalized.substring("balance_".length()), false);
+        }
+
+        if (normalized.startsWith("currency_") && normalized.endsWith("_name")) {
+            String currencyId = normalized.substring("currency_".length(), normalized.length() - "_name".length());
+            return resolveCurrencyName(currencyId);
+        }
+
+        if (normalized.startsWith("currency_") && normalized.endsWith("_symbol")) {
+            String currencyId = normalized.substring("currency_".length(), normalized.length() - "_symbol".length());
+            return resolveCurrencySymbol(currencyId);
         }
 
         if (normalized.equals("online_visible") || normalized.equals("online")) {
@@ -676,6 +709,35 @@ public final class MaliNessPlaceholderResolver {
 
     private String boolLabel(boolean value) {
         return Boolean.toString(value);
+    }
+
+    private String resolveBalance(Player viewer, String currencyId, boolean formatted) {
+        EconomyService economyService = plugin.getEconomyService();
+        if (economyService == null || !economyService.isAvailable() || viewer == null) {
+            return "0";
+        }
+        var balance = economyService.getBalance(viewer, currencyId);
+        return formatted ? economyService.format(balance, currencyId) : balance.toPlainString();
+    }
+
+    private String resolveCurrencyName(String currencyId) {
+        EconomyService economyService = plugin.getEconomyService();
+        if (economyService == null) {
+            return currencyId;
+        }
+        return economyService.getCurrencyRegistry().get(currencyId)
+                .map(currency -> currency.getDisplayName())
+                .orElse(currencyId);
+    }
+
+    private String resolveCurrencySymbol(String currencyId) {
+        EconomyService economyService = plugin.getEconomyService();
+        if (economyService == null) {
+            return "";
+        }
+        return economyService.getCurrencyRegistry().get(currencyId)
+                .map(currency -> currency.getSymbol())
+                .orElse("");
     }
 
     private record TargetKey(String baseKey, String targetName) {

@@ -133,11 +133,11 @@ public final class SystemControlService {
         }
 
         AbstractGameSystem system = gameSystem.get();
-        if (enable && system.isConfigEnabled()) {
+        if (enable && system.isActive()) {
             lang.send(sender, "systems-already-active", "system", displayName(systemId));
             return;
         }
-        if (!enable && !system.isConfigEnabled()) {
+        if (!enable && !system.isActive()) {
             lang.send(sender, "systems-already-inactive", "system", displayName(systemId));
             return;
         }
@@ -238,7 +238,7 @@ public final class SystemControlService {
             return true;
         }
         return catalog.findGameSystem(descriptor.getId())
-                .map(AbstractGameSystem::isConfigEnabled)
+                .map(AbstractGameSystem::isActive)
                 .orElse(false);
     }
 

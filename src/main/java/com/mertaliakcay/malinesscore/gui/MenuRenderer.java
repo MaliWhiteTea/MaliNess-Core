@@ -1,12 +1,15 @@
 package com.mertaliakcay.malinesscore.gui;
 
+import com.mertaliakcay.malinesscore.MaliNessCore;
 import com.mertaliakcay.malinesscore.gui.content.MenuContentProvider;
 import com.mertaliakcay.malinesscore.gui.model.DynamicCountType;
 import com.mertaliakcay.malinesscore.gui.model.MenuDefinition;
 import com.mertaliakcay.malinesscore.gui.model.MenuItemDefinition;
 import com.mertaliakcay.malinesscore.gui.model.MenuSession;
 import com.mertaliakcay.malinesscore.gui.util.MenuItemBuilder;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
@@ -17,8 +20,10 @@ import java.util.Set;
 public final class MenuRenderer {
 
     private final MenuRegistry registry;
+    private final MaliNessCore plugin;
 
-    public MenuRenderer(MenuRegistry registry) {
+    public MenuRenderer(MaliNessCore plugin, MenuRegistry registry) {
+        this.plugin = plugin;
         this.registry = registry;
     }
 
@@ -78,6 +83,7 @@ public final class MenuRenderer {
 
     private void applyChrome(MenuSession session) {
         Inventory inventory = session.getInventory();
+        Player player = Bukkit.getPlayer(session.getPlayerId());
         for (MenuItemDefinition item : session.getDefinition().getItems().values()) {
             if (!item.isVisible(session)) {
                 continue;
@@ -98,7 +104,9 @@ public final class MenuRenderer {
                     item.getName(),
                     item.getLore(),
                     session,
-                    prevButton
+                    prevButton,
+                    plugin,
+                    player
             );
             inventory.setItem(slot, stack);
         }
@@ -115,6 +123,7 @@ public final class MenuRenderer {
             material = Material.GRAY_STAINED_GLASS_PANE;
         }
 
+        Player player = Bukkit.getPlayer(session.getPlayerId());
         ItemStack filler = MenuItemBuilder.build(
                 material,
                 1,
@@ -123,7 +132,9 @@ public final class MenuRenderer {
                 definition.getFillerName(),
                 List.of(),
                 session,
-                false
+                false,
+                plugin,
+                player
         );
 
         Inventory inventory = session.getInventory();
