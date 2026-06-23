@@ -65,7 +65,7 @@ public final class EconomySystem extends AbstractGameSystem {
                     (sender, commandArgs) -> economyMnCommand.suggest(sender, commandArgs)
             );
 
-            registrar.register("pay", "Oyuncuya para gönderir.", List.of("paragonder", "paragönder"), payWrapper);
+            registrar.register("pay", "Oyuncuya para gönderir.", List.of("paragönder"), payWrapper);
             registrar.register("para", "Bakiyeni gösterir.", List.of("bal", "balance", "bakiye"), balanceWrapper);
             registrar.register("eco", "Ekonomi yönetim komutları.", List.of(), ecoWrapper);
         });

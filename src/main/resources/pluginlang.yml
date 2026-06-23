@@ -521,7 +521,7 @@ systems-desc-economy:
   text: "MaliNess yerel ekonomi motoru ve Vault provider."
 
 systems-commands-economy:
-  text: "/pay, /para, /eco"
+  text: "/pay, /paragönder, /para, /eco"
 
 mn-help-desc-playtime:
   text: "Oynama süresini görüntüler."

@@ -141,7 +141,7 @@ final class MnCommandHelp {
             entries.add(entry("pwarps", "/pwarps", "/mn pwarps", "/mn pwarps [sayfa]", "/pwarps [sayfa]"));
         }
         if (commands.isEconomyPayAvailable(sender)) {
-            entries.add(entry("pay", "/pay", "/pay", "/pay <oyuncu> <miktar>", "/pay | /paragönder | /paragonder"));
+            entries.add(entry("pay", "/pay", "/pay", "/pay <oyuncu> <miktar>", "/pay | /paragönder"));
         }
         if (commands.isEconomyBalanceAvailable(sender)) {
             entries.add(entry("balance", "/balance", "/balance", "/balance [oyuncu]", "/para | /bal | /bakiye"));

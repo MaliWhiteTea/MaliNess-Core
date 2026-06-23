@@ -2,7 +2,7 @@
 
 MaliNess Network sunucuları için modüler bir Paper eklentisi. Her oyun sistemi kendi config ve lang dosyası ile yönetilir; sunucu açılışında aktif ve deaktif sistemler özet olarak konsola yazılır. Yetkililer `/systems` ve `/system` komutlarıyla sistemleri oyun içinden açıp kapatabilir.
 
-**Sürüm:** `0.1.6.2` · **API:** Paper / Purpur **1.21.4** · **Java** **21**
+**Sürüm:** `0.1.6.5-alpha.1` · **API:** Paper / Purpur **1.21.4** · **Java** **21**
 
 ## Gereksinimler
 
@@ -10,6 +10,7 @@ MaliNess Network sunucuları için modüler bir Paper eklentisi. Her oyun sistem
 |------------|-------|
 | Sunucu yazılımı | Paper veya Purpur **1.21.4** |
 | Java | **21** |
+| Vault | Ekonomi sistemi için **zorunlu** — MaliNess `MaliNess Economy` adıyla Economy provider kaydı yapar |
 | PlaceholderAPI | İsteğe bağlı — placeholder desteği için |
 | ProtocolLib | İsteğe bağlı — vanish gelişmiş gizleme (ses, animasyon) için |
 
@@ -49,7 +50,13 @@ plugins/MaliNess-Core/
 │   ├── broadcast.yml
 │   ├── vanish.yml
 │   ├── warp.yml
-│   └── pwarp.yml
+│   ├── pwarp.yml
+│   ├── gui.yml
+│   └── economy.yml
+├── guis/                   # Menü tanımları (<menu-id>.yml)
+│   ├── demo-overlay-locked.yml
+│   ├── demo-economy-shop.yml
+│   └── ...
 ├── langs/
 │   ├── heal.yml
 │   ├── feed.yml
@@ -63,10 +70,14 @@ plugins/MaliNess-Core/
 │   ├── broadcast.yml
 │   ├── vanish.yml
 │   ├── warp.yml
-│   └── pwarp.yml
+│   ├── pwarp.yml
+│   ├── gui.yml
+│   └── economy.yml
 ├── data/
 │   ├── homes/              # Oyuncu ev verileri (<uuid>.yml)
 │   ├── playtime/           # Oyuncu oynama süresi (<uuid>.yml)
+│   ├── economy/
+│   │   └── accounts/       # Oyuncu ekonomi hesapları (<uuid>.yml)
 │   ├── warps.yml           # Global warp kayıtları
 │   ├── pwarps.yml          # Oyuncu warp kayıtları
 │   ├── vanish.yml          # Kalıcı vanish durumları
@@ -78,6 +89,8 @@ plugins/MaliNess-Core/
     ├── warp-admin.log
     ├── pwarp-player.log
     ├── pwarp-admin.log
+    ├── economy/
+    │   └── transactions-YYYY-MM-DD.log
     └── systems-audit.log   # Sistem açma/kapama kayıtları
 ```
 
@@ -143,20 +156,23 @@ Eklenti modüler **sistem** yapısı kullanır. Her oyun sistemi `AbstractGameSy
 
 ```
 MaliNessCore
-├── SystemManager              → heal, feed, health, hunger, saturate, saturation, god, home, playtime, broadcast, vanish, warp, pwarp
+├── SystemManager              → heal, feed, health, hunger, saturate, saturation, god, home, playtime, broadcast, vanish, warp, pwarp, economy, gui
 ├── SystemControlService       → /systems, /system, audit log, sistem katalogu
 ├── MalinessCommand (/mn)      → tüm sistemlere delegasyon
 ├── ConfirmationService        → /evet /hayır /iptal
-├── TeleportService              → ortak warmup ve ışınlanma (home, warp, pwarp; plugin genelinde singleton)
-├── VanishService                → gizli mod durumu, görünürlük, PAPI sayım
-├── PlaceholderApiIntegration    → PlaceholderAPI expansion + lang parse
-├── MaliNessColorUtil            → duyuru ve renkli mesaj kodları (&z*)
-└── MessageService               → prefix, renkler, Adventure Component formatı
+├── TeleportService            → ortak warmup ve ışınlanma (home, warp, pwarp; plugin genelinde singleton)
+├── MenuService                → GUI menüleri, zorunlu ekranlar, YAML menü tanımları
+├── EconomyService             → yerel TL ekonomisi, transfer, admin işlemleri
+├── VaultIntegration           → MaliNess Economy provider (Vault softdepend)
+├── VanishService              → gizli mod durumu, görünürlük, PAPI sayım
+├── PlaceholderApiIntegration  → PlaceholderAPI expansion + lang parse
+├── MaliNessColorUtil          → duyuru ve renkli mesaj kodları (&z*)
+└── MessageService             → prefix, renkler, Adventure Component formatı
 ```
 
 ### Komut kaydı
 
-- **Paper `BasicCommand`:** `/heal`, `/home`, `/god`, `/systems`, `/system` vb. doğrudan komutlar
+- **Paper `BasicCommand`:** `/heal`, `/home`, `/god`, `/pay`, `/para`, `/eco`, `/mngui`, `/systems`, `/system` vb. doğrudan komutlar
 - **Bukkit `CommandExecutor`:** `/mn` kök komutu ve paylaşılan handler mantığı
 - Her oyun sistemi hem kendi komutunu hem `/mn <altkomut>` yolunu destekler
 - Ana komut adları **İngilizce**; Türkçe alias'lar ayrıca tanımlıdır
@@ -167,6 +183,8 @@ MaliNessCore
 
 - `config.yml`, `pluginlang.yml` ve tüm sistem config/lang dosyalarını yeniden yükler
 - Bekleyen onayları ve aktif warmup'ları (home, warp, pwarp vb.) iptal eder
+- Açık GUI menülerini kapatır; zorunlu menü oturumlarını temizler
+- Ekonomi ve diğer sistem servislerini yeniden yükler
 - God modu durumunu geçici cache dosyasına yazar, reload sonrası geri yükler
 - PlaceholderAPI ayarlarını ve expansion kaydını yeniler
 - Ev verilerini `flushAll()` ile diske yazar
@@ -250,7 +268,7 @@ Konsoldan yalnızca `/system on|off|info <sistem>` desteklenir. Onay akışı yo
 
 ## Sistem özeti
 
-Eklenti **on üç** oyun sistemi içerir:
+Eklenti **on beş** oyun sistemi içerir:
 
 | Grup | Sistemler | Amaç |
 |------|-----------|------|
@@ -260,6 +278,8 @@ Eklenti **on üç** oyun sistemi içerir:
 | Konum | home, warp, pwarp | Ev kaydetme; admin warp; oyuncu warp (herkese açık) |
 | İstatistik | playtime | Toplam oynama süresi takibi ve sorgulama |
 | Yönetim | broadcast, vanish | Duyuru gönderme ve gizli mod |
+| Ekonomi | economy | Yerel TL ekonomisi ve Vault provider |
+| Arayüz | gui | Menü altyapısı, zorunlu ekranlar, demo menüler |
 
 | Minecraft değeri | Hızlı komut | Hassas komut |
 |------------------|-------------|--------------|
@@ -345,6 +365,8 @@ integrations:
       off: "Kapalı"
       yes: "Evet"
       no: "Hayır"
+  vault:
+    enabled: true
 ```
 
 | Ayar | Açıklama | Varsayılan |
@@ -368,7 +390,7 @@ Belirli oyuncu için `_<oyuncu>` eki eklenir (ör. `%malinesscore_god_MertAli%`)
 
 | Placeholder | Açıklama | Örnek |
 |-------------|----------|--------|
-| `%malinesscore_version%` | Eklenti sürümü | `0.1.6.2` |
+| `%malinesscore_version%` | Eklenti sürümü | `0.1.6.5-alpha.1` |
 
 #### Sistem durumu
 
@@ -377,7 +399,7 @@ Belirli oyuncu için `_<oyuncu>` eki eklenir (ör. `%malinesscore_god_MertAli%`)
 | `%malinesscore_system_<id>%` | Sistem açık mı | `Açık` / `Kapalı` |
 | `%malinesscore_system_<id>_bool%` | Makine okunur | `true` / `false` |
 
-`<id>`: `core`, `heal`, `feed`, `health`, `hunger`, `saturate`, `saturation`, `god`, `home`, `playtime`, `broadcast`, `vanish`, `warp`, `pwarp`
+`<id>`: `core`, `heal`, `feed`, `health`, `hunger`, `saturate`, `saturation`, `god`, `home`, `playtime`, `broadcast`, `vanish`, `warp`, `pwarp`, `economy`, `gui`
 
 #### Online (vanish)
 
@@ -466,6 +488,23 @@ Her biri `_<oyuncu>` eki ile belirli oyuncu için de kullanılabilir. Ev veriler
 | `%malinesscore_pwarp_owner_<isim>%` | Pwarp sahibi adı (offline ad dahil) |
 | `%malinesscore_pwarp_desc_<isim>%` | Pwarp açıklaması (yoksa boş) |
 
+#### Ekonomi
+
+| Placeholder | Açıklama |
+|-------------|----------|
+| `%malinesscore_balance%` | Görüntüleyen oyuncunun TL bakiyesi (ham) |
+| `%malinesscore_balance_tl%` | TL bakiyesi (ham) |
+| `%malinesscore_balance_formatted%` | Formatlı TL bakiyesi |
+| `%malinesscore_balance_tl_formatted%` | Formatlı TL bakiyesi |
+| `%malinesscore_balance_cosmetic%` | Jeton bakiyesi (ham) |
+| `%malinesscore_balance_jeton%` | Jeton bakiyesi (ham) |
+| `%malinesscore_balance_<para_birimi>%` | Belirli para birimi bakiyesi (ham) |
+| `%malinesscore_balance_<para_birimi>_formatted%` | Belirli para birimi formatlı bakiye |
+| `%malinesscore_currency_<id>_name%` | Para birimi görünen adı |
+| `%malinesscore_currency_<id>_symbol%` | Para birimi sembolü |
+
+Ekonomi sistemi kapalı veya Vault yoksa bakiye placeholder'ları `0` döner.
+
 #### Onay
 
 | Placeholder | Açıklama |
@@ -502,6 +541,8 @@ PlaceholderAPI yüklüyken:
 /papi parse me %malinesscore_warp_list%
 /papi parse me %malinesscore_pwarp_count%
 /papi parse me %malinesscore_pwarp_list%
+/papi parse me %malinesscore_balance_formatted%
+/papi parse me %malinesscore_currency_tl_name%
 ```
 
 `/papi list` çıktısında `malinesscore` görünmelidir.
@@ -900,7 +941,7 @@ Ana komut yalnızca **`/pwarp`** (Türkçe kök alias yok).
 - Home/warp ile aynı warmup koruması; çapraz engelleme (iptal yok)
 - Sahip kendi pwarpına giderse ziyaret sayacı artmaz
 - Liste hover: sahip, konum, oluşturulma, ziyaret sayısı; **son ziyaret** yalnızca `pwarp.manage` izinlisinde
-- İleride GUI menü planlanıyor (şu an chat listesi)
+- İleride `/pwarp` listesi GUI menüye taşınacak (şu an chat listesi; demo: `/mngui pwarp`)
 
 #### Loglar
 
@@ -1013,6 +1054,147 @@ Config: `configs/vanish.yml` — Lang: `langs/vanish.yml`
 
 ---
 
+### GUI — Menü altyapısı
+
+YAML tabanlı menü sistemi. Warp/pwarp/home listelerine bağlama ileride eklenecek; şu an demo menüler ve ekonomi entegrasyonu mevcuttur.
+
+#### Genel kavramlar
+
+| Kavram | Açıklama |
+|--------|----------|
+| `player-inventory: locked` | Alt envanter, zırh ve offhand kilitli; yerden eşya alma serbest |
+| `player-inventory: allowed` | Oyuncu kendi envanterini kullanabilir; menü slotları yine korumalı |
+| `close-policy: normal` | Oyuncu menüyü kapatabilir |
+| `close-policy: mandatory` | Oyuncu kapatamaz; ölüm/çıkış sonrası yeniden açılır veya `/mngui release` gerekir |
+
+Desteklenen envanter tipleri: `CHEST` (9–54 slot), `HOPPER`, `DROPPER`, `DISPENSER`, `BARREL`, `SHULKER_BOX`, `ENDER_CHEST`.
+
+Menü item'ları **sanal**dır — tıklamada envantere geçmez (dup koruması). Çift tıklama koruması ve buton cooldown `configs/gui.yml` → `click-protection` altındadır.
+
+#### Komutlar (demo / test)
+
+| Komut | Açıklama |
+|-------|----------|
+| `/mngui list` | Yüklü menü id'lerini listeler |
+| `/mngui open <id>` | Belirtilen menüyü açar |
+| `/mngui pwarp` | Demo pwarp listesi menüsü |
+| `/mngui pwarp-empty` | Boş liste demo menüsü |
+| `/mngui mandatory` | Zorunlu (kapatılamaz) demo menüsü |
+| `/mngui locked` | Kilitli envanter overlay demo |
+| `/mngui allowed` | Serbest envanter overlay demo |
+| `/mngui hopper` / `/mngui dropper` | Küçük envanter tipi demoları |
+| `/mngui click-test` | Tıklama ve koruma test menüsü |
+| `/mngui economy` | Ekonomi aksiyonlu demo mağaza |
+| `/mngui reload-test` | Reload sonrası zorunlu menü davranışı testi |
+| `/mngui release [oyuncu]` | Zorunlu menüyü admin olarak serbest bırakır |
+
+#### Menü aksiyonları (YAML)
+
+| Aksiyon | Açıklama |
+|---------|----------|
+| `close` | Menüyü kapatır |
+| `noop` | Hiçbir şey yapmaz |
+| `command: <komut>` | Oyuncu adına komut çalıştırır |
+| `economy:withdraw:<miktar>` | TL çeker |
+| `economy:deposit:<miktar>` | TL ekler |
+| `economy:require:<miktar>` | Yeterli bakiye yoksa hata; varsa çeker |
+| `economy:require:<miktar>:then:<aksiyon>` | Zincirli ekonomi aksiyonu |
+
+Menü başına `economy-behavior` ile yetersiz bakiye / başarı / hata sonrası davranış (`close`, `stay`, `message`) ayarlanır. Title ve lore'da `{balance}` ile dahili placeholder; PlaceholderAPI parse desteklenir.
+
+#### Yapılandırma
+
+- Global: `configs/gui.yml` — kilitleme varsayılanları, tıklama koruması, ekonomi varsayılanları
+- Menü başına: `guis/<menu-id>.yml`
+- Lang: `langs/gui.yml`
+
+#### İzinler
+
+| İzin | Açıklama | Varsayılan |
+|------|----------|------------|
+| `maliness-core.mngui` | `/mngui` demo komutları | `op` |
+| `maliness-core.gui.demo-pwarp` | Demo pwarp menüleri | `op` |
+| `maliness-core.gui.demo-mandatory` | Zorunlu AFK demo | `op` |
+| `maliness-core.gui.demo-overlay` | Overlay demoları | `op` |
+| `maliness-core.gui.demo-types` | Huni/dropper demoları | `op` |
+| `maliness-core.gui.demo-click-test` | Tıklama test menüsü | `op` |
+| `maliness-core.gui.demo-economy` | Ekonomi demo menüleri | `op` |
+| `maliness-core.systems.manage.gui` | GUI sistemini açma/kapama | `op` |
+
+Test listesi: `TEST_CHECKLISTS/0.1.6.3.md`
+
+---
+
+### Economy — Yerel ekonomi
+
+MaliNess kendi **TL** ekonomisini yönetir ve Vault'a **MaliNess Economy** adıyla kayıt olur. EssentialsX economy gerekmez. Vault jar yüklü değilse veya `integrations.vault.enabled: false` ise ekonomi sistemi devre dışı kalır.
+
+#### Para birimleri
+
+| ID | Ad | Kullanım |
+|----|-----|----------|
+| `tl` | TL (₺) | Birincil para; `/pay`, Vault, GUI withdraw/deposit |
+| `cosmetic` | Jeton (✦) | Altyapı hazır; yalnızca admin `/eco` ve PAPI — oyuncu transferi yok |
+
+Bakiyeler `data/economy/accounts/<uuid>.yml` dosyalarında tutulur. Başlangıç bakiyesi varsayılan **0 TL** (`configs/economy.yml` → `starting-balance`).
+
+#### Komutlar (oyuncu)
+
+| Komut | Açıklama |
+|-------|----------|
+| `/pay <oyuncu> <miktar>` | Başka oyuncuya TL gönderir |
+| `/paragönder <oyuncu> <miktar>` | `/pay` ile aynı (Türkçe alias) |
+| `/para [oyuncu]` | Bakiyeni veya (yetkiliyse) başkasının bakiyesini gösterir |
+| `/bal`, `/balance`, `/bakiye` | `/para` alias'ları |
+| `/mn pay ...` | Alternatif komut |
+
+Transfer kuralları:
+
+- Min **0,01 TL**, max **10.000.000 TL**
+- **≥1.000.000 TL** transferlerde sohbet onayı (`/evet` / `/hayır`) — `pay.confirmation.enabled` ile kapatılabilir
+- Çevrimdışı oyuncuya gönderimde ek onay
+- Vergi config'te tanımlı; varsayılan **kapalı**
+
+#### Komutlar (admin)
+
+| Komut | Açıklama |
+|-------|----------|
+| `/eco give <oyuncu> <miktar> [para_birimi]` | Bakiye ekler |
+| `/eco take <oyuncu> <miktar> [para_birimi]` | Bakiye düşer |
+| `/eco set <oyuncu> <miktar> [para_birimi]` | Bakiyeyi ayarlar |
+| `/eco reset <oyuncu> [para_birimi]` | Bakiyeyi sıfırlar |
+| `/eco info <oyuncu> [para_birimi]` | Bakiye bilgisi |
+| `/eco server` | Sunucu (SERVER) hesabı bakiyesi |
+| `/mn eco ...` | Alternatif komut |
+
+#### Vault entegrasyonu
+
+- Provider adı: **MaliNess Economy**
+- Vault bank API desteklenmez
+- Diğer eklentiler Vault üzerinden TL bakiyesini okuyup yazabilir
+
+#### Loglar
+
+| Dosya | İçerik |
+|-------|--------|
+| `logs/economy/transactions-YYYY-MM-DD.log` | Transfer ve admin işlemleri |
+
+#### İzinler
+
+| İzin | Açıklama | Varsayılan |
+|------|----------|------------|
+| `maliness-core.economy.pay` | `/pay` kullanımı | `true` |
+| `maliness-core.economy.balance` | Kendi bakiyesini görme | `true` |
+| `maliness-core.economy.balance.others` | Başkasının bakiyesini görme | `op` |
+| `maliness-core.economy.admin` | `/eco` ve `/mn eco` | `op` |
+| `maliness-core.systems.manage.economy` | Ekonomi sistemini açma/kapama | `op` |
+
+Config: `configs/economy.yml` — Lang: `langs/economy.yml` (`lang-version` destekli)
+
+Test listesi: `TEST_CHECKLISTS/0.1.6.4.md`
+
+---
+
 ## Türkçe komut özeti
 
 | İngilizce | Türkçe / alternatif |
@@ -1035,6 +1217,8 @@ Config: `configs/vanish.yml` — Lang: `langs/vanish.yml`
 | `/vanish` | `/gizlen` |
 | `/warp` | `/warps`, `/warplar` |
 | `/pwarp` | `/pwarps` |
+| `/pay` | `/paragönder` |
+| `/para` | `/bal`, `/balance`, `/bakiye` |
 | — | `/evet`, `/hayır`, `/iptal` |
 
 Hassas ayar sistemlerinde alt komutlar: `set`/`ayarla`, `add`/`ekle`, `remove`/`azalt`
@@ -1063,11 +1247,15 @@ src/main/java/com/mertaliakcay/malinesscore/
 ├── MaliNessCore.java
 ├── command/
 │   ├── MalinessCommand.java    # /mn delegasyon + tab
-│   └── MnCommandHelp.java      # sayfalı yardım
+│   ├── MnCommandHelp.java      # sayfalı yardım
+│   ├── MnguiCommand.java       # /mngui demo komutları
+│   └── MnguiBasicCommand.java
 ├── confirmation/               # /evet /hayır /iptal
 ├── teleport/                   # TeleportService, TeleportListener, SafeTeleport
+├── gui/                        # MenuService, MenuRegistry, MenuListener, YAML loader
 ├── integrations/
-│   └── placeholderapi/         # Expansion, resolver, ayarlar
+│   ├── placeholderapi/         # Expansion, resolver, ayarlar
+│   └── vault/                  # VaultIntegration, MaliNessVaultEconomy
 ├── messages/                   # MessageService, MessageType
 ├── systems/
 │   ├── AbstractGameSystem.java
@@ -1085,17 +1273,20 @@ src/main/java/com/mertaliakcay/malinesscore/
 │   ├── pwarp/                  # PwarpService, PwarpStorage, PwarpListHelp, ...
 │   ├── playtime/               # PlaytimeService, PlaytimeStorage, PlaytimeTracker
 │   ├── broadcast/              # BroadcastCommand
-│   └── vanish/                 # VanishService, ProtocolLibVanishEnhancer, VanishListener
+│   ├── vanish/                 # VanishService, ProtocolLibVanishEnhancer, VanishListener
+│   ├── economy/                # EconomyService, Vault provider, pay/para/eco komutları
+│   └── gui/                    # GuiSystem → MenuService entegrasyonu
 └── util/                       # Config, lang, renk, tab tamamlama, MaliNessColorUtil
 
-TEST_CHECKLISTS/                # Sürüm bazlı test listeleri (ör. 0.1.6.md, 0.1.6.2.md)
+TEST_CHECKLISTS/                # Sürüm bazlı test listeleri (ör. 0.1.6.md, 0.1.6.3.md, 0.1.6.4.md)
 
 src/main/resources/
 ├── config.yml
 ├── plugin.yml
 ├── pluginlang.yml
 ├── configs/
-└── langs/
+├── langs/
+└── guis/
 ```
 
 ## Bilinen sınırlamalar
