@@ -108,7 +108,12 @@ public final class MenuService {
             session.setFilterMode(snapshot.filterMode());
         }
 
-        String titleText = MenuItemBuilder.applyPlaceholdersPlain(definition.getTitle(), session);
+        String titleText = MenuItemBuilder.applyPlaceholdersPlain(
+                definition.getTitle(),
+                session,
+                player,
+                plugin
+        );
         Inventory inventory = createInventory(holder, definition, ColorUtil.colorize(titleText));
         session.setInventory(inventory);
 
@@ -209,7 +214,12 @@ public final class MenuService {
     }
 
     public void refreshView(Player player, MenuSession session) {
-        String titleText = MenuItemBuilder.applyPlaceholdersPlain(session.getDefinition().getTitle(), session);
+        String titleText = MenuItemBuilder.applyPlaceholdersPlain(
+                session.getDefinition().getTitle(),
+                session,
+                player,
+                plugin
+        );
         Inventory inventory = createInventory(session.getHolder(), session.getDefinition(), ColorUtil.colorize(titleText));
         session.setInventory(inventory);
         renderer.render(session);

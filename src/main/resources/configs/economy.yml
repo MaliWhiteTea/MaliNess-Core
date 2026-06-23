@@ -1,0 +1,44 @@
+enabled: true
+
+starting-balance: 0
+
+logging:
+  transactions: true
+
+currencies:
+  tl:
+    id: tl
+    display-name: "TL"
+    symbol: "₺"
+    format: "{amount} {name}"
+    decimal-places: 2
+    vault-primary: true
+    player-to-player: true
+    default-balance: 0
+    max-balance: 1000000000
+  cosmetic:
+    id: cosmetic
+    display-name: "Jeton"
+    symbol: "✦"
+    format: "{amount} {name}"
+    decimal-places: 2
+    vault-primary: false
+    player-to-player: false
+    default-balance: 0
+    max-balance: 1000000000
+
+pay:
+  min-amount: 0.01
+  max-amount: 10000000
+  confirmation:
+    enabled: true
+    threshold: 1000000
+  confirmation-threshold: 1000000
+  tax:
+    enabled: false
+    percent: 0
+    flat: 0
+
+limits:
+  min-amount: 0.01
+  max-per-action: 1000000

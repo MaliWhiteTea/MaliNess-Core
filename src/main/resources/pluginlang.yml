@@ -2,7 +2,7 @@
 # Renkler ve prefix config.yml dosyasından otomatik uygulanır.
 # lang-version yükselince jar varsayılanları mevcut dosyaya yazılır (/mn reload).
 
-lang-version: 5
+lang-version: 8
 
 plugin-enabled:
   type: success
@@ -344,7 +344,7 @@ systems-info-status-active:
   text: "Durum: Aktif"
 
 systems-info-status-inactive:
-  type: warning
+  type: error
   text: "Durum: Kapalı"
 
 systems-info-description:
@@ -505,6 +505,24 @@ systems-desc-pwarp:
 systems-commands-pwarp:
   text: "/pwarp, /pwarps"
 
+systems-display-gui:
+  text: "GUI"
+
+systems-desc-gui:
+  text: "Menü altyapısı, zorunlu ekranlar ve demo arayüzleri."
+
+systems-commands-gui:
+  text: "/mngui"
+
+systems-display-economy:
+  text: "Ekonomi"
+
+systems-desc-economy:
+  text: "MaliNess yerel ekonomi motoru ve Vault provider."
+
+systems-commands-economy:
+  text: "/pay, /para, /eco"
+
 mn-help-desc-playtime:
   text: "Oynama süresini görüntüler."
 
@@ -525,6 +543,15 @@ mn-help-desc-pwarp:
 
 mn-help-desc-pwarps:
   text: "Oyuncu warplarını listeler."
+
+mn-help-desc-pay:
+  text: "Başka bir oyuncuya para gönderir."
+
+mn-help-desc-balance:
+  text: "Bakiyeni veya başka oyuncunun bakiyesini görüntüler."
+
+mn-help-desc-eco:
+  text: "Ekonomi yönetimi: ver, al, ayarla, sıfırla, bilgi."
 
 mn-help-desc-systems:
   text: "Oyun sistemlerini listeler ve yönetir."

@@ -3,6 +3,7 @@ package com.mertaliakcay.malinesscore.gui;
 import com.mertaliakcay.malinesscore.MaliNessCore;
 import com.mertaliakcay.malinesscore.gui.holder.MaliNessMenuHolder;
 import com.mertaliakcay.malinesscore.gui.model.ClosePolicy;
+import com.mertaliakcay.malinesscore.gui.model.MenuClickProtectionSettings;
 import com.mertaliakcay.malinesscore.gui.model.MenuClickType;
 import com.mertaliakcay.malinesscore.gui.model.MenuItemDefinition;
 import com.mertaliakcay.malinesscore.gui.model.MenuSession;
@@ -28,16 +29,30 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
 public final class MenuListener implements Listener {
 
     private final MaliNessCore plugin;
     private final MenuService menuService;
+    private final MenuRegistry menuRegistry;
     private final MenuActionExecutor actionExecutor;
     private final SystemLang lang;
+    private final Map<UUID, Long> lastClickAt = new ConcurrentHashMap<>();
+    private final Map<String, Long> lastSlotClickAt = new ConcurrentHashMap<>();
 
-    public MenuListener(MaliNessCore plugin, MenuService menuService, MenuActionExecutor actionExecutor, SystemLang lang) {
+    public MenuListener(
+            MaliNessCore plugin,
+            MenuService menuService,
+            MenuRegistry menuRegistry,
+            MenuActionExecutor actionExecutor,
+            SystemLang lang
+    ) {
         this.plugin = plugin;
         this.menuService = menuService;
+        this.menuRegistry = menuRegistry;
         this.actionExecutor = actionExecutor;
         this.lang = lang;
     }
@@ -77,6 +92,10 @@ public final class MenuListener implements Listener {
             return;
         }
 
+        if (shouldIgnoreRapidClick(player, rawSlot)) {
+            return;
+        }
+
         MenuClickType clickType = MenuClickType.fromBukkit(event.getClick(), event.getHotbarButton()).orElse(null);
         if (clickType == null) {
             return;
@@ -95,6 +114,29 @@ public final class MenuListener implements Listener {
                 return;
             }
         }
+    }
+
+    private boolean shouldIgnoreRapidClick(Player player, int slot) {
+        MenuClickProtectionSettings protection = menuRegistry.getClickProtection();
+        long now = System.currentTimeMillis();
+
+        if (protection.isDoubleClickGuard()) {
+            Long previous = lastClickAt.get(player.getUniqueId());
+            if (previous != null && now - previous < 100L) {
+                return true;
+            }
+            lastClickAt.put(player.getUniqueId(), now);
+        }
+
+        if (protection.isButtonCooldownEnabled()) {
+            String key = player.getUniqueId() + ":" + slot;
+            Long previousSlot = lastSlotClickAt.get(key);
+            if (previousSlot != null && now - previousSlot < protection.getButtonCooldownMillis()) {
+                return true;
+            }
+            lastSlotClickAt.put(key, now);
+        }
+        return false;
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)

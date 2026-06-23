@@ -3,6 +3,7 @@ package com.mertaliakcay.malinesscore.gui;
 import com.mertaliakcay.malinesscore.MaliNessCore;
 import com.mertaliakcay.malinesscore.gui.content.MenuContentProvider;
 import com.mertaliakcay.malinesscore.gui.loader.MenuYamlLoader;
+import com.mertaliakcay.malinesscore.gui.model.MenuClickProtectionSettings;
 import com.mertaliakcay.malinesscore.gui.model.MenuDefinition;
 import com.mertaliakcay.malinesscore.util.YamlMerger;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -75,6 +76,18 @@ public final class MenuRegistry {
         return globalConfig != null && globalConfig.getBoolean("logging.mandatory-release", true);
     }
 
+    public MenuClickProtectionSettings getClickProtection() {
+        if (globalConfig == null) {
+            return new MenuClickProtectionSettings(true, true, 350L);
+        }
+        var section = globalConfig.getConfigurationSection("click-protection");
+        boolean doubleClickGuard = section == null || section.getBoolean("double-click-guard", true);
+        var cooldown = section != null ? section.getConfigurationSection("button-cooldown") : null;
+        boolean cooldownEnabled = cooldown == null || cooldown.getBoolean("enabled", true);
+        long duration = cooldown != null ? cooldown.getLong("duration-ms", 350L) : 350L;
+        return new MenuClickProtectionSettings(doubleClickGuard, cooldownEnabled, duration);
+    }
+
     private void loadGlobalConfig() {
         File configFolder = new File(plugin.getDataFolder(), "configs");
         if (!configFolder.exists()) {
@@ -118,7 +131,9 @@ public final class MenuRegistry {
                 "guis/demo-overlay-allowed.yml",
                 "guis/demo-hopper.yml",
                 "guis/demo-dropper.yml",
-                "guis/demo-click-test.yml"
+                "guis/demo-click-test.yml",
+                "guis/demo-economy-shop.yml",
+                "guis/demo-economy-hopper.yml"
         );
     }
 

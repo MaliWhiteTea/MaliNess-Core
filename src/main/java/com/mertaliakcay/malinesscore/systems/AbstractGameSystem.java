@@ -160,6 +160,16 @@ public abstract class AbstractGameSystem implements GameSystem {
         return active;
     }
 
+    /**
+     * Config koşulları sağlandığında sistemi etkinleştirir (ör. Vault geç yüklendiğinde).
+     */
+    protected final void activateIfInactive() {
+        if (!active && isConfigEnabled()) {
+            active = true;
+            onActivate();
+        }
+    }
+
     public SystemLang getLang() {
         return lang;
     }

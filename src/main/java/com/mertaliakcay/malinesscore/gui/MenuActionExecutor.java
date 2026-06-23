@@ -1,5 +1,6 @@
 package com.mertaliakcay.malinesscore.gui;
 
+import com.mertaliakcay.malinesscore.MaliNessCore;
 import com.mertaliakcay.malinesscore.gui.content.MenuContentProvider;
 import com.mertaliakcay.malinesscore.gui.model.MenuClickType;
 import com.mertaliakcay.malinesscore.gui.model.MenuItemDefinition;
@@ -13,12 +14,25 @@ public final class MenuActionExecutor {
     private final MenuRenderer renderer;
     private final MenuRegistry registry;
     private final SystemLang lang;
+    private final EconomyGuiActionHandler economyGuiActionHandler;
 
-    public MenuActionExecutor(MenuService menuService, MenuRenderer renderer, MenuRegistry registry, SystemLang lang) {
+    public MenuActionExecutor(
+            MaliNessCore plugin,
+            MenuService menuService,
+            MenuRenderer renderer,
+            MenuRegistry registry,
+            SystemLang lang
+    ) {
         this.menuService = menuService;
         this.renderer = renderer;
         this.registry = registry;
         this.lang = lang;
+        this.economyGuiActionHandler = new EconomyGuiActionHandler(
+                plugin,
+                menuService,
+                (player, session, follow) -> execute(player, session, follow, null),
+                new SystemLang(plugin, "economy")
+        );
     }
 
     public void execute(Player player, MenuSession session, String action, MenuClickType clickType) {
@@ -27,6 +41,10 @@ public final class MenuActionExecutor {
         }
 
         String normalized = action.toLowerCase();
+        if (normalized.startsWith("economy:")) {
+            economyGuiActionHandler.handle(player, session, action);
+            return;
+        }
         if (normalized.startsWith("open-menu:")) {
             String targetId = action.substring("open-menu:".length()).trim();
             menuService.open(player, targetId);

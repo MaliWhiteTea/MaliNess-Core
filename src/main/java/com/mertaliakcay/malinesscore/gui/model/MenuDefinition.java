@@ -27,6 +27,7 @@ public final class MenuDefinition {
     private final List<Integer> contentSlots;
     private final String contentProviderId;
     private final Map<String, MenuItemDefinition> items;
+    private final EconomyMenuBehavior economyBehavior;
 
     public MenuDefinition(
             String id,
@@ -47,7 +48,8 @@ public final class MenuDefinition {
             String fillerName,
             List<Integer> contentSlots,
             String contentProviderId,
-            Map<String, MenuItemDefinition> items
+            Map<String, MenuItemDefinition> items,
+            EconomyMenuBehavior economyBehavior
     ) {
         this.id = id;
         this.inventoryType = inventoryType;
@@ -68,6 +70,7 @@ public final class MenuDefinition {
         this.contentSlots = List.copyOf(contentSlots);
         this.contentProviderId = contentProviderId;
         this.items = Map.copyOf(items);
+        this.economyBehavior = economyBehavior;
     }
 
     public String getId() {
@@ -151,5 +154,9 @@ public final class MenuDefinition {
 
     public Map<String, MenuItemDefinition> getItems() {
         return items;
+    }
+
+    public EconomyMenuBehavior getEconomyBehavior() {
+        return economyBehavior;
     }
 }

@@ -30,6 +30,8 @@ import com.mertaliakcay.malinesscore.systems.saturation.SaturationSystem;
 import com.mertaliakcay.malinesscore.systems.AbstractGameSystem;
 import com.mertaliakcay.malinesscore.systems.control.SystemControlService;
 import com.mertaliakcay.malinesscore.systems.control.SystemMnCommand;
+import com.mertaliakcay.malinesscore.systems.economy.EconomySystem;
+import com.mertaliakcay.malinesscore.systems.economy.command.EconomyMnCommand;
 import com.mertaliakcay.malinesscore.util.CommandSuggestions;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -72,6 +74,8 @@ public final class MalinessCommand implements CommandExecutor, TabCompleter {
     private WarpMnCommand warpMnCommand;
     private PwarpSystem pwarpSystem;
     private PwarpMnCommand pwarpMnCommand;
+    private EconomySystem economySystem;
+    private EconomyMnCommand economyMnCommand;
     private SystemMnCommand systemMnCommand;
     private SystemControlService systemControlService;
 
@@ -207,6 +211,16 @@ public final class MalinessCommand implements CommandExecutor, TabCompleter {
     public void clearPwarp() {
         this.pwarpSystem = null;
         this.pwarpMnCommand = null;
+    }
+
+    public void setEconomy(EconomySystem economySystem, EconomyMnCommand economyMnCommand) {
+        this.economySystem = economySystem;
+        this.economyMnCommand = economyMnCommand;
+    }
+
+    public void clearEconomy() {
+        this.economySystem = null;
+        this.economyMnCommand = null;
     }
 
     public void setSystemControl(SystemMnCommand systemMnCommand, SystemControlService systemControlService) {
@@ -360,6 +374,14 @@ public final class MalinessCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
+        if (EconomyMnCommand.isEcoSubcommand(args[0])) {
+            if (!dispatchSystem(sender, economySystem, args[0])) {
+                return true;
+            }
+            economyMnCommand.handle(sender, Arrays.copyOfRange(args, 1, args.length));
+            return true;
+        }
+
         if (SystemMnCommand.isSystemsSubcommand(args[0])) {
             if (!isSystemsListAvailable(sender)) {
                 plugin.getPluginLang().send(sender, "systems-no-list-permission");
@@ -470,6 +492,9 @@ public final class MalinessCommand implements CommandExecutor, TabCompleter {
         if (isPwarpAvailable(sender)) {
             subcommands.add("pwarp");
             subcommands.add("pwarps");
+        }
+        if (isEconomyAdminAvailable(sender)) {
+            subcommands.add("eco");
         }
         if (isSystemsListAvailable(sender)) {
             subcommands.add("systems");
@@ -622,6 +647,13 @@ public final class MalinessCommand implements CommandExecutor, TabCompleter {
                 return Collections.emptyList();
             }
             return nullableList(pwarpMnCommand.suggestList(sender, nestedArgs));
+        }
+
+        if (EconomyMnCommand.isEcoSubcommand(subcommand)) {
+            if (!isEconomyAdminAvailable(sender) || economyMnCommand == null) {
+                return Collections.emptyList();
+            }
+            return nullableList(economyMnCommand.suggest(sender, nestedArgs));
         }
 
         if (SystemMnCommand.isSystemsSubcommand(subcommand)) {
@@ -789,6 +821,22 @@ public final class MalinessCommand implements CommandExecutor, TabCompleter {
                 || sender.hasPermission(PwarpSystem.PERM_LIST)
                 || sender.hasPermission(PwarpSystem.PERM_EDIT)
                 || sender.hasPermission(PwarpSystem.PERM_MANAGE));
+    }
+
+    boolean isEconomyPayAvailable(CommandSender sender) {
+        return economySystem != null && economySystem.isEnabled()
+                && sender.hasPermission(EconomySystem.PERM_PAY);
+    }
+
+    boolean isEconomyBalanceAvailable(CommandSender sender) {
+        return economySystem != null && economySystem.isEnabled()
+                && (sender.hasPermission(EconomySystem.PERM_BALANCE)
+                || sender.hasPermission(EconomySystem.PERM_BALANCE_OTHERS));
+    }
+
+    boolean isEconomyAdminAvailable(CommandSender sender) {
+        return economySystem != null && economySystem.isEnabled()
+                && sender.hasPermission(EconomySystem.PERM_ADMIN);
     }
 
     boolean isSystemsListAvailable(CommandSender sender) {

@@ -33,9 +33,9 @@ public final class GuiSystem extends AbstractGameSystem {
         if (menuRegistry == null) {
             menuRegistry = new MenuRegistry(plugin);
             MandatorySessionStore mandatorySessionStore = new MandatorySessionStore();
-            MenuRenderer renderer = new MenuRenderer(menuRegistry);
+            MenuRenderer renderer = new MenuRenderer(plugin, menuRegistry);
             menuService = new MenuService(plugin, menuRegistry, renderer, mandatorySessionStore, lang);
-            actionExecutor = new MenuActionExecutor(menuService, renderer, menuRegistry, lang);
+            actionExecutor = new MenuActionExecutor(plugin, menuService, renderer, menuRegistry, lang);
             menuService.setActionExecutor(actionExecutor);
 
             menuRegistry.registerContentProvider(new DemoPwarpContentProvider(false));
@@ -60,7 +60,7 @@ public final class GuiSystem extends AbstractGameSystem {
 
     @Override
     protected void onActivate() {
-        registerListener(new MenuListener(plugin, menuService, actionExecutor, lang));
+        registerListener(new MenuListener(plugin, menuService, menuRegistry, actionExecutor, lang));
         menuService.finishReload();
     }
 

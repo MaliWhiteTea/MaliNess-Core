@@ -6,6 +6,17 @@ pickup-while-menu-open: true
 logging:
   mandatory-release: true
 
+click-protection:
+  double-click-guard: true
+  button-cooldown:
+    enabled: true
+    duration-ms: 350
+
+economy-defaults:
+  on-insufficient: close
+  on-success: close
+  on-error: close
+
 defaults:
   player-inventory: locked
   close-policy: normal

@@ -1,0 +1,71 @@
+id: demo-economy-shop
+type: CHEST
+rows: 3
+title: "&6Ekonomi Demo &7| &f{balance}"
+permission: maliness-core.gui.demo-economy
+content-provider: demo-pwarp-empty
+
+player-inventory: locked
+close-policy: normal
+
+economy-behavior:
+  on-insufficient: stay
+  on-success: close
+  on-error: stay
+
+layout:
+  content-slots: []
+
+items:
+  balance_info:
+    slot: 4
+    material: GOLD_INGOT
+    name: "&eBakiyen"
+    lore:
+      - "&7{balance}"
+      - "&7PAPI: &f%malinesscore_balance_formatted%"
+
+  pay_50:
+    slot: 11
+    material: EMERALD
+    name: "&a50 TL Öde"
+    lore:
+      - "&7Menüden 50 TL kesilir"
+    clicks:
+      left: economy:withdraw:50
+
+  pay_500:
+    slot: 12
+    material: DIAMOND
+    name: "&b500 TL Öde"
+    lore:
+      - "&7Yetersiz bakiyede menü kalır"
+    clicks:
+      left: economy:withdraw:500
+
+  deposit_100:
+    slot: 14
+    material: SUNFLOWER
+    name: "&6+100 TL (test)"
+    lore:
+      - "&7Demo para ekleme"
+    clicks:
+      left: economy:deposit:100
+
+  require_chain:
+    slot: 15
+    material: HOPPER
+    name: "&dRequire + Huni"
+    lore:
+      - "&750 TL kesilir, sonra huni açılır"
+    clicks:
+      left: economy:require:50:then:open-menu:demo-economy-hopper
+
+  insufficient_test:
+    slot: 22
+    material: BARRIER
+    name: "&c1.000.000 TL"
+    lore:
+      - "&7Kasıtlı yetersiz bakiye testi"
+    clicks:
+      left: economy:withdraw:1000000

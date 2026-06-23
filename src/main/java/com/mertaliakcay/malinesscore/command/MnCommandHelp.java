@@ -140,6 +140,15 @@ final class MnCommandHelp {
             entries.add(entry("pwarp", "/pwarp", "/mn pwarp", "/mn pwarp [pwarp|sayfa]", "/pwarp [pwarp|sayfa]"));
             entries.add(entry("pwarps", "/pwarps", "/mn pwarps", "/mn pwarps [sayfa]", "/pwarps [sayfa]"));
         }
+        if (commands.isEconomyPayAvailable(sender)) {
+            entries.add(entry("pay", "/pay", "/pay", "/pay <oyuncu> <miktar>", "/pay | /paragönder | /paragonder"));
+        }
+        if (commands.isEconomyBalanceAvailable(sender)) {
+            entries.add(entry("balance", "/balance", "/balance", "/balance [oyuncu]", "/para | /bal | /bakiye"));
+        }
+        if (commands.isEconomyAdminAvailable(sender)) {
+            entries.add(entry("eco", "/eco", "/eco", "/eco <give|take|set|reset|info|server> ...", "/mn eco ..."));
+        }
         if (commands.isSystemsListAvailable(sender)) {
             entries.add(entry("systems", "/systems", "/mn systems", "/mn systems [sayfa]", "/systems | /sistemler"));
         }

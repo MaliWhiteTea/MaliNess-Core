@@ -3,7 +3,9 @@ package com.mertaliakcay.malinesscore.gui.loader;
 import com.mertaliakcay.malinesscore.gui.model.ClosePolicy;
 import com.mertaliakcay.malinesscore.gui.model.DynamicCountType;
 import com.mertaliakcay.malinesscore.gui.model.MenuClickType;
+import com.mertaliakcay.malinesscore.gui.model.EconomyMenuBehavior;
 import com.mertaliakcay.malinesscore.gui.model.MenuDefinition;
+import com.mertaliakcay.malinesscore.gui.model.EconomyOutcome;
 import com.mertaliakcay.malinesscore.gui.model.MenuItemDefinition;
 import com.mertaliakcay.malinesscore.gui.model.PlayerInventoryPolicy;
 import com.mertaliakcay.malinesscore.gui.model.VisibilityRule;
@@ -87,6 +89,7 @@ public final class MenuYamlLoader {
 
         String contentProvider = yaml.getString("content-provider");
         Map<String, MenuItemDefinition> items = loadItems(yaml.getConfigurationSection("items"));
+        EconomyMenuBehavior economyBehavior = loadEconomyBehavior(yaml);
 
         return new MenuDefinition(
                 id,
@@ -107,7 +110,35 @@ public final class MenuYamlLoader {
                 fillerName,
                 contentSlots,
                 contentProvider,
-                items
+                items,
+                economyBehavior
+        );
+    }
+
+    private EconomyMenuBehavior loadEconomyBehavior(YamlConfiguration yaml) {
+        ConfigurationSection defaults = globalDefaults.getConfigurationSection("economy-defaults");
+        EconomyOutcome defaultInsufficient = EconomyOutcome.fromString(
+                defaults != null ? defaults.getString("on-insufficient") : null,
+                EconomyOutcome.CLOSE
+        );
+        EconomyOutcome defaultSuccess = EconomyOutcome.fromString(
+                defaults != null ? defaults.getString("on-success") : null,
+                EconomyOutcome.CLOSE
+        );
+        EconomyOutcome defaultError = EconomyOutcome.fromString(
+                defaults != null ? defaults.getString("on-error") : null,
+                EconomyOutcome.CLOSE
+        );
+
+        ConfigurationSection section = yaml.getConfigurationSection("economy-behavior");
+        if (section == null) {
+            return new EconomyMenuBehavior(defaultInsufficient, defaultSuccess, defaultError);
+        }
+
+        return new EconomyMenuBehavior(
+                EconomyOutcome.fromString(section.getString("on-insufficient"), defaultInsufficient),
+                EconomyOutcome.fromString(section.getString("on-success"), defaultSuccess),
+                EconomyOutcome.fromString(section.getString("on-error"), defaultError)
         );
     }
 
